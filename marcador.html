@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marcador Fútbol</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;900&family=Barlow:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: transparent;
+    font-family: 'Barlow Condensed', 'Arial Black', 'Impact', sans-serif;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+
+  :root {
+    --gold: #FFD700;
+    --dark: #0a0a0f;
+    --glass: rgba(8, 8, 20, 0.88);
+    --accent: #00e5ff;
+    --green-field: #1a472a;
+  }
+
+  .scoreboard {
+    position: absolute;
+    top: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0;
+    filter: drop-shadow(0 4px 24px rgba(0,0,0,0.7));
+    animation: slideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  @keyframes slideDown {
+    from { transform: translateX(-50%) translateY(-80px); opacity: 0; }
+    to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
+  }
+
+  .team-block {
+    display: flex;
+    align-items: center;
+    background: rgba(8, 8, 20, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.10);
+    padding: 10px 22px;
+    gap: 12px;
+    min-width: 220px;
+  }
+
+  .team-block.home {
+    border-radius: 6px 0 0 6px;
+    border-right: none;
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
+  .team-block.away {
+    border-radius: 0 6px 6px 0;
+    border-left: none;
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+
+  .team-logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .team-name {
+    font-size: 20px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  }
+
+  .score-center {
+    background: var(--dark);
+    border-top: 2px solid var(--gold);
+    border-bottom: 2px solid var(--gold);
+    padding: 6px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 130px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .score-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .score-num {
+    font-size: 56px;
+    font-weight: 900;
+    color: #ffffff;
+    line-height: 1;
+    min-width: 50px;
+    text-align: center;
+    text-shadow: 0 0 24px rgba(255,213,0,0.5);
+    will-change: transform;
+    letter-spacing: -1px;
+  }
+
+  .score-num.scored {
+    animation: scorePop 0.6s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  @keyframes scorePop {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.7); filter: drop-shadow(0 0 20px var(--gold)); }
+    70%  { transform: scale(0.9); }
+    100% { transform: scale(1);   filter: none; }
+  }
+
+  .score-sep {
+    font-size: 40px;
+    color: rgba(255,255,255,0.3);
+    font-weight: 300;
+    line-height: 1;
+  }
+
+  /* Partículas de gol */
+  .particle {
+    position: absolute;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--gold);
+    pointer-events: none;
+    animation: particleFly var(--dur, 1.2s) ease-out forwards;
+    will-change: transform, opacity;
+  }
+  .particle.cyan { background: var(--accent); }
+  .particle.white { background: #fff; width: 4px; height: 4px; }
+  @keyframes particleFly {
+    0%   { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx,0px), var(--ty,-80px)) scale(0); opacity: 0; }
+  }
+
+  /* Punto pulsante en reloj cuando corre */
+  .clock-running-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #ff3b3b;
+    display: inline-block;
+    margin-right: 6px;
+    vertical-align: middle;
+    animation: dotBlink 1s ease-in-out infinite;
+    will-change: opacity;
+  }
+  @keyframes dotBlink { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+  .match-time {
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  /* ---- Tiempo de juego (esquina superior izq) ---- */
+  @keyframes slideDownLeft {
+    from { transform: translateY(-80px); opacity: 0; }
+    to   { transform: translateY(0);     opacity: 1; }
+  }
+
+  .game-clock {
+    position: absolute;
+    top: 28px;
+    left: 32px;
+    background: rgba(8, 8, 20, 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-top: 2px solid var(--accent);
+    border-radius: 6px;
+    padding: 8px 18px;
+    animation: slideDownLeft 0.6s 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  .clock-label {
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .clock-value {
+    font-size: 30px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 1px;
+    line-height: 1.1;
+  }
+
+  .half-badge {
+    font-size: 10px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 1px;
+  }
+
+  /* ---- Banner de gol ---- */
+  .goal-banner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+    border: 2px solid var(--gold);
+    border-radius: 12px;
+    padding: 24px 60px;
+    text-align: center;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    filter: drop-shadow(0 8px 40px rgba(255,213,0,0.4));
+  }
+
+  .goal-banner.show {
+    display: flex;
+    animation: goalPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+               goalFade 0.5s ease 3.5s forwards;
+  }
+
+  @keyframes goalPop {
+    to { transform: translate(-50%, -50%) scale(1); }
+  }
+  @keyframes goalFade {
+    to { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+  }
+
+  .goal-label {
+    font-size: 72px;
+    font-weight: 900;
+    color: var(--gold);
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    text-shadow: 0 0 40px rgba(255,213,0,0.6);
+    line-height: 1;
+  }
+
+  .goal-scorer {
+    font-size: 22px;
+    color: #fff;
+    letter-spacing: 2px;
+    margin-top: 6px;
+    opacity: 0.9;
+  }
+
+  .goal-minute {
+    font-size: 14px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    margin-top: 4px;
+  }
+
+  /* ---- Controles (solo visibles fuera de OBS para edición) ---- */
+  .controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  body:hover .controls { opacity: 1; }
+
+  .ctrl-btn {
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+  .ctrl-btn:hover { background: rgba(255,213,0,0.2); border-color: var(--gold); }
+
+  /* ---- Tiempo de descuento ---- */
+  .added-time {
+    position: absolute;
+    top: 102px;
+    left: 32px;
+    background: var(--dark);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-top: 2px solid var(--gold);
+    border-radius: 6px;
+    padding: 4px 14px;
+    backdrop-filter: blur(12px);
+    display: none;
+    animation: addedIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+               addedOut 0.4s ease 7.6s both;
+  }
+  .added-time.show { display: block; }
+  .added-time-value {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--gold);
+    letter-spacing: 1px;
+    text-shadow: 0 0 16px rgba(255,213,0,0.5);
+  }
+  @keyframes addedIn  { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
+  @keyframes addedOut { to   { opacity: 0; transform: scale(0.8); } }
+</style>
+</head>
+<body>
+
+<!-- MARCADOR PRINCIPAL -->
+<div class="scoreboard">
+  <div class="team-block home">
+    <span class="team-name" id="home-name">LOCAL</span>
+    <div class="team-logo" id="home-logo">⚽</div>
+  </div>
+
+  <div class="score-center">
+    <div class="score-display">
+      <span class="score-num" id="home-score">0</span>
+      <span class="score-sep">–</span>
+      <span class="score-num" id="away-score">0</span>
+    </div>
+    <div class="match-time" id="match-status">EN VIVO</div>
+  </div>
+
+  <div class="team-block away">
+    <div class="team-logo" id="away-logo">⚽</div>
+    <span class="team-name" id="away-name">VISITANTE</span>
+  </div>
+</div>
+
+<!-- RELOJ -->
+<div class="game-clock">
+  <div class="clock-label">Tiempo</div>
+  <div class="clock-value" id="clock">00:00</div>
+  <div class="half-badge" id="half">1er Tiempo</div>
+</div>
+
+<!-- TIEMPO DE DESCUENTO -->
+<div class="added-time" id="added-time">
+  <div class="added-time-value" id="added-time-value">+3'</div>
+</div>
+
+<!-- BANNER GOL -->
+<div class="goal-banner" id="goal-banner">
+  <div class="goal-label">¡GOL!</div>
+  <div class="goal-scorer" id="goal-scorer">Jugador</div>
+  <div class="goal-minute" id="goal-minute">• 45'</div>
+</div>
+
+<!-- CONTROLES INTERACTIVOS -->
+<div class="controls">
+  <button class="ctrl-btn" onclick="goalHome()">⚽ Gol Local</button>
+  <button class="ctrl-btn" onclick="goalAway()">⚽ Gol Visitante</button>
+  <button class="ctrl-btn" onclick="toggleClock()">⏱ Reloj</button>
+  <button class="ctrl-btn" onclick="nextHalf()">➡ 2do Tiempo</button>
+</div>
+
+<script>
+  // ── Estado del partido ──
+  const state = {
+    homeScore: 0,
+    awayScore: 0,
+    minutes: 0,
+    seconds: 0,
+    running: false,
+    half: 1,
+    clockInterval: null
+  };
+
+  // ── Reloj (rAF-based, single loop guard) ──
+  let _lastTick = 0;
+  let _rafId = null;
+
+  function _rafTick(ts) {
+    if (!state.running) { _rafId = null; return; }
+    if (ts - _lastTick >= 1000) {
+      _lastTick = ts;
+      state.seconds++;
+      if (state.seconds >= 60) { state.seconds = 0; state.minutes++; }
+      const mm = String(state.minutes).padStart(2, '0');
+      const ss = String(state.seconds).padStart(2, '0');
+      document.getElementById('clock').textContent = `${mm}:${ss}`;
+      document.getElementById('match-status').textContent =
+        state.minutes >= 45 && state.half === 1 ? `${state.minutes}'+` :
+        state.minutes >= 90 ? `${state.minutes}'+` : `${state.minutes}'`;
+    }
+    _rafId = requestAnimationFrame(_rafTick);
+  }
+
+  function updateRunningDot() {
+    const label = document.querySelector('.clock-label');  // Fix: class not id
+    if (!label) return;
+    label.innerHTML = state.running
+      ? '<span class="clock-running-dot"></span>Tiempo'
+      : 'Tiempo';
+  }
+
+  function toggleClock() {
+    if (state.running) {
+      state.running = false;
+      if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
+    } else {
+      state.running = true;
+      _lastTick = 0;
+      if (!_rafId) _rafId = requestAnimationFrame(_rafTick);
+    }
+    updateRunningDot();
+  }
+
+  function nextHalf() {
+    state.half = 2;
+    state.minutes = 45; state.seconds = 0;
+    document.getElementById('half').textContent = '2do Tiempo';
+    document.getElementById('clock').textContent = '45:00';
+  }
+
+  // ── Goles ──
+  function animateScore(id) {
+    const el = document.getElementById(id);
+    el.classList.remove('scored');
+    void el.offsetWidth;
+    el.classList.add('scored');
+  }
+
+  function spawnParticles(originEl) {
+    const rect = originEl.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const colors = ['particle', 'particle cyan', 'particle white'];
+    for (let i = 0; i < 28; i++) {
+      const p = document.createElement('div');
+      p.className = colors[i % 3];
+      const angle = (i / 28) * Math.PI * 2;
+      const dist = 80 + Math.random() * 140;
+      const tx = Math.cos(angle) * dist;
+      const ty = Math.sin(angle) * dist - 40;
+      const dur = (0.8 + Math.random() * 0.6).toFixed(2) + 's';
+      p.style.cssText = `left:${cx}px;top:${cy}px;position:fixed;--tx:${tx}px;--ty:${ty}px;--dur:${dur};z-index:9999;`;
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 1500);
+    }
+  }
+
+  function showGoal(team, scorer) {
+    const banner = document.getElementById('goal-banner');
+    document.getElementById('goal-scorer').textContent = scorer || team;
+    document.getElementById('goal-minute').textContent = `• ${state.minutes}'`;
+    banner.classList.remove('show');
+    void banner.offsetWidth;
+    banner.classList.add('show');
+    // Partículas desde el centro del marcador
+    spawnParticles(document.getElementById('home-score'));
+    setTimeout(() => banner.classList.remove('show'), 4000);
+  }
+
+  function goalHome(scorer) {
+    state.homeScore++;
+    document.getElementById('home-score').textContent = state.homeScore;
+    animateScore('home-score');
+    showGoal(document.getElementById('home-name').textContent, scorer);
+  }
+
+  function goalAway(scorer) {
+    state.awayScore++;
+    document.getElementById('away-score').textContent = state.awayScore;
+    animateScore('away-score');
+    showGoal(document.getElementById('away-name').textContent, scorer);
+  }
+
+  // ── API pública para control externo (OBS Browser Source execScript) ──
+  window.obsOverlay = {
+    setTeams: (home, away) => {
+      document.getElementById('home-name').textContent = home.toUpperCase();
+      document.getElementById('away-name').textContent = away.toUpperCase();
+    },
+    setScore: (h, a) => {
+      document.getElementById('home-score').textContent = h;
+      document.getElementById('away-score').textContent = a;
+      state.homeScore = h; state.awayScore = a;
+    },
+    goalHome, goalAway, toggleClock, nextHalf,
+    startClock: () => { if (!state.running) toggleClock(); },
+    stopClock:  () => { if (state.running)  toggleClock(); },
+    resetClock: () => {
+      state.running = false;
+      if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
+      state.minutes = 0; state.seconds = 0;
+      state.half = 1;
+      document.getElementById('clock').textContent = '00:00';
+      document.getElementById('match-status').textContent = '1\'';
+      document.getElementById('half').textContent = '1er Tiempo';
+      updateRunningDot();
+    },
+    setMinute: (m) => { state.minutes = m; state.seconds = 0; },
+    addedTime: (n) => {
+      const el = document.getElementById('added-time');
+      document.getElementById('added-time-value').textContent = `+${n}'`;
+      el.classList.remove('show');
+      void el.offsetWidth;
+      el.classList.add('show');
+      clearTimeout(window._addedTimer);
+      window._addedTimer = setTimeout(() => el.classList.remove('show'), 8000);
+    }
+  };
+
+  // Reloj inicia detenido — arrancar desde el panel de control
+
+  // WebSocket relay con exponential backoff
+  let _wsDelay = 1000;
+  (function wsConnect() {
+    const ws = new WebSocket('ws://localhost:8889');
+    ws.onopen  = () => { _wsDelay = 1000; };
+    ws.onmessage = (e) => {
+      try {
+        const cmd = JSON.parse(e.data);
+        if (window.obsOverlay && window.obsOverlay[cmd.fn])
+          window.obsOverlay[cmd.fn](...(cmd.args || []));
+      } catch(_) {}
+    };
+    ws.onclose = () => { setTimeout(wsConnect, _wsDelay); _wsDelay = Math.min(_wsDelay * 1.5, 30000); };
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Promo Avila Fisioterapia — Fútbol 5 AMF</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --gold:     #FFD700;
+  --accent:   #00e5ff;
+  --glass:    rgba(6, 6, 18, 0.97);
+  --teal:     #00BFA5;
+  --red-live: #ff3b3b;
+  --fb:       #1877F2;
+}
+
+html, body {
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  font-family: 'Arial Black', 'Impact', sans-serif;
+  background: linear-gradient(160deg, #070b18 0%, #0a1020 50%, #060d16 100%);
+  position: relative;
+  user-select: none;
+}
+
+/* ══════════════════════════════════════
+   FONDO — CAMPO DE FÚTBOL
+══════════════════════════════════════ */
+.bg-field {
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(255,255,255,0.6) 60px),
+    repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(255,255,255,0.6) 60px);
+}
+
+.bg-center-circle {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 360px; height: 360px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.04);
+}
+
+/* Beams verticales por todo el ancho */
+.bg-beam {
+  position: absolute;
+  width: 2px;
+  height: 300px;
+  background: linear-gradient(to bottom, transparent, rgba(255,213,0,0.12), transparent);
+  animation: beamFloat 7s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+.bg-beam:nth-child(1) { left: 6%;   top: -80px; animation-delay: 0s; }
+.bg-beam:nth-child(2) { left: 18%;  top: -40px; animation-delay: 2.1s; width: 1px; background: linear-gradient(to bottom, transparent, rgba(0,229,255,0.1), transparent); }
+.bg-beam:nth-child(3) { left: 32%;  top: -60px; animation-delay: 1.2s; }
+.bg-beam:nth-child(4) { left: 50%;  top: -30px; animation-delay: 3.5s; width: 3px; }
+.bg-beam:nth-child(5) { left: 68%;  top: -70px; animation-delay: 0.8s; }
+.bg-beam:nth-child(6) { left: 82%;  top: -50px; animation-delay: 2.6s; width: 1px; background: linear-gradient(to bottom, transparent, rgba(0,229,255,0.1), transparent); }
+.bg-beam:nth-child(7) { left: 94%;  top: -20px; animation-delay: 1.7s; }
+@keyframes beamFloat {
+  0%, 100% { transform: translateY(0) scaleY(1); opacity: 0.4; }
+  50%       { transform: translateY(1300px) scaleY(1.3); opacity: 0; }
+}
+
+/* Sparkles por todo el ancho */
+.spark {
+  position: absolute;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: sparkle 4.5s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+.spark:nth-child(1)  { top: 8%;  left: 5%;  animation-delay: 0s; }
+.spark:nth-child(2)  { top: 22%; left: 15%; animation-delay: 1.2s; background: var(--accent); }
+.spark:nth-child(3)  { top: 75%; left: 8%;  animation-delay: 2.4s; }
+.spark:nth-child(4)  { top: 88%; left: 25%; animation-delay: 0.6s; background: var(--accent); }
+.spark:nth-child(5)  { top: 12%; left: 75%; animation-delay: 3.1s; }
+.spark:nth-child(6)  { top: 40%; left: 88%; animation-delay: 1.8s; background: var(--accent); }
+.spark:nth-child(7)  { top: 80%; left: 92%; animation-delay: 0.9s; }
+.spark:nth-child(8)  { top: 5%;  left: 48%; animation-delay: 2.0s; background: #fff; }
+.spark:nth-child(9)  { top: 55%; left: 3%;  animation-delay: 3.6s; background: var(--accent); }
+.spark:nth-child(10) { top: 30%; left: 96%; animation-delay: 1.4s; }
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0.4); }
+  50%       { opacity: 1; transform: scale(1.8); }
+}
+
+/* ══════════════════════════════════════
+   ACENTOS LATERALES (llenan el espacio extra)
+══════════════════════════════════════ */
+.side-deco {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 390px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  pointer-events: none;
+}
+.side-deco.left  { left: 0; }
+.side-deco.right { right: 0; }
+
+.side-line {
+  width: 1px;
+  height: 200px;
+  background: linear-gradient(180deg, transparent, rgba(255,213,0,0.2), transparent);
+  animation: sidePulse 3s ease-in-out infinite;
+  will-change: opacity;
+}
+.side-deco.right .side-line { animation-delay: 1.5s; }
+@keyframes sidePulse {
+  0%, 100% { opacity: 0.3; }
+  50%       { opacity: 0.9; }
+}
+
+.side-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  opacity: 0.55;
+}
+.side-badge-text {
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--gold);
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+.side-icon { font-size: 28px; opacity: 0.7; }
+
+/* Corner accents en las 4 esquinas de 1920×1080 */
+.corner {
+  position: absolute;
+  width: 50px; height: 50px;
+}
+.corner::before, .corner::after { content: ''; position: absolute; background: var(--gold); opacity: 0.6; }
+.corner::before { width: 100%; height: 2px; }
+.corner::after  { width: 2px; height: 100%; }
+.corner.tl { top: 28px; left: 28px; }
+.corner.tr { top: 28px; right: 28px; transform: scaleX(-1); }
+.corner.bl { bottom: 28px; left: 28px; transform: scaleY(-1); }
+.corner.br { bottom: 28px; right: 28px; transform: scale(-1); }
+
+/* Líneas horizontales de acento */
+.accent-line {
+  position: absolute;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 2%, rgba(0,229,255,0.3) 20%, rgba(0,229,255,0.3) 80%, transparent 98%);
+}
+.accent-line.top    { top: 80px; }
+.accent-line.bottom { bottom: 80px; }
+
+/* ══════════════════════════════════════
+   ESCENAS
+══════════════════════════════════════ */
+.scene {
+  position: absolute;
+  /* Área central de 1140px centrada en 1920px */
+  left: 390px; right: 390px;
+  top: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s ease;
+}
+.scene.active { opacity: 1; pointer-events: auto; }
+
+/* ══════════════════════════════════════
+   ESCENA 1 — TRANSMISIÓN EN VIVO
+══════════════════════════════════════ */
+#s1 .ball-big {
+  font-size: 130px;
+  line-height: 1;
+  filter: drop-shadow(0 0 40px rgba(255,213,0,0.5));
+  will-change: transform;
+  animation: ballBounce 2.2s ease-in-out infinite;
+}
+@keyframes ballBounce {
+  0%,100% { transform: translateY(0) rotate(0deg) scale(1); }
+  50%      { transform: translateY(-18px) rotate(180deg) scale(1.05); }
+}
+
+#s1 .badge-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,59,59,0.18);
+  border: 1px solid rgba(255,59,59,0.5);
+  border-radius: 24px;
+  padding: 8px 24px;
+  margin-top: 22px;
+}
+#s1 .badge-live .dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--red-live);
+  animation: liveBlink 1.2s ease-in-out infinite;
+  will-change: opacity;
+}
+@keyframes liveBlink {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0.2; }
+}
+#s1 .badge-live span {
+  font-size: 14px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+#s1 .title-main {
+  font-size: 110px;
+  font-weight: 900;
+  color: var(--gold);
+  letter-spacing: 8px;
+  text-align: center;
+  line-height: 0.95;
+  text-shadow: 0 0 60px rgba(255,213,0,0.4), 4px 4px 0 rgba(0,0,0,0.5);
+  margin-top: 16px;
+}
+
+#s1 .subtitle-sport {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+#s1 .divider {
+  width: 340px; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  margin: 26px auto;
+}
+
+#s1 .where-card {
+  background: var(--glass);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-top: 2px solid var(--accent);
+  border-radius: 12px;
+  padding: 16px 48px;
+  text-align: center;
+}
+#s1 .where-label {
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+#s1 .where-value {
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 2px;
+  margin-top: 6px;
+  display: flex; align-items: center; gap: 12px; justify-content: center;
+}
+.fb-circle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  background: var(--fb); border-radius: 50%;
+  font-family: Georgia, serif; font-weight: 900; font-size: 20px; color: #fff;
+  flex-shrink: 0;
+}
+
+/* Animaciones S1 */
+#s1.active .ball-big       { animation: ballBounce 2.2s ease-in-out infinite, zoomIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both; }
+#s1.active .badge-live     { animation: slideUp 0.5s 0.2s cubic-bezier(0.34,1.56,0.64,1) both; }
+#s1.active .title-main     { animation: slideUp 0.6s 0.3s cubic-bezier(0.34,1.56,0.64,1) both; }
+#s1.active .subtitle-sport { animation: slideUp 0.5s 0.4s cubic-bezier(0.34,1.56,0.64,1) both; }
+#s1.active .divider        { animation: widen 0.6s 0.5s ease both; }
+#s1.active .where-card     { animation: slideUp 0.5s 0.6s cubic-bezier(0.34,1.56,0.64,1) both; }
+
+/* ══════════════════════════════════════
+   ESCENA 2 — SPONSOR AVILA
+══════════════════════════════════════ */
+#s2 .sponsor-card {
+  background: var(--glass);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-top: 3px solid var(--gold);
+  border-radius: 20px;
+  padding: 40px 72px;
+  text-align: center;
+  filter: drop-shadow(0 20px 60px rgba(0,0,0,0.9));
+  width: 860px;
+}
+
+#s2 .sponsor-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(255,213,0,0.12);
+  border: 1px solid rgba(255,213,0,0.4);
+  border-radius: 24px; padding: 6px 22px; margin-bottom: 22px;
+}
+#s2 .sponsor-badge span { font-size: 12px; font-weight: 900; color: var(--gold); letter-spacing: 3px; text-transform: uppercase; }
+
+#s2 .logo-wrap {
+  width: 200px; height: 200px; border-radius: 50%;
+  background: rgba(255,255,255,0.97);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 22px; overflow: hidden;
+  border: 4px solid var(--gold);
+  filter: drop-shadow(0 0 30px rgba(255,213,0,0.4));
+  animation: ringPulse 2.4s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+@keyframes ringPulse {
+  0%,100% { transform: scale(1); opacity: 0.9; }
+  50%      { transform: scale(1.05); opacity: 1; }
+}
+#s2 .logo-wrap img { width: 180px; height: 180px; object-fit: contain; }
+
+#s2 .brand-name {
+  font-size: 44px; font-weight: 900; color: #fff;
+  letter-spacing: 3px; text-transform: uppercase; line-height: 1;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+}
+#s2 .brand-sub {
+  font-size: 13px; color: var(--accent); letter-spacing: 3px; text-transform: uppercase; margin-top: 6px;
+}
+
+#s2 .tagline {
+  font-size: 30px; font-weight: 900; color: var(--gold);
+  letter-spacing: 2px; text-transform: uppercase; text-align: center;
+  margin: 20px 0;
+  text-shadow: 0 0 30px rgba(255,213,0,0.3);
+  line-height: 1.25;
+}
+
+#s2 .divider-thin {
+  width: 240px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  margin: 18px auto;
+}
+
+#s2 .services {
+  display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px;
+}
+#s2 .svc-pill {
+  background: rgba(0,191,165,0.12); border: 1px solid rgba(0,191,165,0.35);
+  border-radius: 24px; padding: 7px 18px;
+  font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 1.5px; text-transform: uppercase;
+}
+
+#s2 .contact-row {
+  display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 16px;
+  font-size: 15px; color: rgba(255,255,255,0.9); letter-spacing: 1px;
+}
+#s2 .domicilio-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(0,200,83,0.12); border: 1px solid rgba(0,200,83,0.35);
+  border-radius: 24px; padding: 6px 20px; margin-top: 14px;
+  font-size: 13px; font-weight: 700; color: #00c853; letter-spacing: 2px; text-transform: uppercase;
+}
+
+#s2.active .sponsor-card  { animation: panelIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both; }
+#s2.active .sponsor-badge { animation: slideUp 0.4s 0.15s cubic-bezier(0.34,1.56,0.64,1) both; }
+#s2.active .logo-wrap     { animation: zoomIn 0.7s 0.25s cubic-bezier(0.34,1.56,0.64,1) both, ringPulse 2.4s 0.95s ease-in-out infinite; }
+#s2.active .brand-name    { animation: slideUp 0.5s 0.35s cubic-bezier(0.34,1.56,0.64,1) both; }
+#s2.active .tagline       { animation: slideUp 0.5s 0.45s cubic-bezier(0.34,1.56,0.64,1) both; }
+#s2.active .services      { animation: slideUp 0.5s 0.55s cubic-bezier(0.34,1.56,0.64,1) both; }
+#s2.active .contact-row   { animation: slideUp 0.5s 0.65s cubic-bezier(0.34,1.56,0.64,1) both; }
+#s2.active .domicilio-tag { animation: slideUp 0.4s 0.75s cubic-bezier(0.34,1.56,0.64,1) both; }
+
+/* ══════════════════════════════════════
+   ESCENA 3 — FACEBOOK CTA
+══════════════════════════════════════ */
+#s3 .cta-card {
+  background: var(--glass);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-top: 3px solid var(--fb);
+  border-radius: 20px;
+  padding: 52px 80px;
+  text-align: center;
+  filter: drop-shadow(0 20px 60px rgba(0,0,0,0.9));
+  width: 860px;
+}
+
+#s3 .fb-icon {
+  width: 100px; height: 100px; background: var(--fb); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto; font-size: 68px; font-weight: 900; color: #fff;
+  font-family: Georgia, serif; line-height: 1; letter-spacing: 0;
+  animation: fbPulse 2s ease-in-out infinite; will-change: transform, opacity;
+}
+@keyframes fbPulse {
+  0%,100% { transform: scale(1); opacity: 0.9; }
+  50%      { transform: scale(1.08); opacity: 1; }
+}
+
+#s3 .cta-headline { font-size: 50px; font-weight: 900; color: #fff; letter-spacing: 3px; text-transform: uppercase; margin-top: 18px; line-height: 1; }
+#s3 .cta-sub      { font-size: 14px; color: rgba(255,255,255,0.5); letter-spacing: 2px; margin-top: 6px; }
+
+#s3 .fb-pill {
+  display: inline-flex; align-items: center; gap: 12px;
+  background: rgba(24,119,242,0.18); border: 1.5px solid rgba(24,119,242,0.55);
+  border-radius: 36px; padding: 12px 32px; margin: 24px auto;
+}
+#s3 .fb-pill-name { font-size: 26px; font-weight: 900; color: #fff; letter-spacing: 1px; }
+
+#s3 .divider-fb {
+  width: 240px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(24,119,242,0.5), transparent);
+  margin: 18px auto;
+}
+
+#s3 .info-grid  { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+#s3 .info-row   { display: flex; align-items: center; gap: 12px; font-size: 16px; color: rgba(255,255,255,0.8); letter-spacing: 1px; }
+#s3 .info-row .icon { font-size: 18px; }
+
+#s3 .tel-big {
+  font-size: 40px; font-weight: 900; color: var(--gold); letter-spacing: 4px; margin-top: 18px;
+  text-shadow: 0 0 20px rgba(255,213,0,0.3);
+}
+
+#s3 .follow-btn {
+  display: inline-block; background: var(--fb); border-radius: 36px;
+  padding: 16px 48px; font-size: 18px; font-weight: 900; color: #fff;
+  letter-spacing: 3px; text-transform: uppercase; margin-top: 22px;
+  animation: btnPulse 2s ease-in-out infinite; will-change: transform, opacity;
+}
+@keyframes btnPulse {
+  0%,100% { transform: scale(1); opacity: 0.92; }
+  50%      { transform: scale(1.04); opacity: 1; }
+}
+
+#s3.active .cta-card     { animation: panelIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both; }
+#s3.active .fb-icon      { animation: zoomIn 0.7s 0.15s cubic-bezier(0.34,1.56,0.64,1) both, fbPulse 2s 0.85s ease-in-out infinite; }
+#s3.active .cta-headline { animation: slideUp 0.5s 0.3s cubic-bezier(0.34,1.56,0.64,1) both; }
+#s3.active .fb-pill       { animation: slideUp 0.5s 0.4s cubic-bezier(0.34,1.56,0.64,1) both; }
+#s3.active .divider-fb   { animation: widen 0.5s 0.5s ease both; }
+#s3.active .info-grid    { animation: slideUp 0.5s 0.55s cubic-bezier(0.34,1.56,0.64,1) both; }
+#s3.active .tel-big      { animation: slideUp 0.4s 0.65s cubic-bezier(0.34,1.56,0.64,1) both; }
+#s3.active .follow-btn   { animation: slideUp 0.5s 0.75s cubic-bezier(0.34,1.56,0.64,1) both, btnPulse 2s 1.25s ease-in-out infinite; }
+
+/* ══════════════════════════════════════
+   BARRA INFERIOR (ancho completo 1920px)
+══════════════════════════════════════ */
+.bottom-bar {
+  position: absolute;
+  bottom: 32px; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: center;
+  gap: 20px;
+  background: rgba(6, 6, 18, 0.9);
+  border-top: 1px solid rgba(255,213,0,0.2);
+  border-bottom: 1px solid rgba(255,213,0,0.2);
+  padding: 10px 40px;
+  white-space: nowrap;
+}
+.bottom-bar .bb-ball { font-size: 20px; }
+.bottom-bar .bb-text { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.55); letter-spacing: 3px; text-transform: uppercase; }
+.bottom-bar .bb-sep  { width: 1px; height: 18px; background: rgba(255,255,255,0.15); }
+.bottom-bar .bb-brand { font-size: 13px; font-weight: 900; color: var(--gold); letter-spacing: 3px; text-transform: uppercase; }
+
+/* ══════════════════════════════════════
+   PUNTOS DE ESCENA
+══════════════════════════════════════ */
+.scene-dots {
+  position: absolute;
+  top: 46px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; gap: 10px;
+}
+.scene-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  transition: all 0.4s ease;
+}
+.scene-dot.on { background: var(--gold); transform: scale(1.4); }
+
+/* ══════════════════════════════════════
+   KEYFRAMES COMPARTIDOS
+══════════════════════════════════════ */
+@keyframes zoomIn  { from { opacity: 0; transform: scale(0.3); } to { opacity: 1; transform: scale(1); } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(32px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes widen   { from { opacity: 0; transform: scaleX(0); } to { opacity: 1; transform: scaleX(1); } }
+@keyframes panelIn { from { opacity: 0; transform: scale(0.88); } to { opacity: 1; transform: scale(1); } }
+</style>
+</head>
+<body>
+
+<!-- FONDO -->
+<div class="bg-field"></div>
+<div class="bg-center-circle"></div>
+<div class="bg-beam"></div><div class="bg-beam"></div><div class="bg-beam"></div>
+<div class="bg-beam"></div><div class="bg-beam"></div><div class="bg-beam"></div><div class="bg-beam"></div>
+<div class="spark"></div><div class="spark"></div><div class="spark"></div><div class="spark"></div>
+<div class="spark"></div><div class="spark"></div><div class="spark"></div><div class="spark"></div>
+<div class="spark"></div><div class="spark"></div>
+
+<!-- CORNERS -->
+<div class="corner tl"></div><div class="corner tr"></div>
+<div class="corner bl"></div><div class="corner br"></div>
+
+<!-- LÍNEAS ACENTO -->
+<div class="accent-line top"></div>
+<div class="accent-line bottom"></div>
+
+<!-- DECORACIÓN LATERAL IZQUIERDA -->
+<div class="side-deco left">
+  <div class="side-line"></div>
+  <div class="side-badge">
+    <div class="side-icon">⚽</div>
+    <div class="side-badge-text">Fútbol 5 AMF</div>
+  </div>
+  <div class="side-line"></div>
+  <div class="side-badge">
+    <div class="side-icon">🏆</div>
+    <div class="side-badge-text">Liga Local</div>
+  </div>
+  <div class="side-line"></div>
+</div>
+
+<!-- DECORACIÓN LATERAL DERECHA -->
+<div class="side-deco right">
+  <div class="side-line"></div>
+  <div class="side-badge">
+    <div class="side-icon">📍</div>
+    <div class="side-badge-text">Tlaxiaco</div>
+  </div>
+  <div class="side-line"></div>
+  <div class="side-badge">
+    <div class="side-icon">💪</div>
+    <div class="side-badge-text">Avila Fisio</div>
+  </div>
+  <div class="side-line"></div>
+</div>
+
+<!-- PUNTOS DE ESCENA -->
+<div class="scene-dots">
+  <div class="scene-dot on" id="dot-0"></div>
+  <div class="scene-dot" id="dot-1"></div>
+  <div class="scene-dot" id="dot-2"></div>
+</div>
+
+<!-- ESCENA 1: TRANSMISIÓN EN VIVO -->
+<div class="scene active" id="s1">
+  <div class="ball-big">⚽</div>
+  <div class="badge-live">
+    <div class="dot"></div>
+    <span>Transmisión en Vivo</span>
+  </div>
+  <div class="title-main">FÚTBOL 5</div>
+  <div class="subtitle-sport">AMF · Liga Local</div>
+  <div class="divider"></div>
+  <div class="where-card">
+    <div class="where-label">Síguenos en</div>
+    <div class="where-value">
+      <span class="fb-circle">f</span>
+      Avila Fisioterapia
+    </div>
+  </div>
+</div>
+
+<!-- ESCENA 2: SPONSOR AVILA -->
+<div class="scene" id="s2">
+  <div class="sponsor-card">
+    <div class="sponsor-badge"><span>⭐ Patrocinador Oficial</span></div>
+    <div class="logo-wrap">
+      <img src="./logo_sponsor.jpg" alt="Avila Fisioterapia" />
+    </div>
+    <div class="brand-name">Avila Fisioterapia</div>
+    <div class="brand-sub">Fisioterapia y Rehabilitación · Tlaxiaco</div>
+    <div class="tagline">Muévete Sin Dolor<br>Vive Mejor</div>
+    <div class="divider-thin"></div>
+    <div class="services">
+      <div class="svc-pill">🦴 Rehabilitación</div>
+      <div class="svc-pill">💪 Recuperación</div>
+      <div class="svc-pill">🩺 Fisioterapia Profesional</div>
+    </div>
+    <div class="contact-row">
+      <span>📍</span>
+      <span>Héroes de Chapultepec #45, Barrio San Nicolás</span>
+    </div>
+    <div class="domicilio-tag">🏠 Servicio a Domicilio Disponible</div>
+  </div>
+</div>
+
+<!-- ESCENA 3: CTA FACEBOOK -->
+<div class="scene" id="s3">
+  <div class="cta-card">
+    <div class="fb-icon">f</div>
+    <div class="cta-headline">Síguenos en Facebook</div>
+    <div class="cta-sub">Transmitimos todos los partidos en vivo</div>
+    <div class="fb-pill">
+      <span class="fb-circle">f</span>
+      <div class="fb-pill-name">Avila Fisioterapia</div>
+    </div>
+    <div class="divider-fb"></div>
+    <div class="info-grid">
+      <div class="info-row">
+        <span class="icon">📍</span>
+        Calle Héroes de Chapultepec #45 · Barrio San Nicolás · Tlaxiaco
+      </div>
+      <div class="info-row">
+        <span class="icon">🌐</span>
+        facebook.com/AvilaFisioterapia
+      </div>
+    </div>
+    <div class="tel-big">📞 951 100 98 13</div>
+    <div class="follow-btn">¡Seguir Página!</div>
+  </div>
+</div>
+
+<!-- BARRA INFERIOR -->
+<div class="bottom-bar">
+  <span class="bb-ball">⚽</span>
+  <span class="bb-text">Producción en Vivo</span>
+  <div class="bb-sep"></div>
+  <span class="bb-brand">Avila Fisioterapia · Tlaxiaco · 951 100 98 13</span>
+  <div class="bb-sep"></div>
+  <span class="bb-text">Fútbol 5 AMF</span>
+</div>
+
+<script>
+  const SCENES    = ['s1', 's2', 's3'];
+  const DURATIONS = [8000, 11000, 10000];
+  let current = 0;
+
+  function showScene(idx) {
+    SCENES.forEach((id, i) => {
+      document.getElementById(id).classList.remove('active');
+      document.getElementById('dot-' + i).classList.remove('on');
+    });
+    void document.getElementById(SCENES[idx]).offsetWidth;
+    document.getElementById(SCENES[idx]).classList.add('active');
+    document.getElementById('dot-' + idx).classList.add('on');
+    current = idx;
+    setTimeout(() => showScene((idx + 1) % SCENES.length), DURATIONS[idx]);
+  }
+
+  setTimeout(() => showScene(1), DURATIONS[0]);
+</script>
+</body>
+</html>

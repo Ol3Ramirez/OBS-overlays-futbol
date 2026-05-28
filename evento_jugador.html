@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Evento Jugador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;900&family=Barlow:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: transparent;
+    font-family: 'Barlow Condensed', 'Arial Black', sans-serif;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+
+  :root {
+    --gold: #FFD700;
+    --glass: rgba(6, 6, 18, 0.93);
+    --accent: #00e5ff;
+    --red: #ff3b3b;
+    --yellow: #FFD700;
+    --green: #00c853;
+    --blue: #1565C0;
+  }
+
+  /* ── Tarjeta de evento (aparece abajo izquierda) ── */
+  .event-card {
+    position: absolute;
+    bottom: 80px;
+    left: 50px;
+    width: 380px;
+    background: rgba(6, 6, 18, 0.90);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 10px;
+    overflow: hidden;
+    display: none;
+    flex-direction: row;
+    filter: drop-shadow(0 8px 32px rgba(0,0,0,0.7));
+    will-change: transform, opacity;
+  }
+
+  .event-card.show {
+    display: flex;
+    animation: cardIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+               cardOut 0.4s ease 4.6s forwards;
+  }
+
+  @keyframes cardIn {
+    from { opacity:0; transform: translateX(-60px) scale(0.9); }
+    to   { opacity:1; transform: translateX(0)     scale(1);   }
+  }
+  @keyframes cardOut {
+    to   { opacity:0; transform: translateX(-30px); }
+  }
+
+  .event-accent {
+    width: 6px;
+    flex-shrink: 0;
+    background: var(--gold);
+    transition: background 0.3s;
+  }
+
+  .event-accent.goal   { background: var(--gold); }
+  .event-accent.yellow { background: var(--yellow); }
+  .event-accent.red    { background: var(--red); }
+  .event-accent.blue   { background: #2196F3; }
+  .event-accent.sub    { background: var(--green); }
+
+  .event-body {
+    padding: 14px 16px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .event-icon {
+    font-size: 36px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+  }
+
+  .event-info {
+    flex: 1;
+  }
+
+  .event-type {
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+
+  .event-player {
+    font-size: 20px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    line-height: 1.1;
+  }
+
+  .event-team {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  .event-minute {
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--gold);
+    flex-shrink: 0;
+    letter-spacing: -1px;
+  }
+
+  /* ── Overlay masivo de GOL ── */
+  .big-goal {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at center,
+      rgba(255, 213, 0, 0.14) 0%,
+      transparent 65%
+    );
+  }
+
+  .big-goal.show {
+    display: flex;
+    animation: bgFlash 0.5s ease;
+  }
+
+  @keyframes bgFlash {
+    0%   { opacity: 0; }
+    20%  { opacity: 1; }
+    100% { opacity: 1; }
+  }
+
+  .goal-text-wrap {
+    text-align: center;
+    animation: goalBurst 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+               goalShrink 0.45s ease 3.6s forwards;
+    transform: scale(0);
+  }
+
+  @keyframes goalBurst { to { transform: scale(1); } }
+  @keyframes goalShrink { to { transform: scale(0.8); opacity: 0; } }
+
+  /* GOL letra a letra */
+  .goal-huge {
+    font-size: 170px;
+    font-weight: 900;
+    color: var(--gold);
+    letter-spacing: 20px;
+    text-transform: uppercase;
+    text-shadow: 0 0 80px rgba(255,213,0,0.6), 4px 4px 0 rgba(0,0,0,0.5);
+    line-height: 0.9;
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+  }
+  .goal-huge .gl {
+    display: inline-block;
+    animation: letterPop 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+    will-change: transform, opacity;
+  }
+  @keyframes letterPop {
+    from { transform: scale(0) translateY(40px); opacity: 0; }
+    to   { transform: scale(1) translateY(0);    opacity: 1; }
+  }
+
+  .goal-sub-info {
+    font-size: 30px;
+    color: #fff;
+    letter-spacing: 5px;
+    margin-top: 14px;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+    opacity: 0.95;
+    animation: slideUpSub 0.4s 0.6s ease both;
+  }
+  @keyframes slideUpSub {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 0.95; transform: translateY(0); }
+  }
+
+  .goal-score-line {
+    font-size: 20px;
+    color: var(--accent);
+    letter-spacing: 8px;
+    margin-top: 10px;
+    text-transform: uppercase;
+    animation: slideUpSub 0.4s 0.75s ease both;
+    opacity: 0;
+  }
+
+  /* Confetti */
+  .confetti-piece {
+    position: fixed;
+    width: 9px; height: 14px;
+    border-radius: 2px;
+    pointer-events: none;
+    will-change: transform, opacity;
+    animation: confettiFall var(--cdur, 2.2s) var(--cdelay, 0s) ease-in forwards;
+  }
+  @keyframes confettiFall {
+    0%   { transform: translateY(-60px) translateX(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(600px) translateX(var(--cx, 0px)) rotate(var(--cr, 720deg)); opacity: 0; }
+  }
+
+  /* Shake para expulsión roja */
+  @keyframes shakeX {
+    0%,100% { transform: translateX(0); }
+    15%     { transform: translateX(-12px); }
+    30%     { transform: translateX(12px); }
+    45%     { transform: translateX(-10px); }
+    60%     { transform: translateX(10px); }
+    75%     { transform: translateX(-6px); }
+    90%     { transform: translateX(6px); }
+  }
+
+  /* Flip 3D para tarjetas */
+  @keyframes cardFlip {
+    0%   { transform: scale(0) rotateY(-90deg); }
+    60%  { transform: scale(1.1) rotateY(10deg); }
+    100% { transform: scale(1) rotateY(0deg); }
+  }
+
+  /* ── Tarjeta amarilla/roja visual ── */
+  .card-visual {
+    position: absolute;
+    bottom: 80px;
+    right: 50px;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    animation: cardVisualIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+               cardVisualOut 0.4s ease 4.6s forwards;
+    transform: scale(0);
+  }
+  .card-visual.show { display: flex; }
+
+  @keyframes cardVisualIn  { to { transform: scale(1) rotate(-5deg); } }
+  @keyframes cardVisualOut { to { transform: scale(0.7); opacity:0; } }
+
+  .card-shape {
+    width: 56px; height: 78px;
+    border-radius: 6px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6),
+                inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+  .card-shape.yellow-card { background: linear-gradient(135deg, #FFE04A, #D4A000); }
+  .card-shape.red-card    { background: linear-gradient(135deg, #ff5252, #c62828); }
+  .card-shape.blue-card   { background: linear-gradient(135deg, #42A5F5, #1565C0); }
+
+  .blue-timer {
+    font-size: 13px;
+    color: #42A5F5;
+    letter-spacing: 2px;
+    font-weight: 900;
+    margin-top: 4px;
+    text-align: center;
+  }
+
+  .card-player-name {
+    font-size: 11px;
+    color: #fff;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 6px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- OVERLAY GRAN GOL -->
+<div class="big-goal" id="big-goal">
+  <div class="goal-text-wrap">
+    <div class="goal-huge">¡GOL!</div>
+    <div class="goal-sub-info" id="bg-scorer">Jugador • 45'</div>
+    <div class="goal-score-line" id="bg-scoreline">LOCAL 1 – 0 VISITANTE</div>
+  </div>
+</div>
+
+<!-- TARJETA DE EVENTO (banda inferior) -->
+<div class="event-card" id="event-card">
+  <div class="event-accent" id="event-accent"></div>
+  <div class="event-body">
+    <div class="event-icon" id="event-icon">⚽</div>
+    <div class="event-info">
+      <div class="event-type" id="event-type">GOL</div>
+      <div class="event-player" id="event-player">Jugador</div>
+      <div class="event-team" id="event-team">Equipo</div>
+    </div>
+    <div class="event-minute" id="event-minute">45'</div>
+  </div>
+</div>
+
+<!-- VISUAL TARJETA (amarilla/roja/azul) -->
+<div class="card-visual" id="card-visual">
+  <div class="card-shape" id="card-shape"></div>
+  <div class="card-player-name" id="card-player-name">Jugador</div>
+  <div class="blue-timer" id="blue-timer" style="display:none">2 MINUTOS</div>
+</div>
+
+<script>
+  let hideTimeout;
+
+  function clearAll() {
+    clearTimeout(hideTimeout);
+    document.getElementById('big-goal').classList.remove('show');
+    document.getElementById('event-card').classList.remove('show');
+    document.getElementById('card-visual').classList.remove('show');
+    document.querySelectorAll('.confetti-piece').forEach(el => el.remove());
+  }
+
+  function spawnConfetti() {
+    const colors = ['#FFD700','#FFD700','#FFD700','#00e5ff','#ffffff','#ffa500'];
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < 30; i++) {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      const left  = 15 + Math.random() * 70;
+      const cx    = (Math.random() * 500 - 250);
+      const cr    = (Math.random() > 0.5 ? 1 : -1) * (360 + Math.random() * 720);
+      const cdur  = 1.8 + Math.random() * 1.0;
+      const cdelay = Math.random() * 0.5;
+      el.style.cssText = `left:${left}vw;top:-14px;background:${colors[Math.floor(Math.random()*colors.length)]};--cx:${cx}px;--cr:${cr}deg;--cdur:${cdur}s;--cdelay:${cdelay}s`;
+      frag.appendChild(el);
+    }
+    document.body.appendChild(frag);
+    setTimeout(() => document.querySelectorAll('.confetti-piece').forEach(el => el.remove()), 3500);
+  }
+
+  function renderGoalLetters(text) {
+    return [...text].map((c, i) =>
+      `<span class="gl" style="animation-delay:${i * 80}ms">${c}</span>`
+    ).join('');
+  }
+
+  function showEvent(type, player, team, minute, extra) {
+    clearAll();
+    const card    = document.getElementById('event-card');
+    const accent  = document.getElementById('event-accent');
+    const icon    = document.getElementById('event-icon');
+    const typeEl  = document.getElementById('event-type');
+    const playerEl= document.getElementById('event-player');
+    const teamEl  = document.getElementById('event-team');
+    const minEl   = document.getElementById('event-minute');
+
+    playerEl.textContent = (player || 'Jugador').toUpperCase();
+    teamEl.textContent   = team   || '';
+    minEl.textContent    = (minute || '–') + "'";
+
+    accent.className = 'event-accent';
+    card.classList.remove('show');
+
+    switch(type) {
+      case 'goal': {
+        icon.textContent = '⚽';
+        typeEl.textContent = 'GOL';
+        accent.classList.add('goal');
+        const bg = document.getElementById('big-goal');
+        document.getElementById('bg-scorer').textContent = `${player} • ${minute}'`;
+        document.getElementById('bg-scoreline').textContent = extra || '';
+        document.querySelector('.goal-huge').innerHTML = renderGoalLetters('¡GOL!');
+        bg.classList.add('show');
+        spawnConfetti();
+        setTimeout(() => bg.classList.remove('show'), 5000);
+        break;
+      }
+      case 'yellow':
+        icon.textContent = '🟨';
+        typeEl.textContent = 'AMONESTACIÓN';
+        accent.classList.add('yellow');
+        showCardVisual('yellow-card', player);
+        break;
+      case 'red':
+        icon.textContent = '🟥';
+        typeEl.textContent = 'EXPULSIÓN';
+        accent.classList.add('red');
+        showCardVisual('red-card', player, false, true);
+        break;
+      case 'blue':
+        icon.textContent = '🟦';
+        typeEl.textContent = 'SUSPENSIÓN TEMPORAL';
+        teamEl.textContent = (team || '') + (team ? ' · 2 MIN' : '2 MIN');
+        accent.classList.add('blue');
+        showCardVisual('blue-card', player, true);
+        break;
+      case 'sub':
+        icon.textContent = '🔄';
+        typeEl.textContent = `CAMBIO  ↑ ${extra || '?'}`;
+        playerEl.textContent = `↓ ${(player||'').toUpperCase()}`;
+        accent.classList.add('sub');
+        break;
+      case 'miss':
+        icon.textContent = '❌';
+        typeEl.textContent = 'OCASIÓN FALLADA';
+        accent.classList.add('goal');
+        break;
+      default:
+        icon.textContent = 'ℹ️';
+        typeEl.textContent = type.toUpperCase();
+    }
+
+    void card.offsetWidth;
+    card.classList.add('show');
+    hideTimeout = setTimeout(() => card.classList.remove('show'), 5500);
+  }
+
+  function showCardVisual(cls, player, showTimer = false, shake = false) {
+    const cv    = document.getElementById('card-visual');
+    const cs    = document.getElementById('card-shape');
+    const cpn   = document.getElementById('card-player-name');
+    const timer = document.getElementById('blue-timer');
+
+    cs.style.animation = 'none';
+    void cs.offsetWidth;
+    cs.className = 'card-shape ' + cls;
+    cs.style.animation = 'cardFlip 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+
+    cpn.textContent = (player||'').toUpperCase();
+    timer.style.display = showTimer ? 'block' : 'none';
+
+    void cv.offsetWidth;
+    cv.classList.add('show');
+
+    if (shake) {
+      setTimeout(() => { cs.style.animation = 'shakeX 0.6s ease'; }, 900);
+    }
+
+    setTimeout(() => cv.classList.remove('show'), 5500);
+  }
+
+  // ── API pública para OBS Execute Script ──
+  window.obsOverlay = {
+    goal:   (player, team, minute, scoreline) => showEvent('goal',   player, team, minute, scoreline),
+    yellow: (player, team, minute)            => showEvent('yellow', player, team, minute),
+    red:    (player, team, minute)            => showEvent('red',    player, team, minute),
+    blue:   (player, team, minute)            => showEvent('blue',   player, team, minute),
+    sub:    (out, into, team, minute)         => showEvent('sub',    out,    team, minute, into),
+    miss:   (player, team, minute)            => showEvent('miss',   player, team, minute),
+    custom: (icon, label, player, team, min)  => {
+      showEvent('custom', player, team, min);
+      document.getElementById('event-icon').textContent = icon;
+      document.getElementById('event-type').textContent = label;
+    },
+    clear: clearAll
+  };
+
+  // WebSocket relay con exponential backoff
+  let _wsDelay = 1000;
+  (function wsConnect() {
+    const ws = new WebSocket('ws://localhost:8889');
+    ws.onopen  = () => { _wsDelay = 1000; };
+    ws.onmessage = (e) => {
+      try {
+        const cmd = JSON.parse(e.data);
+        if (window.obsOverlay && window.obsOverlay[cmd.fn])
+          window.obsOverlay[cmd.fn](...(cmd.args || []));
+      } catch(_) {}
+    };
+    ws.onclose = () => { setTimeout(wsConnect, _wsDelay); _wsDelay = Math.min(_wsDelay * 1.5, 30000); };
+  })();
+</script>
+</body>
+</html>
