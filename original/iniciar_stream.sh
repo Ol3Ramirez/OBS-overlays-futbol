@@ -4,7 +4,7 @@
 #  Ejecutar ANTES de abrir Claude Code
 # ────────────────────────────────────────────
 
-DIR="/Users/oleramirez/Movies/MY CLOUDE CODE/OBS_OVERLAYS_FUTBOL"
+DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG="$DIR/logs"
 mkdir -p "$LOG"
 

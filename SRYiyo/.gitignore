@@ -1,4 +1,0 @@
-logs/*.log
-logs/*.err
-logs/*.pid
-.env.local
