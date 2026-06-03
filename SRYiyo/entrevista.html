@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Entrevista — SRYiyo Robles Fútbol</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="config.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:1920px; height:1080px; overflow:hidden; font-family:'Barlow Condensed','Arial Black',sans-serif; position:relative; }
+:root {
+  --gold:         #FFD700;
+  --gold-dim:     rgba(255,215,0,0.15);
+  --gold-glow:    rgba(255,215,0,0.45);
+  --red:          #c62828;
+  --red-dim:      rgba(198,40,40,0.12);
+  --bg-dark:      #060b16;
+  --glass:        rgba(6,6,18,0.88);
+  --glass-border: rgba(198,40,40,0.20);
+  --text-primary: #FFFFFF;
+  --text-muted:   rgba(255,255,255,0.60);
+  --shadow-red:   0 0 24px rgba(198,40,40,0.35);
+}
+/* Modo overlay (default): fondo transparente */
+body { background: transparent; }
+body.mode-standalone {
+  background: radial-gradient(ellipse at 30% 50%, rgba(198,40,40,0.12) 0%, transparent 60%),
+              linear-gradient(160deg, #060b16 0%, #0a0814 50%, #060812 100%);
+}
+body.mode-lower-third { background: transparent; }
+
+/* Background beams */
+.bg-beam { position:absolute; width:1px; height:400px; background:linear-gradient(to bottom, transparent, rgba(198,40,40,0.06), transparent); animation:beamFloat 8s ease-in-out infinite; top:-100px; will-change:transform,opacity; }
+.bg-beam:nth-child(1){left:8%; animation-delay:0s;}
+.bg-beam:nth-child(2){left:22%;animation-delay:2s; background:linear-gradient(to bottom,transparent,rgba(255,215,0,0.04),transparent);}
+.bg-beam:nth-child(3){left:50%;animation-delay:1s; width:2px;}
+.bg-beam:nth-child(4){left:75%;animation-delay:3s;}
+.bg-beam:nth-child(5){left:90%;animation-delay:1.5s;}
+.bg-beam:nth-child(6){left:35%;animation-delay:2.5s; background:linear-gradient(to bottom,transparent,rgba(255,215,0,0.04),transparent);}
+.bg-beam:nth-child(7){left:62%;animation-delay:0.7s;}
+@keyframes beamFloat { 0%,100%{transform:translateY(0);opacity:0.4;} 50%{transform:translateY(1400px);opacity:0;} }
+
+.spark { position:absolute;width:4px;height:4px;border-radius:50%;background:var(--gold);animation:sparkle 4.5s ease-in-out infinite;will-change:transform,opacity; }
+.spark:nth-child(1){top:8%;left:5%;animation-delay:0s;} .spark:nth-child(2){top:22%;left:15%;animation-delay:1.2s;background:var(--red);}
+.spark:nth-child(3){top:75%;left:8%;animation-delay:2.4s;} .spark:nth-child(4){top:88%;left:25%;animation-delay:0.6s;background:var(--red);}
+.spark:nth-child(5){top:12%;left:75%;animation-delay:3.1s;} .spark:nth-child(6){top:40%;left:88%;animation-delay:1.8s;}
+.spark:nth-child(7){top:80%;left:92%;animation-delay:0.9s;} .spark:nth-child(8){top:5%;left:48%;animation-delay:2.0s;background:#fff;}
+.spark:nth-child(9){top:55%;left:3%;animation-delay:3.6s;background:var(--red);} .spark:nth-child(10){top:30%;left:96%;animation-delay:1.4s;}
+@keyframes sparkle { 0%,100%{opacity:0;transform:scale(0.4);} 50%{opacity:1;transform:scale(1.8);} }
+
+.corner { position:absolute;width:50px;height:50px;opacity:0.6; }
+.corner::before{content:'';position:absolute;top:0;left:0;width:100%;height:2px;background:var(--red);}
+.corner::after {content:'';position:absolute;top:0;left:0;width:2px;height:100%;background:var(--red);}
+.corner.tl{top:28px;left:28px;} .corner.tr{top:28px;right:28px;transform:scaleX(-1);}
+.corner.bl{bottom:28px;left:28px;transform:scaleY(-1);} .corner.br{bottom:28px;right:28px;transform:scale(-1);}
+
+.side-deco{position:absolute;top:0;bottom:0;width:320px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px;pointer-events:none;}
+.side-deco.left{left:0;} .side-deco.right{right:0;}
+.side-line{width:1px;height:180px;background:linear-gradient(180deg,transparent,rgba(198,40,40,0.2),transparent);animation:sidePulse 3s ease-in-out infinite;}
+.side-deco.right .side-line{animation-delay:1.5s;}
+@keyframes sidePulse{0%,100%{opacity:0.4;}50%{opacity:1;}}
+.side-badge{display:flex;flex-direction:column;align-items:center;gap:12px;opacity:0.5;}
+.side-badge-text{font-size:11px;letter-spacing:4px;color:var(--red);text-transform:uppercase;writing-mode:vertical-rl;text-orientation:mixed;}
+.side-icon{opacity:0.7;}
+
+/* Interview Badge top center */
+.interview-badge {
+  position:absolute; top:32px; left:50%; transform:translateX(-50%);
+  display:flex; align-items:center; gap:10px;
+  background:rgba(198,40,40,0.12); border:1px solid rgba(198,40,40,0.35);
+  border-radius:30px; padding:8px 24px;
+  opacity:0; transition:opacity 0.4s;
+}
+.interview-badge.visible { opacity:1; }
+.badge-dot { width:8px;height:8px;border-radius:50%;background:var(--red);animation:blink 1.2s infinite; }
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.badge-label { font-size:14px;letter-spacing:4px;color:rgba(255,255,255,0.8);text-transform:uppercase;font-weight:700; }
+
+/* Sponsor logo */
+.sponsor-logo { position:absolute;top:24px;right:40px;background:rgba(255,255,255,0.9);border-radius:10px;padding:8px 14px; }
+.sponsor-logo img { width:100px;display:block; }
+
+/* Topic ticker */
+.topic-ticker { position:absolute;top:0;left:0;right:0;padding:12px 80px;background:rgba(198,40,40,0.14);border-bottom:1px solid rgba(198,40,40,0.3);display:flex;align-items:center;gap:16px;overflow:hidden;opacity:0;transition:opacity 0.4s; }
+.topic-ticker.visible{opacity:1;}
+.ticker-label{font-size:11px;letter-spacing:3px;color:var(--red);font-weight:700;white-space:nowrap;flex-shrink:0;}
+.ticker-track{flex:1;overflow:hidden;}
+.ticker-text{font-size:14px;color:rgba(255,255,255,0.7);letter-spacing:2px;white-space:nowrap;animation:tickerScroll 18s linear infinite;}
+@keyframes tickerScroll{0%{transform:translateX(100%);}100%{transform:translateX(-100%);}}
+
+/* Lower Third */
+.lower-third {
+  position:absolute; bottom:80px; left:0; right:0;
+  display:flex; justify-content:center;
+  opacity:0; transform:translateY(30px);
+  transition:opacity 0.5s cubic-bezier(0.34,1.56,0.64,1), transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+.lower-third.visible { opacity:1; transform:translateY(0); }
+.lt-panel { display:flex; align-items:stretch; max-width:900px; min-width:500px; overflow:hidden; border-radius:4px; box-shadow:0 8px 40px rgba(0,0,0,0.6); }
+.lt-side-badge { width:48px;background:var(--red);display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.lt-side-text { font-size:10px;letter-spacing:2px;color:#fff;text-transform:uppercase;font-weight:900;writing-mode:vertical-rl;text-orientation:mixed; }
+.lt-content { background:rgba(8,6,18,0.95);backdrop-filter:blur(16px);border:1px solid rgba(198,40,40,0.25);border-left:none;padding:14px 24px; }
+.lt-name { font-size:28px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;line-height:1; }
+.lt-role { font-size:14px;color:rgba(255,255,255,0.6);letter-spacing:2px;text-transform:uppercase;margin-top:4px; }
+.lt-org  { margin-top:8px; }
+.lt-org-pill { display:inline-block;background:var(--red-dim);border:1px solid rgba(198,40,40,0.35);border-radius:20px;padding:3px 14px;font-size:11px;letter-spacing:2px;color:var(--red);text-transform:uppercase; }
+
+/* Social CTA */
+.social-cta { position:absolute;bottom:24px;right:40px;display:flex;align-items:center;gap:12px;background:rgba(24,119,242,0.15);border:1px solid rgba(24,119,242,0.35);border-radius:8px;padding:10px 18px;opacity:0;transition:opacity 0.4s; }
+.social-cta.visible{opacity:1;}
+.social-fb-icon svg{width:24px;height:24px;fill:#1877F2;}
+.social-text{font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.5);text-transform:uppercase;}
+.social-name{font-size:14px;font-weight:900;color:#fff;letter-spacing:1px;}
+
+/* Bottom Bar */
+.bottom-bar{position:absolute;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:20px;background:rgba(6,6,18,0.95);border-top:1px solid rgba(198,40,40,0.2);padding:10px 40px;white-space:nowrap;}
+.bb-ball{font-size:18px;} .bb-text{font-size:12px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:3px;text-transform:uppercase;}
+.bb-sep{width:1px;height:16px;background:rgba(255,255,255,0.12);} .bb-brand{font-size:13px;font-weight:900;color:var(--gold);letter-spacing:3px;text-transform:uppercase;}
+</style>
+</head>
+<body>
+
+<div class="bg-beam"></div><div class="bg-beam"></div><div class="bg-beam"></div>
+<div class="bg-beam"></div><div class="bg-beam"></div><div class="bg-beam"></div><div class="bg-beam"></div>
+<div class="spark"></div><div class="spark"></div><div class="spark"></div><div class="spark"></div>
+<div class="spark"></div><div class="spark"></div><div class="spark"></div><div class="spark"></div>
+<div class="spark"></div><div class="spark"></div>
+<div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+
+<div class="side-deco left">
+  <div class="side-line"></div>
+  <div class="side-badge">
+    <div class="side-badge-text" id="side-l">ROBLES FÚTBOL</div>
+    <div class="side-icon"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(198,40,40,0.7)" stroke-width="2" width="22" height="22"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg></div>
+  </div>
+  <div class="side-line"></div>
+</div>
+<div class="side-deco right">
+  <div class="side-line"></div>
+  <div class="side-badge">
+    <div class="side-badge-text">EN VIVO</div>
+    <div class="side-icon"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(198,40,40,0.7)" stroke-width="2" width="22" height="22"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg></div>
+  </div>
+  <div class="side-line"></div>
+</div>
+
+<div class="interview-badge visible" id="interview-badge">
+  <div class="badge-dot"></div>
+  <div class="badge-label" id="badge-label">ENTREVISTA EN VIVO</div>
+</div>
+
+<div class="sponsor-logo">
+  <img src="./logo_robles.jpeg" alt="Robles Fútbol" />
+</div>
+
+<div class="topic-ticker" id="topic-ticker">
+  <div class="ticker-label">🎙 TEMA</div>
+  <div class="ticker-track">
+    <div class="ticker-text" id="ticker-text">Robles Fútbol · Semifinal de Ida · Transmisión en vivo</div>
+  </div>
+</div>
+
+<div class="lower-third" id="lower-third">
+  <div class="lt-panel">
+    <div class="lt-side-badge">
+      <div class="lt-side-text" id="lt-role-badge">INVITADO</div>
+    </div>
+    <div class="lt-content">
+      <div class="lt-name" id="lt-name">Nombre del Speaker</div>
+      <div class="lt-role" id="lt-role">Rol / Cargo</div>
+      <div class="lt-org">
+        <div class="lt-org-pill" id="lt-org">Robles Fútbol</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="social-cta visible" id="social-cta">
+  <div class="social-fb-icon">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+  </div>
+  <div>
+    <div class="social-text">Síguenos en Facebook</div>
+    <div class="social-name" id="social-name">RoblesUtbol</div>
+  </div>
+</div>
+
+<div class="bottom-bar">
+  <div class="bb-ball">⚽</div>
+  <div class="bb-text">Patrocinado por</div>
+  <div class="bb-sep"></div>
+  <div class="bb-brand" id="bb-sponsor">Robles Fútbol</div>
+</div>
+
+<script>
+  let _currentMode = 'overlay';
+
+  window.obsOverlay = {
+    setSpeaker(name, role, side) {
+      const badge = (side||'left') === 'left' ? 'ENTREVISTADOR' : 'INVITADO';
+      document.getElementById('lt-name').textContent       = (name||'Speaker').toUpperCase();
+      document.getElementById('lt-role').textContent       = (role||'Invitado').toUpperCase();
+      document.getElementById('lt-role-badge').textContent = badge;
+      document.getElementById('lower-third').classList.add('visible');
+    },
+    clearSpeaker() { document.getElementById('lower-third').classList.remove('visible'); },
+    setTopic(text) {
+      if (!text) return;
+      document.getElementById('ticker-text').textContent = text + ' · ' + text + ' · ';
+      document.getElementById('topic-ticker').classList.add('visible');
+    },
+    clearTopic()   { document.getElementById('topic-ticker').classList.remove('visible'); },
+    showBadge(text) {
+      if (text) document.getElementById('badge-label').textContent = text.toUpperCase();
+      document.getElementById('interview-badge').classList.add('visible');
+    },
+    hideBadge() { document.getElementById('interview-badge').classList.remove('visible'); },
+    setMode(mode) {
+      _currentMode = mode || 'overlay';
+      document.body.classList.remove('mode-overlay','mode-standalone','mode-lower-third');
+      if (_currentMode !== 'overlay') document.body.classList.add('mode-' + _currentMode);
+    },
+    setSocial(text) {
+      if (text) document.getElementById('social-name').textContent = text;
+      document.getElementById('social-cta').classList.add('visible');
+    }
+  };
+
+  // Auto-init con config SRYI
+  if (window.SRYI) {
+    document.getElementById('bb-sponsor').textContent  = window.SRYI.SPONSOR;
+    document.getElementById('social-name').textContent = window.SRYI.SPONSOR_SOCIAL || window.SRYI.SPONSOR;
+    document.getElementById('lt-org').textContent      = window.SRYI.SPONSOR;
+    document.getElementById('side-l').textContent      = window.SRYI.SPONSOR;
+    document.getElementById('ticker-text').textContent =
+      `${window.SRYI.SPONSOR} · ${window.SRYI.MATCH_LABEL} · Transmisión en vivo`;
+  }
+
+  let _wsDelay = 1000;
+  (function wsConnect() {
+    const port = (window.SRYI && window.SRYI.WS_PORT) || 8891;
+    const ws = new WebSocket(`ws://localhost:${port}`);
+    ws.onopen    = () => { _wsDelay = 1000; };
+    ws.onmessage = (e) => {
+      try { const cmd=JSON.parse(e.data); if(window.obsOverlay&&window.obsOverlay[cmd.fn]) window.obsOverlay[cmd.fn](...(cmd.args||[])); } catch(_) {}
+    };
+    ws.onclose = () => { setTimeout(wsConnect, _wsDelay); _wsDelay = Math.min(_wsDelay * 1.5, 30000); };
+  })();
+</script>
+</body>
+</html>

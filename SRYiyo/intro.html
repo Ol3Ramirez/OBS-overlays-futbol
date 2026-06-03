@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Pantalla de Inicio — SRYiyo</title>
+<script src="config.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: linear-gradient(160deg, #0a0810 0%, #100814 60%, #080610 100%);
+    font-family: 'Arial Black', sans-serif;
+    width: 1920px; height: 1080px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    position: relative;
+  }
+  .bg-lines { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+  .bg-lines::before {
+    content: ''; position: absolute;
+    top: -200px; left: 50%; width: 1px; height: 1600px;
+    background: linear-gradient(180deg, transparent, rgba(198,40,40,0.08), transparent);
+    transform: rotate(-20deg);
+  }
+  .bg-lines::after {
+    content: ''; position: absolute;
+    top: -200px; left: 40%; width: 1px; height: 1600px;
+    background: linear-gradient(180deg, transparent, rgba(255,215,0,0.05), transparent);
+    transform: rotate(20deg);
+  }
+  .corner-accent { position: absolute; width: 200px; height: 200px; border: 1px solid rgba(198,40,40,0.12); }
+  .corner-accent.tl { top:40px; left:40px; border-right:none; border-bottom:none; }
+  .corner-accent.tr { top:40px; right:40px; border-left:none; border-bottom:none; }
+  .corner-accent.bl { bottom:40px; left:40px; border-right:none; border-top:none; }
+  .corner-accent.br { bottom:40px; right:40px; border-left:none; border-top:none; }
+
+  /* Logo */
+  .logo-wrap {
+    margin-bottom: 32px;
+    background: rgba(255,255,255,0.96);
+    border-radius: 18px;
+    padding: 18px 28px;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.6),
+                0 0 0 1px rgba(255,255,255,0.10),
+                0 0 60px rgba(198,40,40,0.08);
+    animation: fadeDown 0.8s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  .logo-wrap img { width: 280px; display: block; }
+  @keyframes fadeDown { from { opacity:0; transform: translateY(-40px); } to { opacity:1; transform: translateY(0); } }
+
+  /* Match badge */
+  .match-badge {
+    display: flex; gap: 16px; align-items: center; margin-bottom: 20px;
+    background: rgba(198,40,40,0.12); border: 1px solid rgba(198,40,40,0.35);
+    border-radius: 40px; padding: 8px 28px;
+    animation: fadeDown 0.8s 0.15s both;
+  }
+  .match-badge-text {
+    font-size: 15px; letter-spacing: 5px;
+    color: rgba(255,255,255,0.7); text-transform: uppercase;
+  }
+  .match-badge-vs {
+    font-size: 15px; letter-spacing: 5px;
+    color: #FFD700; text-transform: uppercase; font-weight: 900;
+  }
+
+  .divider {
+    width: 320px; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(198,40,40,0.5), transparent);
+    margin-bottom: 28px;
+    animation: fadeDown 0.8s 0.2s both;
+  }
+
+  .label {
+    font-size: 22px; letter-spacing: 8px;
+    color: rgba(255,255,255,0.5); text-transform: uppercase;
+    margin-bottom: 20px;
+    animation: fadeDown 0.8s 0.3s both;
+  }
+
+  .countdown {
+    font-size: 160px; font-weight: 900;
+    color: #FFD700; letter-spacing: 12px; line-height: 1;
+    text-shadow: 0 0 60px rgba(255,215,0,0.35), 0 0 20px rgba(255,215,0,0.2), 3px 3px 0 rgba(0,0,0,0.4);
+    animation: fadeDown 0.8s 0.4s both;
+    will-change: transform;
+  }
+  .countdown.pulse { animation: countPulse 0.18s ease-out; }
+  @keyframes countPulse { 0% { transform: scale(1); } 45% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+  .final-msg {
+    font-size: 72px; font-weight: 900;
+    color: #FFD700; letter-spacing: 6px; text-transform: uppercase;
+    text-shadow: 0 0 40px rgba(255,213,0,0.6);
+    display: none;
+    animation: finalBurst 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards,
+               finalShake 0.5s ease 0.7s both;
+  }
+  @keyframes finalBurst { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes finalShake { 0%,100% { transform: scale(1) rotate(0deg); } 25% { transform: scale(1.04) rotate(-2deg); } 75% { transform: scale(1.04) rotate(2deg); } }
+
+  .sparkle {
+    position: absolute; width: 5px; height: 5px; border-radius: 50%;
+    will-change: transform, opacity;
+    animation: sparklePulse var(--sd, 2.2s) var(--sdelay, 0s) ease-in-out infinite;
+  }
+  @keyframes sparklePulse { 0%,100% { transform: scale(1) translateY(0); opacity: 0.5; } 50% { transform: scale(1.8) translateY(-9px); opacity: 1; } }
+
+  .logo-glow {
+    position: absolute; width: 420px; height: 420px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(198,40,40,0.15) 0%, transparent 70%);
+    animation: glowBurst 1.6s ease-out both; pointer-events: none; will-change: transform, opacity;
+  }
+  @keyframes glowBurst { 0% { transform: scale(0.2); opacity: 1; } 100% { transform: scale(3.5); opacity: 0; } }
+
+  .live-badge {
+    margin-top: 36px;
+    display: flex; align-items: center; gap: 12px;
+    animation: fadeDown 0.8s 0.6s both;
+  }
+  .live-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #c62828;
+    animation: liveBlink 1.2s ease-in-out infinite;
+  }
+  @keyframes liveBlink { 0%, 100% { opacity: 1; box-shadow: 0 0 8px #c62828; } 50% { opacity: 0.3; box-shadow: none; } }
+  .live-text { font-size: 18px; letter-spacing: 6px; color: rgba(255,255,255,0.5); text-transform: uppercase; }
+
+  .sponsor-tag {
+    position: absolute; bottom: 50px;
+    font-size: 13px; letter-spacing: 3px;
+    color: rgba(255,255,255,0.25); text-transform: uppercase;
+    animation: fadeDown 1s 0.8s both;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-lines"></div>
+<div class="corner-accent tl"></div>
+<div class="corner-accent tr"></div>
+<div class="corner-accent bl"></div>
+<div class="corner-accent br"></div>
+
+<div class="sparkle" style="left:10%;top:15%;background:#FFD700;--sd:2.4s;--sdelay:0s"></div>
+<div class="sparkle" style="left:85%;top:20%;background:#c62828;--sd:2.8s;--sdelay:0.4s"></div>
+<div class="sparkle" style="left:25%;top:72%;background:#FFD700;--sd:2.1s;--sdelay:0.8s"></div>
+<div class="sparkle" style="left:78%;top:65%;background:#FFD700;--sd:3.0s;--sdelay:0.2s"></div>
+<div class="sparkle" style="left:5%;top:50%;background:#c62828;--sd:2.5s;--sdelay:1.1s"></div>
+<div class="sparkle" style="left:93%;top:45%;background:#FFD700;--sd:2.2s;--sdelay:0.6s"></div>
+<div class="sparkle" style="left:48%;top:8%;background:#1565C0;--sd:2.7s;--sdelay:0.3s"></div>
+<div class="sparkle" style="left:58%;top:92%;background:#FFD700;--sd:2.3s;--sdelay:0.9s"></div>
+
+<div class="logo-glow"></div>
+<div class="logo-wrap">
+  <img src="./logo_robles.jpeg" alt="Robles Fútbol" id="logo-img" />
+</div>
+
+<div class="match-badge">
+  <span class="match-badge-text" id="home-team">PROVEEDORA ROBLES</span>
+  <span class="match-badge-vs">VS</span>
+  <span class="match-badge-text" id="away-team">HERMANOS OSORIO</span>
+</div>
+
+<div class="divider"></div>
+<div class="label" id="main-label">El partido comienza en</div>
+
+<div class="countdown" id="countdown">05:00</div>
+<div class="final-msg" id="final-msg">¡Ya Comenzamos!</div>
+
+<div class="live-badge">
+  <div class="live-dot"></div>
+  <div class="live-text" id="match-label">SEMIFINAL DE IDA — EN VIVO</div>
+</div>
+
+<div class="sponsor-tag" id="sponsor-tag">Transmisión — Robles Fútbol</div>
+
+<script>
+  let totalSeconds = 300, remaining = totalSeconds;
+  let interval = null, finished = false;
+
+  function fmt(s) {
+    return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  }
+
+  function tick() {
+    if (remaining <= 0) {
+      clearInterval(interval); interval = null; finished = true;
+      document.getElementById('countdown').style.display = 'none';
+      document.getElementById('main-label').style.display = 'none';
+      document.getElementById('final-msg').style.display = 'block';
+      return;
+    }
+    remaining--;
+    const el = document.getElementById('countdown');
+    el.textContent = fmt(remaining);
+    el.classList.remove('pulse');
+    void el.offsetWidth;
+    el.classList.add('pulse');
+  }
+
+  function startCountdown(seconds) {
+    if (seconds !== undefined) { remaining = seconds; totalSeconds = seconds; }
+    if (finished) {
+      finished = false;
+      document.getElementById('countdown').style.display = 'block';
+      document.getElementById('main-label').style.display = 'block';
+      document.getElementById('final-msg').style.display = 'none';
+    }
+    document.getElementById('countdown').textContent = fmt(remaining);
+    if (interval) clearInterval(interval);
+    interval = setInterval(tick, 1000);
+  }
+
+  function stopCountdown()  { if (interval) { clearInterval(interval); interval = null; } }
+
+  function resetCountdown(seconds) {
+    stopCountdown();
+    remaining = seconds !== undefined ? seconds : totalSeconds;
+    finished = false;
+    document.getElementById('countdown').style.display = 'block';
+    document.getElementById('main-label').style.display = 'block';
+    document.getElementById('final-msg').style.display = 'none';
+    document.getElementById('countdown').textContent = fmt(remaining);
+  }
+
+  // Auto-init con config SRYI
+  if (window.SRYI) {
+    document.getElementById('home-team').textContent  = window.SRYI.HOME;
+    document.getElementById('away-team').textContent  = window.SRYI.AWAY;
+    document.getElementById('match-label').textContent = window.SRYI.MATCH_LABEL + ' — EN VIVO';
+    document.getElementById('sponsor-tag').textContent = 'Transmisión — ' + window.SRYI.SPONSOR;
+  }
+
+  startCountdown(300);
+
+  window.obsOverlay = { startCountdown, stopCountdown, resetCountdown };
+
+  let _wsDelay = 1000;
+  (function wsConnect() {
+    const port = (window.SRYI && window.SRYI.WS_PORT) || 8891;
+    const ws = new WebSocket(`ws://localhost:${port}`);
+    ws.onopen    = () => { _wsDelay = 1000; };
+    ws.onmessage = (e) => {
+      try { const cmd=JSON.parse(e.data); if(window.obsOverlay&&window.obsOverlay[cmd.fn]) window.obsOverlay[cmd.fn](...(cmd.args||[])); } catch(_) {}
+    };
+    ws.onclose = () => { setTimeout(wsConnect, _wsDelay); _wsDelay = Math.min(_wsDelay * 1.5, 30000); };
+  })();
+</script>
+</body>
+</html>

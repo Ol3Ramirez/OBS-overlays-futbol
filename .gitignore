@@ -2,3 +2,7 @@ logs/*.pid
 logs/*.log
 node_modules/
 .DS_Store
+*.jpeg
+*.jpg
+!SRYiyo/logo_robles.jpeg
+!original/logo_sponsor.jpg

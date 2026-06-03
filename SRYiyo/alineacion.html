@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Alineación — SRYiyo</title>
+<script src="config.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:transparent; font-family:'Arial Black',sans-serif; width:1920px; height:1080px; overflow:hidden; }
+  :root { --gold:#FFD700; --glass:rgba(6,6,18,0.92); --accent:#c62828; --border:rgba(255,255,255,0.08); }
+
+  .lineup-container {
+    position:absolute; left:40px; top:50%; transform:translateY(-50%);
+    width:320px; background:rgba(6,6,18,0.97);
+    border:1px solid var(--border); border-left:3px solid var(--accent);
+    border-radius:0 8px 8px 0; padding:16px 0;
+    animation:slideInLeft 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  }
+  @keyframes slideInLeft { from{transform:translateY(-50%) translateX(-340px);opacity:0;} to{transform:translateY(-50%) translateX(0);opacity:1;} }
+  .lineup-header { padding:0 16px 12px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
+  .lineup-logo { width:36px;height:36px;background:rgba(198,40,40,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px; }
+  .lineup-team-name { font-size:16px; font-weight:900; color:#fff; letter-spacing:1px; text-transform:uppercase; }
+  .lineup-formation { font-size:11px; color:var(--accent); letter-spacing:2px; }
+  .lineup-coach { font-size:10px; color:rgba(255,255,255,0.4); letter-spacing:1.5px; text-transform:uppercase; }
+  .player-list { padding:8px 0; }
+  .player-row { display:flex; align-items:center; gap:10px; padding:6px 16px; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .player-row:last-child { border-bottom:none; }
+  .player-num { font-size:16px; font-weight:900; color:var(--gold); min-width:28px; text-align:center; }
+  .player-name { font-size:14px; font-weight:700; color:#fff; letter-spacing:0.5px; text-transform:uppercase; flex:1; }
+  .player-pos { font-size:10px; color:rgba(255,255,255,0.35); letter-spacing:1px; text-transform:uppercase; }
+
+  /* Campo visual */
+  .pitch-container {
+    position:absolute; left:380px; top:50%; transform:translateY(-50%);
+    width:700px; height:900px;
+  }
+  .pitch {
+    width:100%; height:100%;
+    background:linear-gradient(180deg,rgba(26,71,42,0.3),rgba(26,71,42,0.15));
+    border:2px solid rgba(255,255,255,0.06); border-radius:12px;
+    position:relative; overflow:hidden;
+  }
+  .pitch::before { content:''; position:absolute; inset:30px; border:1px solid rgba(255,255,255,0.04); border-radius:8px; }
+  .pitch-center { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:100px; height:100px; border-radius:50%; border:1px solid rgba(255,255,255,0.05); }
+  .player-dot {
+    position:absolute; transform:translate(-50%,-50%);
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    cursor:default;
+  }
+  .dot-circle { width:36px;height:36px;border-radius:50%;background:var(--accent);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center; }
+  .dot-num { font-size:13px; font-weight:900; color:#fff; }
+  .dot-name { font-size:9px; color:#fff; letter-spacing:0.5px; text-transform:uppercase; text-align:center; white-space:nowrap; background:rgba(0,0,0,0.6); padding:1px 5px; border-radius:3px; }
+</style>
+</head>
+<body>
+
+<div class="lineup-container" id="lineup-container">
+  <div class="lineup-header">
+    <div class="lineup-logo">🔴</div>
+    <div>
+      <div class="lineup-team-name" id="team-name">PROVEEDORA ROBLES</div>
+      <div class="lineup-formation" id="team-formation">2-2</div>
+      <div class="lineup-coach" id="team-coach">DT —</div>
+    </div>
+  </div>
+  <div class="player-list" id="player-list"></div>
+</div>
+
+<div class="pitch-container">
+  <div class="pitch" id="pitch">
+    <div class="pitch-center"></div>
+  </div>
+</div>
+
+<script>
+  let _team = {
+    name: 'PROVEEDORA ROBLES',
+    formation: '2-2',
+    coach: '',
+    players: []
+  };
+
+  function renderList() {
+    const list = document.getElementById('player-list');
+    list.innerHTML = '';
+    _team.players.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'player-row';
+      row.innerHTML = `<span class="player-num">${p.num}</span><span class="player-name">${p.name}</span><span class="player-pos">${p.pos||''}</span>`;
+      list.appendChild(row);
+    });
+  }
+
+  function renderPitch() {
+    const pitch = document.getElementById('pitch');
+    pitch.querySelectorAll('.player-dot').forEach(e => e.remove());
+    _team.players.forEach(p => {
+      if (p.x === undefined || p.y === undefined) return;
+      const dot = document.createElement('div');
+      dot.className = 'player-dot';
+      dot.style.left = p.x + '%';
+      dot.style.top  = p.y + '%';
+      dot.innerHTML = `<div class="dot-circle"><span class="dot-num">${p.num}</span></div><div class="dot-name">${p.name}</div>`;
+      pitch.appendChild(dot);
+    });
+  }
+
+  window.obsOverlay = {
+    setName(n) {
+      _team.name = (n||'').toUpperCase();
+      document.getElementById('team-name').textContent = _team.name;
+    },
+    setFormation(f) {
+      _team.formation = f || '2-2';
+      document.getElementById('team-formation').textContent = _team.formation;
+    },
+    setTeam(data) {
+      if (!data) return;
+      _team = { ...data };
+      document.getElementById('team-name').textContent      = (_team.name||'').toUpperCase();
+      document.getElementById('team-formation').textContent = _team.formation || '2-2';
+      document.getElementById('team-coach').textContent     = _team.coach ? ('DT ' + _team.coach.toUpperCase()) : 'DT —';
+      renderList();
+      renderPitch();
+    }
+  };
+
+  // Auto-init
+  if (window.SRYI) window.obsOverlay.setName(window.SRYI.HOME);
+
+  let _wsDelay = 1000;
+  (function wsConnect() {
+    const port = (window.SRYI && window.SRYI.WS_PORT) || 8891;
+    const ws = new WebSocket(`ws://localhost:${port}`);
+    ws.onopen    = () => { _wsDelay = 1000; };
+    ws.onmessage = (e) => {
+      try { const cmd=JSON.parse(e.data); if(window.obsOverlay&&window.obsOverlay[cmd.fn]) window.obsOverlay[cmd.fn](...(cmd.args||[])); } catch(_) {}
+    };
+    ws.onclose = () => { setTimeout(wsConnect, _wsDelay); _wsDelay = Math.min(_wsDelay * 1.5, 30000); };
+  })();
+</script>
+</body>
+</html>
