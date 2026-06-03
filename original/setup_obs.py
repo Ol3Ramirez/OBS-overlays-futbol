@@ -230,12 +230,24 @@ async def main() -> None:
             },
             "sceneItemEnabled": True,
         })
-        ok   = r2["requestStatus"]["result"]
+        ok    = r2["requestStatus"]["result"]
         code2 = r2["requestStatus"].get("code")
         if ok:
-            print(f"    OK -> {url}")
+            print(f"    OK creado -> {url}")
         elif code2 == 601:
-            print(f"    (ya existe) -> {url}")
+            await req("SetInputSettings", {
+                "inputName":     src,
+                "inputSettings": {"url": url},
+                "overlay":       True,
+            })
+            r_ref = await req("PressInputPropertiesButton", {
+                "inputName":    src,
+                "propertyName": "refreshnocache",
+            })
+            if r_ref["requestStatus"]["result"]:
+                print(f"    OK refrescado -> {url}")
+            else:
+                print(f"    OK actualizado -> {url}")
         else:
             print(f"    Error {code2}: {r2['requestStatus'].get('comment','')}")
 

@@ -14,6 +14,13 @@ $DIR  = $PSScriptRoot
 $LOG  = Join-Path $DIR "logs"
 if (-not (Test-Path $LOG)) { New-Item -ItemType Directory -Force $LOG | Out-Null }
 
+# Rotar logs si superan 5 MB
+function Rotate-Log { param([string]$f); if ((Test-Path $f) -and (Get-Item $f).Length -gt 5MB) { Rename-Item $f ($f + '.' + (Get-Date -Format 'yyyyMMdd_HHmmss')) -Force } }
+Rotate-Log (Join-Path $LOG "http.log")
+Rotate-Log (Join-Path $LOG "http.err")
+Rotate-Log (Join-Path $LOG "ws.log")
+Rotate-Log (Join-Path $LOG "ws.err")
+
 # Leer puertos desde profile.json (SSOT)
 $profilePath = Join-Path $DIR "profile.json"
 if (-not (Test-Path $profilePath)) {

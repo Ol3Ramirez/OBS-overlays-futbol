@@ -363,12 +363,99 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
   letter-spacing: 1px; z-index: 200; display: flex; align-items: center; gap: 6px;
 }
 .ws-dot {
-  width: 7px; height: 7px; border-radius: 50%; background: var(--red); flex-shrink: 0;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--red); flex-shrink: 0;
+  transition: background 0.3s; cursor: default;
 }
 .ws-dot.ok { background: var(--green); }
+.ws-dot.connecting { background: #FFD700; animation: wsPulse 1s ease-in-out infinite; }
+@keyframes wsPulse { 0%,100% { opacity:1; } 50% { opacity:0.25; } }
+@media (prefers-reduced-motion: reduce) { .ws-dot.connecting { animation:none; opacity:0.6; } }
+
+/* ── Quick Start Modal ── */
+.qs-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+  z-index: 1000; display: flex; align-items: center; justify-content: center;
+  animation: qsFadeIn 0.25s ease;
+}
+.qs-overlay.hidden { display: none; }
+.qs-box {
+  background: #0d0d18; border: 1px solid rgba(0,229,255,0.25);
+  border-radius: 14px; padding: 32px 28px; max-width: 380px; width: 90%;
+  box-shadow: 0 8px 48px rgba(0,0,0,0.7);
+  animation: qsSlideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.qs-title { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 6px; letter-spacing: 0.5px; }
+.qs-sub { font-size: 12px; color: var(--dim); margin-bottom: 22px; }
+.qs-step { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px; }
+.qs-num { width: 26px; height: 26px; min-width: 26px; border-radius: 50%;
+          background: var(--accent); color: #000; font-weight: 800; font-size: 12px;
+          display: flex; align-items: center; justify-content: center; }
+.qs-step-text strong { display: block; font-size: 14px; color: #fff; margin-bottom: 3px; }
+.qs-step-text span { font-size: 12px; color: var(--dim); line-height: 1.5; }
+.qs-step-text code { background: rgba(255,255,255,0.08); padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+.qs-btn { width: 100%; padding: 14px; background: var(--accent); color: #000;
+          border: none; border-radius: 8px; font-weight: 800; font-size: 14px;
+          cursor: pointer; margin-top: 10px; letter-spacing: 0.5px; transition: opacity 0.2s; }
+.qs-btn:hover { opacity: 0.85; }
+.qs-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.qs-skip { display: block; text-align: center; margin-top: 10px; font-size: 11px; color: var(--dim); cursor: pointer; }
+.qs-skip:hover { color: #fff; }
+@keyframes qsFadeIn { from { opacity:0; } to { opacity:1; } }
+@keyframes qsSlideUp { from { transform:translateY(20px);opacity:0; } to { transform:translateY(0);opacity:1; } }
+@media (prefers-reduced-motion: reduce) { .qs-overlay, .qs-box { animation:none; } }
+
+/* ── Mobile responsive (celular en el campo) ── */
+@media (max-width: 480px) {
+  body { padding-bottom: 60px; }
+  .header { flex-direction: column; gap: 6px; }
+  .header-score { padding: 6px 10px; }
+  .h-team  { font-size: 11px; }
+  .h-score { font-size: 26px; letter-spacing: 4px; }
+  .btn { padding: 18px 10px; font-size: 15px; min-height: 56px; gap: 8px; }
+  .btn .ico { font-size: 24px; }
+  .g3 { grid-template-columns: 1fr 1fr; }
+  .g5 { grid-template-columns: repeat(3,1fr); }
+  .chip { padding: 10px 16px; font-size: 14px; }
+  .tab { padding: 12px 10px; font-size: 10px; }
+  .field, .rr-name, .rr-num { padding: 12px; font-size: 15px; }
+  .min-input { padding: 10px; font-size: 18px; height: 48px; }
+  .cp-time { font-size: 64px; }
+}
 </style>
 </head>
 <body>
+
+<!-- ═══ QUICK START MODAL (primera visita) ═══ -->
+<div class="qs-overlay hidden" id="qs-overlay" role="dialog" aria-modal="true" aria-labelledby="qs-title">
+  <div class="qs-box">
+    <div class="qs-title" id="qs-title">Panel de Control</div>
+    <div class="qs-sub">3 pasos para empezar el partido</div>
+    <div class="qs-step">
+      <div class="qs-num">1</div>
+      <div class="qs-step-text">
+        <strong>Servidores activos</strong>
+        <span>Corre <code>.\iniciar_stream.ps1</code> (Windows) o <code>bash iniciar_stream.sh</code> (Mac) — el punto superior debe estar verde</span>
+      </div>
+    </div>
+    <div class="qs-step">
+      <div class="qs-num">2</div>
+      <div class="qs-step-text">
+        <strong>Configura equipos</strong>
+        <span>Toca "Configurar Equipos" para poner los nombres del partido de hoy</span>
+      </div>
+    </div>
+    <div class="qs-step">
+      <div class="qs-num">3</div>
+      <div class="qs-step-text">
+        <strong>A jugar</strong>
+        <span>Tab Tiempo para iniciar el reloj · Tab Goles para marcar · Atajos: <code>G</code> gol local · <code>H</code> visitante · <code>ESPACIO</code> reloj</span>
+      </div>
+    </div>
+    <button class="qs-btn" onclick="closeQS(true)">Entendido — Empezar</button>
+    <span class="qs-skip" onclick="closeQS(false)">Recordarmelo la proxima vez</span>
+  </div>
+</div>
 
 <!-- ═══ HEADER ═══ -->
 <div class="header">
@@ -807,19 +894,57 @@ let _reconnTimer = null;
 
 function wsConnect() {
   if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+  const dot = document.getElementById('ws-dot');
+  const txt = document.getElementById('status-text');
+  dot.className = 'ws-dot connecting';
+  dot.title = 'Conectando al relay...';
+  if (txt) txt.textContent = 'Conectando...';
   ws = new WebSocket('ws://localhost:8889');
-  ws.onopen  = () => {
-    log('✅ Conectado al relay');
-    document.getElementById('ws-dot').classList.add('ok');
+  ws.onopen = () => {
+    log('Conectado al relay');
+    dot.className = 'ws-dot ok';
+    dot.title = 'Conectado — ws://localhost:8889';
+    if (txt) txt.textContent = 'Relay conectado';
     _reconnTimer = null;
   };
   ws.onclose = () => {
-    document.getElementById('ws-dot').classList.remove('ok');
-    log('⚠️ Desconectado — reconectando...');
+    dot.className = 'ws-dot connecting';
+    dot.title = 'Desconectado — reconectando...';
+    if (txt) txt.textContent = 'Reconectando...';
+    log('Desconectado — reconectando...');
     if (!_reconnTimer) _reconnTimer = setTimeout(() => { _reconnTimer = null; wsConnect(); }, 2000);
   };
-  ws.onerror = () => log('❌ Error WebSocket — ¿está corriendo ws_relay.py?');
+  ws.onerror = () => {
+    dot.className = 'ws-dot';
+    log('Error WebSocket — verifica que ws_relay.py este corriendo');
+  };
 }
+
+function showQS() { if (!localStorage.getItem('obs-qs-done')) document.getElementById('qs-overlay').classList.remove('hidden'); }
+function closeQS(persist) {
+  document.getElementById('qs-overlay').classList.add('hidden');
+  if (persist) localStorage.setItem('obs-qs-done', '1');
+}
+
+function _isInputFocused() {
+  const t = document.activeElement && document.activeElement.tagName;
+  return t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT';
+}
+document.addEventListener('keydown', function(e) {
+  if (_isInputFocused()) return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === 'Escape' && !document.getElementById('qs-overlay').classList.contains('hidden')) {
+    closeQS(false); return;
+  }
+  switch(e.key) {
+    case 'g': case 'G': e.preventDefault(); sendGoal('home'); break;
+    case 'h': case 'H': e.preventDefault(); sendGoal('away'); break;
+    case 'y': case 'Y': e.preventDefault(); sendCard('yellow'); break;
+    case 'r': case 'R': e.preventDefault(); sendCard('red'); break;
+    case ' ':           e.preventDefault(); cp.running ? clockPause() : clockStart(); break;
+    case 'Escape':      e.preventDefault(); ['goal','card','sub'].forEach(t => clearSel(t)); break;
+  }
+});
 
 function send(fn, args=[]) {
   if (!ws || ws.readyState !== WebSocket.OPEN) { log('⚠️ Sin conexión WebSocket'); return; }
@@ -1186,6 +1311,7 @@ function clearInterview() {
   renderLineupRows();
   updateAllClocks();
   wsConnect();
+  showQS();
 
   // Auto-open setup if no roster configured yet
   if (!localPlayers.length) {

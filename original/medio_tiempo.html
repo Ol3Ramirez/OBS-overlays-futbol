@@ -242,12 +242,14 @@ html, body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: fadeDown 0.8s 0.4s both, textShine 4s linear 1.5s infinite;
+  animation: fadeDown 0.8s 0.4s both, textShine 8s linear 1.5s infinite;
+  will-change: background-position;
 }
 @keyframes textShine {
   0%  { background-position:0% 0; }
   100%{ background-position:200% 0; }
 }
+@media (prefers-reduced-motion: reduce) { .main-text { animation: fadeDown 0.8s 0.4s both; } }
 
 /* ── Sub Text ── */
 .sub-text {
@@ -361,7 +363,7 @@ html, body {
     <div class="logo-ring-2"></div>
     <div class="logo-ring"></div>
     <div class="logo-wrap">
-      <img src="./logo_sponsor.jpg" alt="Avila Fisioterapia" />
+      <img src="./logo_sponsor.jpg" alt="Avila Fisioterapia" width="160" height="64" />
     </div>
   </div>
   <div class="divider"></div>
@@ -434,20 +436,7 @@ html, body {
 
   window.obsOverlay = { setText, setBadge, setTeams, setScore, clearScore };
 
-  // WebSocket relay con exponential backoff
-  let _wsDelay = 1000;
-  (function wsConnect() {
-    const ws = new WebSocket('ws://localhost:8889');
-    ws.onopen  = () => { _wsDelay = 1000; };
-    ws.onmessage = (e) => {
-      try {
-        const cmd = JSON.parse(e.data);
-        if (window.obsOverlay && window.obsOverlay[cmd.fn])
-          window.obsOverlay[cmd.fn](...(cmd.args || []));
-      } catch(_) {}
-    };
-    ws.onclose = () => { setTimeout(wsConnect, _wsDelay); _wsDelay = Math.min(_wsDelay * 1.5, 30000); };
-  })();
+
 </script>
 <script src="ws-client.js"></script>
 </body>
