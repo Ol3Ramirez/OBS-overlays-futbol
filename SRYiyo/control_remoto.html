@@ -204,7 +204,7 @@ hr.div { border:none;border-top:1px solid var(--border);margin:14px 0; }
   <div class="tab" onclick="switchTab('tiempo')">⏱ Tiempo</div>
   <div class="tab" onclick="switchTab('lineup')">📋 Alineación</div>
   <div class="tab" onclick="switchTab('escenas')">📺 Escenas</div>
-  <div class="tab" onclick="switchTab('entrevista')" style="color:rgba(198,40,40,0.8)">🎙 Entrevista</div>
+  <div class="tab" onclick="switchTab('entrevista')" style="color:var(--accent)">🎙 Entrevista</div>
 </div>
 
 <!-- TAB: GOLES -->
@@ -359,7 +359,7 @@ hr.div { border:none;border-top:1px solid var(--border);margin:14px 0; }
 <!-- STATUS BAR -->
 <div class="status-bar">
   <span class="ws-dot" id="ws-dot"></span>
-  <span id="status-text">Conectando a ws://localhost:8891...</span>
+  <span id="status-text">Conectando...</span>
 </div>
 
 <script>
@@ -420,6 +420,7 @@ let ws=null, _reconnTimer=null;
 function wsConnect() {
   if(ws&&(ws.readyState===WebSocket.OPEN||ws.readyState===WebSocket.CONNECTING)) return;
   const port=(window.SRYI&&window.SRYI.WS_PORT)||8891;
+  log(`Conectando a ws://localhost:${port}...`);
   ws=new WebSocket(`ws://localhost:${port}`);
   ws.onopen =()=>{ log('✅ Conectado al relay'); document.getElementById('ws-dot').classList.add('ok'); _reconnTimer=null; };
   ws.onclose=()=>{ document.getElementById('ws-dot').classList.remove('ok'); log('⚠️ Desconectado — reconectando...'); if(!_reconnTimer) _reconnTimer=setTimeout(()=>{ _reconnTimer=null; wsConnect(); },2000); };
@@ -470,12 +471,19 @@ function switchTab(name) { document.querySelectorAll('.tab-pane').forEach(p=>p.c
 function sendGoal(side) {
   const min=parseInt(document.getElementById('in-goal-min').value)||cp.currentMin();
   let player,teamName;
-  if(side==='home'){ player=sel.goal||(document.getElementById('in-away-scorer').value.trim()||'?'); teamName=match.home; }
-  else { player=document.getElementById('in-away-scorer').value.trim()||'?'; teamName=match.away; }
+  if(side==='home'){
+    player=sel.goal||'Jugador'; teamName=match.home;
+  } else {
+    player=document.getElementById('in-away-scorer').value.trim()||'Visitante';
+    teamName=match.away;
+    document.getElementById('in-away-scorer').value='';
+  }
   if(side==='home'){ match.hs++; } else { match.as++; }
   const scoreline=`${match.home} ${match.hs} – ${match.as} ${match.away}`;
+  // goal() → evento_jugador.html (overlay de evento); goalHome/goalAway() → marcador.html (+1 score + banner)
   send('goal',[player,teamName,min,scoreline]);
   send(side==='home'?'goalHome':'goalAway',[player]);
+  clearSel('goal');
   updateHeader(); log(`⚽ GOL — ${player} (${teamName}) • ${min}'`);
 }
 
@@ -484,6 +492,8 @@ function sendCard(type) {
   const player=sel.card||document.getElementById('in-away-card').value.trim()||'Jugador';
   const teamName=sel.card?match.home:match.away;
   send(type,[player,teamName,min]);
+  clearSel('card');
+  document.getElementById('in-away-card').value='';
   log(`🟨 ${type.toUpperCase()} — ${player} (${teamName}) • ${min}'`);
 }
 
@@ -495,6 +505,9 @@ function sendSub() {
   const inPlayer=document.getElementById('in-sub-in').value.trim()||'?';
   const teamName=subTeam==='local'?match.home:match.away;
   send('sub',[outPlayer,inPlayer,teamName,min]);
+  clearSel('sub');
+  document.getElementById('in-sub-out-away').value='';
+  document.getElementById('in-sub-in').value='';
   log(`🔄 CAMBIO — ↓${outPlayer} ↑${inPlayer} (${teamName}) • ${min}'`);
 }
 
