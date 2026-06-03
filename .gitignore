@@ -20,6 +20,9 @@ test-results/
 .env.local
 **/. env
 
+# MCP local — contiene credenciales, NUNCA subir a git
+.mcp.json
+
 # Imágenes — excluir logos de sponsors
 *.jpeg
 *.jpg
