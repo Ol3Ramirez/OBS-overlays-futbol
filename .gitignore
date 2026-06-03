@@ -4,6 +4,12 @@ logs/
 node_modules/
 .DS_Store
 
+# Python
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+
 # Artefactos de pruebas automáticas
 .playwright-mcp/
 playwright-report/
