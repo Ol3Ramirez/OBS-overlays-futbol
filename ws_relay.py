@@ -1,4 +1,8 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# /// script
+# dependencies = ["websockets>=15"]
+# requires-python = ">=3.11"
+# ///
 """
 WebSocket Relay — OBS Overlays Fútbol 5
 API: websockets 15.x  |  ws://0.0.0.0:8889

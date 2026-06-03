@@ -59,7 +59,7 @@ Debe aparecer: `Serving HTTP on 0.0.0.0 port 8888`
 **Terminal 2:**
 ```bash
 cd "/Users/oleramirez/Movies/MY CLOUDE CODE/OBS_OVERLAYS_FUTBOL"
-python3 ws_relay.py
+uv run ws_relay.py
 ```
 Debe aparecer: `WS Relay escuchando en ws://localhost:8889`
 
@@ -320,7 +320,7 @@ Abre en Chrome (con el servidor HTTP corriendo). Loop automático de 29 segundos
 Cuando cambias a la escena Medio Tiempo, puedes enviar el marcador del primer tiempo:
 
 ```bash
-python3 -c "
+uv run --with websockets python3 -c "
 import asyncio, json
 from websockets.asyncio.client import connect
 async def cmd(fn, *args):
@@ -333,4 +333,4 @@ asyncio.run(cmd('setScore', 1, 0))
 
 O desde el panel de control (Tab **Escenas**) → sección **Medio Tiempo**.
 
-*Actualizado por Claude Code · 28 Mayo 2026*
+*Actualizado por Claude Code · 28 Mayo 2026 — migración a uv (PEP 723), limpieza Python 3.12/3.13*

@@ -12,7 +12,7 @@ bash "/Users/oleramirez/Movies/MY CLOUDE CODE/OBS_OVERLAYS_FUTBOL/iniciar_stream
 
 # Manual alternative (two terminals):
 python3 -m http.server 8888          # Terminal 1 — serves HTML overlays
-python3 ws_relay.py                  # Terminal 2 — WebSocket relay
+uv run ws_relay.py                   # Terminal 2 — WebSocket relay
 
 # Stop everything
 pkill -f 'http.server 8888' && pkill -f ws_relay.py
@@ -33,7 +33,7 @@ Chrome (control_remoto.html)
                                        alineacion.html
 ```
 
-- `ws_relay.py` — broadcast relay with **state store** (websockets 15.x): stores last command per `fn`, replays state to newly connected overlays so they recover after reload.
+- `ws_relay.py` — broadcast relay with **state store** (websockets 16.x, managed by uv/PEP 723): stores last command per `fn`, replays state to newly connected overlays so they recover after reload.
 - All overlays connect to `ws://localhost:8889` on load and listen for `{ fn, args }` JSON commands.
 - **No localStorage** — all communication goes through WebSocket only.
 - OBS Browser Sources must use `http://localhost:8888/` (not `file://` — macOS CEF blocks local file access).
@@ -45,7 +45,7 @@ Commands are JSON objects `{ "fn": "functionName", "args": [...] }` sent to `ws:
 
 From Python / Claude Code:
 ```bash
-python3 -c "
+uv run --with websockets python3 -c "
 import asyncio, json
 from websockets.asyncio.client import connect
 
@@ -172,7 +172,7 @@ Hooks: auto-format HTML/CSS/JS (prettier), desktop notifications, change tracker
 ## Known Bugs Fixed
 
 - `slideDown` animation on `.scoreboard` preserves `translateX(-50%)` — removing it shifts the scoreboard off-center. The keyframe must include `translateX(-50%)` at both `from` and `to`.
-- `ws_relay.py` requires `from websockets.asyncio.server import broadcast, serve` (websockets 15.x API — not the legacy import path).
+- `ws_relay.py` requires `from websockets.asyncio.server import broadcast, serve` (websockets 16.x API — not the legacy import path). Dependencia gestionada por uv (PEP 723 inline) — no requiere pip ni venv manual.
 - `marcador.html`: `updateRunningDot()` used `getElementById('clock-label')` (no such ID) — fixed to `querySelector('.clock-label')`. The running-dot now shows correctly.
 - `marcador.html`: rAF loop could start multiple instances if `toggleClock()` was called rapidly — fixed with `_rafId` guard + `cancelAnimationFrame`.
 - `control_remoto.html`: WebSocket reconnect could trigger multiple simultaneous reconnects — fixed with `readyState` check and single-timer guard.

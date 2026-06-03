@@ -21,7 +21,7 @@
 | `entrevista.html` | **NUEVO** | Overlay Interview/Talk-Show: lower-third slide, topic ticker, 3 modos, WebSocket API |
 | `control_remoto.html` | ACTUALIZADO | Panel de control web — **8 tabs** (+ Tab Entrevista), WS reconnect corregido |
 | `promo_avila.html` | LISTO | 1920×1080, 3 escenas auto-loop (Fútbol5 → Avila → CTA), side-decos 390px |
-| `ws_relay.py` | OPTIMIZADO | **State store** — replay estado a overlays reconectados, timestamp logging |
+| `ws_relay.py` | OPTIMIZADO | **State store** — replay estado a overlays reconectados, timestamp logging. Dep: uv/PEP 723 (`websockets>=15`) |
 | `FLUJO_PARTIDO.md` | LISTO | Guía operativa día de partido |
 | `CLAUDE.md` | ACTUALIZADO | Entrevista API, skills instalados, OBS scenes, bugs corregidos |
 
@@ -92,12 +92,15 @@ Protocolo JSON: `{ "fn": "goalHome", "args": ["Chicharito"] }`
 ## Arranque del partido (resumen rápido)
 
 ```bash
-# Terminal 1 — servidor HTML
+# Recomendado — un solo comando
+bash "/Users/oleramirez/Movies/MY CLOUDE CODE/OBS_OVERLAYS_FUTBOL/iniciar_stream.sh"
+
+# Manual — Terminal 1: servidor HTML
 cd "/Users/oleramirez/Movies/MY CLOUDE CODE/OBS_OVERLAYS_FUTBOL"
 python3 -m http.server 8888
 
-# Terminal 2 — relay WebSocket
-python3 ws_relay.py
+# Manual — Terminal 2: relay WebSocket
+uv run ws_relay.py
 ```
 
 OBS Browser Sources → URL base: `http://localhost:8888/`
@@ -195,7 +198,7 @@ clearScore()                                // oculta score line
 ### Desde Python / Claude Code
 
 ```bash
-python3 -c "
+uv run --with websockets python3 -c "
 import asyncio, json
 from websockets.asyncio.client import connect
 
@@ -230,6 +233,14 @@ asyncio.run(cmd('setScore', 1, 0))                  # muestra marcador 1er tiemp
 - promo_avila.html: 1080×1080 → 1920×1080 con side-decos 390px
 - OBS FPS → 30 en todos los browser sources
 - CONFIG_IRL_PRO.md creado (latencia 4000ms recomendada)
+
+### 28 Mayo 2026 — Migración a uv
+- **Python**: limpiados directorios huérfanos python3.12 y python3.13 (~20 MB)
+- **uv 0.11.16** instalado via Homebrew — reemplaza pip/venv/pyenv
+- **ws_relay.py**: bloque PEP 723 inline (`# /// script` con `websockets>=15`)
+- **iniciar_stream.sh**: `python3 ws_relay.py` → `uv run ws_relay.py`
+- Snippets de comandos Python actualizados a `uv run --with websockets python3 -c "..."`
+- `websockets` desinstalado del sistema Python — ahora lo gestiona uv aislado
 
 ### 28 Mayo 2026 — Sesión de rediseño visual
 - **marcador.html**: score 56px, 28 partículas en gol, running-clock dot
@@ -276,4 +287,4 @@ y continuemos con el stream de fútbol
 
 ---
 
-*Sesión actualizada por Claude Code · 28 Mayo 2026 — Rediseño visual completo + medio_tiempo nuevo + limpieza*
+*Sesión actualizada por Claude Code · 28 Mayo 2026 — Rediseño visual completo + medio_tiempo nuevo + limpieza + migración a uv*

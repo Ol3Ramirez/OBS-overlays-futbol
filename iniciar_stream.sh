@@ -37,7 +37,7 @@ fi
 
 # 3. WebSocket relay
 echo "▶ Iniciando WebSocket relay en puerto 8889..."
-python3 "$DIR/ws_relay.py" > "$LOG/ws.log" 2>&1 &
+uv run "$DIR/ws_relay.py" > "$LOG/ws.log" 2>&1 &
 WS_PID=$!
 sleep 1
 
