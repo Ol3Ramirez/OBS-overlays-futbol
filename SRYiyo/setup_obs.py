@@ -12,7 +12,7 @@ import sys, io, asyncio, json, uuid, hashlib, base64
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 from websockets.asyncio.client import connect
 
-PASSWORD        = "tvm8ToSSy58UURQp"
+PASSWORD        = "xxeE65696N6ufKhc"
 HOST            = "localhost"
 PORT            = 4455
 HTTP            = 8890
