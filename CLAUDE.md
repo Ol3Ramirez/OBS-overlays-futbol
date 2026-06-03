@@ -1,30 +1,149 @@
-# CLAUDE.md — OBS Overlays Fútbol
+# CLAUDE.md — OBS Overlays Futbol
 
-Sistema de overlays en vivo para transmisiones de fútbol con OBS.
-Cada subcarpeta es un **perfil/colección independiente** con sus propios equipos, colores y puertos.
+Sistema de overlays en vivo para transmisiones de futbol con OBS.
+Cada subcarpeta es un **perfil/coleccion independiente** con sus propios equipos, colores y puertos.
 
 ## Estructura del repositorio
 
 ```
 OBS-overlays-futbol/
-  original/     ← Perfil original (Avila Fisioterapia · puertos 8888/8889)
-  SRYiyo/       ← Robles Fútbol · Semifinal de Ida (puertos 8890/8891)
-  CLAUDE.md     ← Este archivo
+  original/     <- Perfil original (Avila Fisioterapia, puertos 8888/8889)
+  SRYiyo/       <- Robles Futbol, Semifinal de Ida (puertos 8890/8891)
+  CLAUDE.md     <- Este archivo
 ```
 
-## Cómo crear un nuevo perfil
+## Primer uso en una maquina nueva
 
-1. Copiar una carpeta existente: `cp -r SRYiyo/ NuevoPerfil/`
-2. Editar `NuevoPerfil/config.js` — cambiar equipos, colores y **puertos** (+2 del anterior)
-3. Arrancar con `bash NuevoPerfil/iniciar_stream.sh` (Mac) o `.\NuevoPerfil\iniciar_stream.ps1` (Windows)
+### Mac
+```bash
+# 1. Clonar
+git clone https://github.com/Ol3Ramirez/OBS-overlays-futbol
+cd OBS-overlays-futbol/SRYiyo
 
-## Perfiles activos
+# 2. Instalar uv si no esta instalado
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-| Perfil | Sponsor | HTTP | WS | Partido |
-|--------|---------|------|----|---------|
-| `original/` | Avila Fisioterapia | 8888 | 8889 | Genérico |
-| `SRYiyo/` | Robles Fútbol | 8890 | 8891 | Semifinal de Ida |
+# 3. Configurar password de OBS (una sola vez)
+cp .env.example .env
+nano .env   # Escribe: OBS_WS_PASSWORD=tu_password_de_obs
 
-## OBS WebSocket global
-- Puerto: `4455` (todos los perfiles usan el mismo OBS)
-- Contraseña: en `~/.claude/settings.json` → `mcpServers.obs`
+# 4. Arrancar servidores
+bash iniciar_stream.sh
+
+# 5. Configurar OBS (crear escenas automaticamente)
+uv run setup_obs.py
+
+# 6. Abrir panel de control en Chrome
+open http://localhost:8890/control_remoto.html
+```
+
+### Windows (PowerShell 7)
+```powershell
+# 1. Clonar
+git clone https://github.com/Ol3Ramirez/OBS-overlays-futbol
+cd OBS-overlays-futbol\SRYiyo
+
+# 2. Instalar uv si no esta instalado
+winget install --id=astral-sh.uv -e
+
+# 3. Configurar password de OBS (una sola vez)
+copy .env.example .env
+notepad .env   # Escribe: OBS_WS_PASSWORD=tu_password_de_obs
+
+# 4. Arrancar servidores
+.\iniciar_stream.ps1
+
+# 5. Configurar OBS (crear escenas automaticamente)
+uv run setup_obs.py
+
+# 6. Abrir panel de control en Chrome
+start http://localhost:8890/control_remoto.html
+```
+
+---
+
+## Diferencias Mac vs Windows
+
+| Aspecto | Mac (`iniciar_stream.sh`) | Windows (`iniciar_stream.ps1`) |
+|---------|--------------------------|-------------------------------|
+| Python | `python3` | `python` (o `python3` si esta en PATH) |
+| Verificar puerto | `lsof -i :PORT -sTCP:LISTEN` | `netstat -ano \| Select-String "LISTENING"` |
+| Matar proceso por puerto | `lsof -ti :PORT \| xargs kill -9` | `Stop-Process -Id ([int]$procId)` |
+| Redirigir logs | Un archivo: `> file 2>&1` | Dos archivos separados (stdout != stderr) |
+| Path con espacios | Funciona con `"$DIR/script.py"` | Requiere `"\"$path\""` para uv |
+| Git GPG signing | Funciona normalmente | Requiere `-c commit.gpgsign=false` |
+| Arrancar OBS | Abrir OBS.app manualmente | Abrir OBS Studio manualmente |
+
+---
+
+## Password de OBS WebSocket
+
+El password **nunca se hardcodea en el codigo**. `setup_obs.py` lo lee en este orden:
+
+1. Variable de entorno: `export OBS_WS_PASSWORD=tu_password`
+2. Archivo `.env` en la carpeta del perfil (gitignoreado)
+3. Prompt interactivo — te lo pide al correr el script y te ofrece guardarlo
+
+**Encontrar el password en OBS:**
+OBS -> Herramientas -> Ajustes del servidor WebSocket -> Mostrar informacion de conexion
+
+---
+
+## Puertos por perfil
+
+| Perfil | HTTP | WS Relay | OBS WS |
+|--------|------|----------|--------|
+| `original/` | 8888 | 8889 | 4455 |
+| `SRYiyo/` | 8890 | 8891 | 4455 |
+| Proximo perfil | 8892 | 8893 | 4455 |
+
+El puerto 4455 (OBS WebSocket) es compartido — todos los perfiles controlan el mismo OBS.
+
+---
+
+## Arquitectura
+
+```
+Chrome / Celular
+  | ws://localhost:8891
+  v
+ws_relay.py (puerto 8891, solo 127.0.0.1)
+  | broadcast
+  v
+OBS Browser Sources (puerto 8890)
+  marcador.html       <- scoreboard + reloj
+  evento_jugador.html <- goles, tarjetas, cambios
+  alineacion.html     <- formacion del equipo
+  entrevista.html     <- lower third + ticker
+  intro.html          <- countdown de inicio
+  medio_tiempo.html   <- pantalla de descanso
+
+control_remoto.html   <- panel de control (no es source de OBS)
+```
+
+---
+
+## Crear un nuevo perfil
+
+```bash
+# Mac
+cp -r SRYiyo/ NuevoPerfil/
+# Editar NuevoPerfil/config.js: equipos, colores, puertos (+2)
+# Editar NuevoPerfil/ws_relay.py: cambiar 8891 -> 8893
+bash NuevoPerfil/iniciar_stream.sh
+
+# Windows
+xcopy SRYiyo\ NuevoPerfil\ /E /I
+# Editar NuevoPerfil\config.js y ws_relay.py
+.\NuevoPerfil\iniciar_stream.ps1
+```
+
+Solo hay que editar `config.js` — todos los overlays leen los datos desde ahi.
+
+---
+
+## OBS WebSocket MCP (control desde Claude)
+
+Configurado en `~/.claude.json` -> `mcpServers.obs`.
+Permite decirle a Claude "cambia a escena Partido" o "activa el marcador" directamente.
+Para activarlo: reiniciar Claude Code despues de agregar el MCP.

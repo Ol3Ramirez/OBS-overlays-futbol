@@ -7,12 +7,15 @@
 setup_obs.py -- Configura OBS para el perfil SRYiyo (Robles Futbol)
 Protocolo: OBS WebSocket v5 (raw) -- compatible con OBS 28+
 Uso: uv run setup_obs.py
+
+PASSWORD: lee en orden — variable de entorno OBS_WS_PASSWORD
+          → archivo .env en la misma carpeta
+          → prompt interactivo (ofrece guardar en .env)
 """
-import sys, io, asyncio, json, uuid, hashlib, base64
+import sys, io, os, asyncio, json, uuid, hashlib, base64, getpass
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 from websockets.asyncio.client import connect
 
-PASSWORD        = "tvm8ToSSy58UURQp"
 HOST            = "localhost"
 PORT            = 4455
 HTTP            = 8890
@@ -27,6 +30,58 @@ SCENES = [
     ("SRY - Entrevista",   f"http://localhost:{HTTP}/entrevista.html",     1920, 1080),
 ]
 
+# ── Obtener password (env var → .env file → prompt interactivo) ──
+
+def _load_env_file():
+    """Lee OBS_WS_PASSWORD de un archivo .env en la misma carpeta que este script."""
+    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+    if not os.path.exists(env_path):
+        return None
+    with open(env_path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line.startswith("OBS_WS_PASSWORD="):
+                value = line.split("=", 1)[1].strip().strip('"').strip("'")
+                return value or None
+    return None
+
+def _save_env_file(password):
+    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+    with open(env_path, "w", encoding="utf-8") as f:
+        f.write(f"OBS_WS_PASSWORD={password}\n")
+    print("  OK Guardado en .env (no se sube a GitHub)")
+
+def get_password():
+    # 1. Variable de entorno
+    pwd = os.environ.get("OBS_WS_PASSWORD", "").strip()
+    if pwd:
+        return pwd
+
+    # 2. Archivo .env local
+    pwd = _load_env_file()
+    if pwd:
+        return pwd
+
+    # 3. Prompt interactivo
+    print()
+    print("  Password de OBS WebSocket no configurado.")
+    print("  Alternativas para no tener que escribirlo cada vez:")
+    print("    A) Crea SRYiyo/.env con: OBS_WS_PASSWORD=tu_password")
+    print("    B) Exporta la variable: export OBS_WS_PASSWORD=tu_password")
+    print()
+    pwd = getpass.getpass("  Ingresa el password de OBS WebSocket (4455): ").strip()
+    if not pwd:
+        print("  ERROR: password requerido.")
+        sys.exit(1)
+
+    save = input("  Guardar en .env para no pedirlo la proxima vez? [s/N]: ").strip().lower()
+    if save in ("s", "si", "y", "yes"):
+        _save_env_file(pwd)
+
+    return pwd
+
+# ── Auth OBS WebSocket v5 ──
+
 def make_auth(password, salt, challenge):
     secret = base64.b64encode(hashlib.sha256((password + salt).encode()).digest()).decode()
     return base64.b64encode(hashlib.sha256((secret + challenge).encode()).digest()).decode()
@@ -38,6 +93,8 @@ async def main():
     print("  PROVEEDORA ROBLES vs HERMANOS OSORIO")
     print("=" * 51)
     print()
+
+    password = get_password()
 
     print(f"  Conectando a ws://{HOST}:{PORT}...")
     try:
@@ -59,15 +116,15 @@ async def main():
     # Identify (op=1)
     identify_d = {"rpcVersion": rpc_version, "eventSubscriptions": 0}
     if auth_data:
-        identify_d["authentication"] = make_auth(PASSWORD, auth_data["salt"], auth_data["challenge"])
+        identify_d["authentication"] = make_auth(password, auth_data["salt"], auth_data["challenge"])
 
     await ws.send(json.dumps({"op": 1, "d": identify_d}))
 
     # Identified (op=2)
     identified = json.loads(await ws.recv())
     if identified.get("op") != 2:
-        print(f"  ERROR de autenticacion (verifica la contrasena).")
-        print(f"  Respuesta recibida: {identified}")
+        print(f"  ERROR de autenticacion.")
+        print(f"  Verifica el password en OBS -> Herramientas -> WebSocket.")
         await ws.close()
         sys.exit(1)
 
@@ -87,11 +144,11 @@ async def main():
 
     # Version
     ver = await req("GetVersion")
-    rd = ver["responseData"]
+    rd  = ver["responseData"]
     print(f"  OBS {rd.get('obsVersion','?')}  |  WS {rd.get('obsWebSocketVersion','?')}")
     print()
 
-    # Crear / activar Scene Collection
+    # Scene Collection
     print(f"  Scene Collection: '{COLLECTION_NAME}'")
     r = await req("CreateSceneCollection", {"sceneCollectionName": COLLECTION_NAME})
     if r["requestStatus"]["result"]:
@@ -110,7 +167,7 @@ async def main():
         r = await req("CreateScene", {"sceneName": scene_name})
         if not r["requestStatus"]["result"]:
             code = r["requestStatus"].get("code")
-            print(f"    escena ya existe (code {code})" if code == 601 else f"    aviso: {r['requestStatus']}")
+            print(f"    (ya existe)" if code == 601 else f"    aviso: code {code}")
 
         src = f"Browser-{scene_name.replace('SRY - ', '')}"
         r2  = await req("CreateInput", {
@@ -128,10 +185,8 @@ async def main():
             print(f"    OK -> {url}")
         else:
             code2 = r2["requestStatus"].get("code")
-            if code2 == 601:
-                print(f"    (source ya existe) -> {url}")
-            else:
-                print(f"    Error {code2}: {r2['requestStatus'].get('comment','')}")
+            print(f"    (ya existe)" if code2 == 601 else
+                  f"    Error {code2}: {r2['requestStatus'].get('comment','')}")
 
         await asyncio.sleep(0.35)
 
@@ -150,7 +205,8 @@ async def main():
     print(f"  Panel: http://localhost:{HTTP}/control_remoto.html")
     print()
     print("  Proximos pasos:")
-    print("  1. Corre: .\\iniciar_stream.ps1")
+    print("  1. Corre: .\\iniciar_stream.ps1  (Windows)")
+    print("         o: bash iniciar_stream.sh  (Mac)")
     print("  2. Abre el panel en Chrome")
     print("  3. OBS: clic derecho cada source -> Refresh")
     print("=" * 51)

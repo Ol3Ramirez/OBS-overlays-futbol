@@ -1,4 +1,4 @@
-logs/*.log
-logs/*.err
-logs/*.pid
+logs/
+.env
 .env.local
+__pycache__/
