@@ -6,8 +6,8 @@ window.SRYI = {
   HOME:        'PROVEEDORA ROBLES',
   AWAY:        'HERMANOS OSORIO',
   MATCH_LABEL: 'SEMIFINAL DE IDA',
-  HOME_COLOR:  '#c0392b',   // rojo Robles
-  AWAY_COLOR:  '#1a5276',   // azul marino Osorio
+  HOME_COLOR:  '#c62828',   // rojo Robles (sincronizado con profile.json)
+  AWAY_COLOR:  '#1565C0',   // azul marino Osorio (sincronizado con profile.json)
   ACCENT:      '#FFD700',   // gold
   WS_PORT:     8891,
   HTTP_PORT:   8890,

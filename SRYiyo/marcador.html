@@ -315,7 +315,7 @@
 </div>
 
 <div class="game-clock">
-  <div class="clock-label">Tiempo</div>
+  <div class="clock-label"><span class="clock-running-dot" id="clock-dot"></span>Tiempo</div>
   <div class="clock-value" id="clock">00:00</div>
   <div class="half-badge" id="half">1er Tiempo</div>
 </div>
@@ -355,11 +355,9 @@
   }
 
   function updateRunningDot() {
-    const label = document.querySelector('.clock-label');
-    if (!label) return;
-    label.innerHTML = state.running
-      ? '<span class="clock-running-dot"></span>Tiempo'
-      : 'Tiempo';
+    // Usar el span persistente del HTML — evita re-parse de innerHTML en cada tick del reloj
+    const dot = document.getElementById('clock-dot');
+    if (dot) dot.style.display = state.running ? 'inline-block' : 'none';
   }
 
   function toggleClock() {
@@ -392,6 +390,8 @@
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     const colors = ['particle', 'particle red', 'particle blue', 'particle white'];
+    // DocumentFragment: un solo reflow en lugar de 28
+    const frag = document.createDocumentFragment();
     for (let i = 0; i < 28; i++) {
       const p = document.createElement('div');
       p.className = colors[i % 4];
@@ -400,9 +400,10 @@
       p.style.cssText = `left:${cx}px;top:${cy}px;position:fixed;
         --tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist-40}px;
         --dur:${(0.8+Math.random()*0.6).toFixed(2)}s;z-index:9999;`;
-      document.body.appendChild(p);
-      setTimeout(() => p.remove(), 1500);
+      frag.appendChild(p);
     }
+    document.body.appendChild(frag);
+    setTimeout(() => document.querySelectorAll('.particle').forEach(p => p.remove()), 1500);
   }
 
   function showGoal(team, scorer) {
