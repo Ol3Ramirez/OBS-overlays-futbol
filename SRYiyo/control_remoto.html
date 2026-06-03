@@ -152,6 +152,37 @@ hr.div { border:none;border-top:1px solid var(--border);margin:14px 0; }
 .tt-btn { flex:1;padding:9px;border-radius:6px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all 0.15s;font-family:inherit;border:1px solid var(--border);background:var(--glass);color:var(--dim); }
 .tt-btn.sel-local { background:rgba(198,40,40,0.18);border-color:var(--accent);color:#fca5a5; }
 .tt-btn.sel-away  { background:rgba(21,101,192,0.18);border-color:#1565C0;color:#93c5fd; }
+.undo-bar {
+  position: fixed; bottom: 36px; left: 0; right: 0; z-index: 150;
+  display: flex; align-items: center; justify-content: flex-end;
+  padding: 4px 12px; pointer-events: none;
+}
+#btn-undo {
+  pointer-events: all; opacity: 0.3; transition: opacity 0.2s;
+  background: rgba(255,59,59,0.12); border: 1px solid rgba(255,59,59,0.3);
+  color: #ff3b3b; padding: 6px 14px; border-radius: 20px;
+  font-size: 12px; font-weight: 700; letter-spacing: 1px;
+  cursor: pointer; font-family: inherit;
+}
+#btn-undo:hover { background: rgba(255,59,59,0.2); }
+.log-panel {
+  position: fixed; bottom: 72px; left: 0; right: 0; z-index: 140;
+  background: rgba(8,6,20,0.97); border-top: 1px solid var(--border);
+  padding: 6px 12px; max-height: 200px; overflow-y: auto;
+  transition: max-height 0.2s ease;
+}
+.log-toggle {
+  position: fixed; bottom: 72px; right: 48px; z-index: 145;
+  background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+  color: var(--dim); padding: 3px 8px; border-radius: 12px;
+  font-size: 10px; cursor: pointer; font-family: inherit;
+  letter-spacing: 1px;
+}
+.log-item {
+  font-size: 11px; color: rgba(255,255,255,0.55); padding: 3px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04); letter-spacing: 0.5px;
+}
+.log-item:last-child { border-bottom: none; }
 .status-bar { position:fixed;bottom:0;left:0;right:0;background:rgba(8,6,20,0.97);border-top:1px solid var(--border);padding:7px 14px;font-size:11px;color:var(--accent);letter-spacing:1px;z-index:200;display:flex;align-items:center;gap:6px; }
 .ws-dot { width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0; }
 .ws-dot.ok { background:var(--green); }
@@ -391,6 +422,17 @@ hr.div { border:none;border-top:1px solid var(--border);margin:14px 0; }
   </div>
 </div>
 
+<!-- LOG PANEL -->
+<div class="log-panel" id="log-panel">
+  <div id="log-list"></div>
+</div>
+<button class="log-toggle" onclick="toggleLog()" id="log-toggle-btn" title="Historial">📋</button>
+
+<!-- UNDO BAR -->
+<div class="undo-bar">
+  <button id="btn-undo" onclick="undoLast()" title="Deshacer último evento">↶ Deshacer</button>
+</div>
+
 <!-- STATUS BAR -->
 <div class="status-bar">
   <span class="ws-dot" id="ws-dot"></span>
@@ -402,6 +444,9 @@ hr.div { border:none;border-top:1px solid var(--border);margin:14px 0; }
 const match = { home:'PROVEEDORA ROBLES', away:'HERMANOS OSORIO', hs:0, as:0 };
 let localPlayers = [], subTeam = 'local';
 const sel = { goal:null, card:null, sub:null };
+const _history = [];
+const _eventLog = [];
+let _logOpen = false;
 
 // Auto-init con config SRYI
 if (window.SRYI) {
@@ -554,6 +599,21 @@ function sendGoal(side) {
   send(side==='home'?'goalHome':'goalAway',[player]);
   clearSel('goal');
   updateHeader(); log(`⚽ GOL — ${player} (${teamName}) • ${min}'`);
+
+  const wasHome = side === 'home';
+  const label = wasHome ? `⚽ GOL ${player}` : `⚽ GOL ${player}`;
+  _history.push({
+    label,
+    undo: () => {
+      if(wasHome) match.hs--; else match.as--;
+      send('setScore',[match.hs,match.as]);
+      send('clear',[]);
+      updateHeader();
+    }
+  });
+  if(_history.length > 10) _history.shift();
+  _pushLog('⚽', `GOL ${teamName} — ${player}`);
+  updateUndoBtn();
 }
 
 function sendCard(type) {
@@ -564,6 +624,18 @@ function sendCard(type) {
   clearSel('card');
   document.getElementById('in-away-card').value='';
   log(`🟨 ${type.toUpperCase()} — ${player} (${teamName}) • ${min}'`);
+
+  const cardEmoji = type==='yellow'?'🟨':type==='red'?'🟥':'🟦';
+  const cardLabel = type==='yellow'?'AMARILLA':type==='red'?'ROJA':'AZUL 2min';
+  _history.push({
+    label: `${cardEmoji} ${cardLabel} ${player}`,
+    undo: () => {
+      send('clear',[]);
+    }
+  });
+  if(_history.length > 10) _history.shift();
+  _pushLog(cardEmoji, `${cardLabel} — ${player} (${teamName})`);
+  updateUndoBtn();
 }
 
 function toggleSubTeam(t) { subTeam=t; document.getElementById('tt-local').classList.toggle('sel-local',t==='local'); document.getElementById('tt-away').classList.toggle('sel-away',t==='away'); }
@@ -578,6 +650,16 @@ function sendSub() {
   document.getElementById('in-sub-out-away').value='';
   document.getElementById('in-sub-in').value='';
   log(`🔄 CAMBIO — ↓${outPlayer} ↑${inPlayer} (${teamName}) • ${min}'`);
+
+  _history.push({
+    label: `🔄 ↓${outPlayer} ↑${inPlayer}`,
+    undo: () => {
+      send('clear',[]);
+    }
+  });
+  if(_history.length > 10) _history.shift();
+  _pushLog('🔄', `↓${outPlayer} ↑${inPlayer} (${teamName})`);
+  updateUndoBtn();
 }
 
 function syncLineupFromRoster() {
@@ -616,6 +698,63 @@ function clearInterview() { send('clearSpeaker',[]); send('clearTopic',[]); send
 function resetMatch() { match.hs=0; match.as=0; cp.reset(); send('resetClock',[]); send('setScore',[0,0]); updateHeader(); log('🔄 Marcador reiniciado'); }
 function fullReset() { resetMatch(); send('setTeams',[match.home,match.away]); log('⚠️ Reset total ejecutado'); }
 
+function undoLast() {
+  if (!_history.length) return;
+  const entry = _history.pop();
+  entry.undo();
+  log(`↶ Deshecho: ${entry.label}`);
+  updateUndoBtn();
+}
+function updateUndoBtn() {
+  const btn = document.getElementById('btn-undo');
+  if (btn) btn.style.opacity = _history.length ? '1' : '0.3';
+}
+
+function _pushLog(emoji, text) {
+  const ts = cp.currentMin() + "'";
+  _eventLog.unshift({ emoji, text, ts });
+  if (_eventLog.length > 20) _eventLog.pop();
+  _renderLog();
+  try { sessionStorage.setItem('sryiyo_log', JSON.stringify(_eventLog)); } catch(_) {}
+}
+function _renderLog() {
+  const list = document.getElementById('log-list');
+  if (!list) return;
+  list.innerHTML = '';
+  const items = _logOpen ? _eventLog.slice(0,15) : _eventLog.slice(0,1);
+  items.forEach(e => {
+    const li = document.createElement('div');
+    li.className = 'log-item';
+    li.textContent = `${e.emoji} ${e.ts} — ${e.text}`;
+    list.appendChild(li);
+  });
+}
+function toggleLog() {
+  _logOpen = !_logOpen;
+  _renderLog();
+  const btn = document.getElementById('log-toggle-btn');
+  if (btn) btn.textContent = _logOpen ? '✕' : '📋';
+}
+
+function _isInputFocused() {
+  const t = document.activeElement && document.activeElement.tagName;
+  return t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT';
+}
+
+document.addEventListener('keydown', function(e) {
+  if (_isInputFocused()) return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  switch(e.key) {
+    case 'g': case 'G': e.preventDefault(); sendGoal('home'); break;
+    case 'h': case 'H': e.preventDefault(); sendGoal('away'); break;
+    case 'y': case 'Y': e.preventDefault(); sendCard('yellow'); break;
+    case 'r': case 'R': e.preventDefault(); sendCard('red'); break;
+    case ' ':           e.preventDefault(); cp.running ? clockPause() : clockStart(); break;
+    case 'z': case 'Z': e.preventDefault(); undoLast(); break;
+    case 'Escape':      e.preventDefault(); ['goal','card','sub'].forEach(t => clearSel(t)); break;
+  }
+});
+
 // Init
 loadRoster();
 document.getElementById('in-home').value = match.home;
@@ -623,6 +762,7 @@ document.getElementById('in-away').value = match.away;
 renderRosterRows();
 updateHeader();
 rebuildAllChips();
+try { const s=sessionStorage.getItem('sryiyo_log'); if(s) { _eventLog.push(...JSON.parse(s)); _renderLog(); } } catch(_) {}
 wsConnect();
 </script>
 </body>
