@@ -1,7 +1,7 @@
 # ROADMAP — OBS Overlays Fútbol
 
 > Lee este archivo al inicio de una nueva sesión para retomar sin perder contexto.
-> Actualizado: 2026-06-03
+> Actualizado: 2026-06-02
 
 ---
 
@@ -9,23 +9,38 @@
 
 Perfil activo: **SRYiyo** (Robles Fútbol · Semifinal de Ida)
 Repo: `main` — limpio, sincronizado con origin
-PM2: `sryiyo-http` (8890) y `sryiyo-ws` (8891) activos · `original-*` detenido
 
-### Últimos cambios (2026-06-03)
+### Últimos cambios (2026-06-02)
 
 | Commit | Descripción |
 |--------|-------------|
-| `c5765b1` | docs: GUIA_OPERADOR.md — flujo, hotkeys, troubleshooting |
-| `db3ccdc` | feat: overlay `penalty.html` + tab Penales en panel |
-| `242e4ef` | feat: Undo, Event Log, Keyboard Shortcuts en control_remoto.html |
-| `781eb3d` | fix: hmac token auth, DocumentFragment, updateRunningDot sin innerHTML, colores SSOT |
+| `8be9bd4` | chore: add Python __pycache__ to .gitignore |
+| `48aae37` | feat: performance, onboarding y arquitectura — 4 sprints completos |
+| `0b05e1d` | chore: dejar de rastrear original/logs/http.log |
+| `80fa9a5` | docs: agregar ROADMAP.md con pendientes y contexto multi-máquina |
+
+**Sprint 48aae37 resumen:**
+- `original/ws-client.js` creado — eliminadas 5 IIFEs WS duplicadas (6 conexiones → 1)
+- `cardFlip` 3D (`rotateY`) → 2D (`scale+opacity`) en ambos perfiles
+- `scorePop` `filter:drop-shadow` → `text-shadow` en original/marcador.html
+- Rotación de logs >5MB en los 4 scripts de arranque (Mac + Windows)
+- Quick Start Modal en ambos paneles (3 pasos, localStorage, primera visita)
+- WS indicator: 7px → 12px, amarillo parpadeante al conectar, tooltip
+- Responsive móvil 480px en original/control_remoto.html
+- Atajos de teclado G/H/Y/R/ESPACIO en original (sincronizado con SRYiyo)
+- `badgePulse` box-shadow → opacity en original/entrevista.html
+- `textShine` 4s → 8s + will-change + prefers-reduced-motion en ambos medio_tiempo.html
+- `width`/`height` en 6 logos `<img>` (evita layout shift)
+- `setup_obs.py` original: code 601 ahora actualiza URL + refresca Browser Source
+- `broadcast()` → `asyncio.wait_for` timeout 2s en ambos ws_relay.py
+- MANUAL.md: guía offline completa para ambos perfiles
 
 ---
 
 ## Pendientes — retomar aquí
 
 ### 1. Tests Playwright — panel de control (MEDIA prioridad)
-Las features nuevas no tienen cobertura automática todavía:
+Las features nuevas no tienen cobertura automática:
 - `control_remoto.html` — Undo: verificar que el marcador retrocede
 - `control_remoto.html` — Event Log: persistencia en sessionStorage al recargar
 - `control_remoto.html` — Hotkeys: G/H/Y/R/Espacio/Z/Escape funcionan sin input enfocado
@@ -40,13 +55,7 @@ const sryiyo = require('./SRYiyo/profile.json');
 args: `-m http.server ${sryiyo.httpPort}`,
 ```
 
-### 3. Sincronizar mejoras SRYiyo → original/ (BAJA)
-El perfil `original/` no recibió las mejoras de esta sesión:
-- `ws-client.js` — `_safeArgs()` + retry counter
-- `alineacion.html` — DocumentFragment + animaciones stagger
-- `marcador.html` — `updateRunningDot()` sin innerHTML
-
-### 4. Overlay `jugador_del_partido.html` (ROADMAP)
+### 3. Overlay `jugador_del_partido.html` (ROADMAP)
 Lower-third post-partido para anunciar al MVP.
 ```javascript
 // API propuesta:
@@ -55,23 +64,18 @@ clearMOM()                  // ocultar
 ```
 Basarse en la estructura de `entrevista.html` (lower-third + speaker).
 
-### 5. control_remoto.html mobile-friendly (ROADMAP)
-El panel funciona en celular pero los botones son pequeños en 5-6".
-- Botones mínimo 48px en touch
-- Spacing mínimo 16px
-- Media query `@media (max-width: 480px)`
-
 ---
 
 ## Cómo arrancar en una nueva máquina
 
 ```bash
-# 1. Clonar e instalar
+# 1. Clonar
 git clone https://github.com/Ol3Ramirez/OBS-overlays-futbol.git
 cd OBS-overlays-futbol
 
-# 2. Crear .env con contraseña de OBS (se pregunta automáticamente)
-cd SRYiyo && bash iniciar_stream.sh
+# 2. Arrancar servidores (pide password OBS la primera vez, crea .env solo)
+cd SRYiyo && bash iniciar_stream.sh   # Mac
+# .\iniciar_stream.ps1                 # Windows
 
 # 3. Configurar OBS (idempotente, seguro re-correr)
 uv run setup_obs.py
@@ -79,6 +83,8 @@ uv run setup_obs.py
 # 4. Panel de control
 # http://localhost:8890/control_remoto.html
 ```
+
+Ver `MANUAL.md` para la guía completa sin internet.
 
 ---
 
@@ -104,7 +110,8 @@ control_remoto.html → ws://localhost:8891 → ws_relay.py → broadcast → ma
 
 ## Reglas del proyecto
 
-- Commits en **español** siguiendo Conventional Commits
+- Commits en inglés siguiendo Conventional Commits
 - Perfiles son **independientes e idempotentes** — no correr los dos a la vez
-- Al preguntar "inicia el sistema" → preguntar cuál perfil antes de lanzar PM2
+- Al preguntar "inicia el sistema" → preguntar cuál perfil antes de lanzar
 - `profile.json` es SSOT — si cambias equipos/puertos, editar solo ahí
+- Password OBS siempre en `.env` (gitignoreado) — nunca en código fuente
