@@ -1,79 +1,106 @@
 #!/bin/bash
-# ─────────────────────────────────────────────────────
-#  SRYiyo — iniciar_stream.sh  (Mac / Linux)
-#  Idempotente: mata procesos anteriores antes de arrancar.
-#  Uso: bash ./iniciar_stream.sh
-# ─────────────────────────────────────────────────────
+# iniciar_stream.sh -- SRYiyo (Mac / Linux)
+#
+# Principios aplicados:
+#   SSOT       -- puertos leidos desde profile.json
+#   Idempotente -- mata procesos previos antes de arrancar (re-ejecutar es seguro)
+#   Atomico    -- si el WS relay falla, mata el HTTP server antes de salir
+#   Fail-fast  -- verifica puertos activos despues de cada arranque
+#
+# Uso: bash iniciar_stream.sh
+
+set -euo pipefail
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG="$DIR/logs"
 mkdir -p "$LOG"
 
-HTTP_PORT=8890
-WS_PORT=8891
+# Leer puertos desde profile.json (SSOT)
+if ! command -v python3 &>/dev/null; then
+  echo "[FATAL] python3 no encontrado. Instala Python 3.11+."
+  exit 1
+fi
+
+HTTP_PORT=$(python3 -c "import json; d=json.load(open('$DIR/profile.json')); print(d['httpPort'])" 2>/dev/null || echo "8890")
+WS_PORT=$(python3   -c "import json; d=json.load(open('$DIR/profile.json')); print(d['wsPort'])"   2>/dev/null || echo "8891")
+PROFILE_NAME=$(python3 -c "import json; d=json.load(open('$DIR/profile.json')); print(d.get('name','SRYiyo'))" 2>/dev/null || echo "SRYiyo")
 
 echo ""
-echo "═══════════════════════════════════════════════════"
-echo "   SRYIYO — ROBLES FÚTBOL"
-echo "   PROVEEDORA ROBLES vs HERMANOS OSORIO"
-echo "   SEMIFINAL DE IDA"
-echo "═══════════════════════════════════════════════════"
+echo "==================================================="
+echo "  $PROFILE_NAME -- Iniciar Stream"
+echo "  HTTP: $HTTP_PORT  |  WS: $WS_PORT"
+echo "==================================================="
 echo ""
 
-# 1. Matar procesos anteriores (por puerto, no global — coexiste con otros perfiles)
-echo "▶ Limpiando procesos anteriores en puertos $HTTP_PORT / $WS_PORT..."
-lsof -ti :$HTTP_PORT | xargs kill -9 2>/dev/null
-lsof -ti :$WS_PORT   | xargs kill -9 2>/dev/null
+# Funcion de limpieza atomica: si algo falla, mata lo que ya arranco
+HTTP_PID=""
+WS_PID=""
+
+cleanup_on_fail() {
+  echo "[!] Fallo detectado -- limpiando procesos parciales..."
+  [ -n "$HTTP_PID" ] && kill "$HTTP_PID" 2>/dev/null || true
+  [ -n "$WS_PID"   ] && kill "$WS_PID"   2>/dev/null || true
+  exit 1
+}
+trap cleanup_on_fail ERR
+
+# 1. Idempotencia: matar procesos anteriores en estos puertos
+echo "Limpiando puertos $HTTP_PORT / $WS_PORT..."
+lsof -ti :"$HTTP_PORT" 2>/dev/null | xargs -r kill -9 2>/dev/null || true
+lsof -ti :"$WS_PORT"   2>/dev/null | xargs -r kill -9 2>/dev/null || true
 sleep 1
 
-# 2. Servidor HTTP
-echo "▶ Iniciando HTTP en puerto $HTTP_PORT..."
-cd "$DIR" && python3 -m http.server $HTTP_PORT > "$LOG/http.log" 2>&1 &
+# 2. HTTP server
+echo "Iniciando HTTP en puerto $HTTP_PORT..."
+python3 -m http.server "$HTTP_PORT" \
+  > "$LOG/http.log" 2>&1 &
 HTTP_PID=$!
 sleep 1
 
-if lsof -i :$HTTP_PORT -sTCP:LISTEN >/dev/null 2>&1; then
-    echo "  ✅ HTTP OK  → http://localhost:$HTTP_PORT"
+if lsof -i :"$HTTP_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+  echo "  OK HTTP -> http://localhost:$HTTP_PORT"
 else
-    echo "  ❌ ERROR: No pudo iniciar el servidor HTTP"
-    exit 1
+  echo "  [FALLO] No pudo iniciar HTTP server"
+  exit 1
 fi
 
-# 3. WebSocket relay
-echo "▶ Iniciando WS relay en puerto $WS_PORT..."
-uv run "$DIR/ws_relay.py" > "$LOG/ws.log" 2>&1 &
+# 3. WS relay
+echo "Iniciando WS relay en puerto $WS_PORT..."
+uv run "$DIR/ws_relay.py" \
+  > "$LOG/ws.log" 2>&1 &
 WS_PID=$!
-sleep 1
+sleep 2
 
-if lsof -i :$WS_PORT -sTCP:LISTEN >/dev/null 2>&1; then
-    echo "  ✅ WS Relay OK  → ws://localhost:$WS_PORT"
+if lsof -i :"$WS_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+  echo "  OK WS Relay -> ws://localhost:$WS_PORT"
 else
-    echo "  ❌ ERROR: No pudo iniciar el relay WebSocket"
-    exit 1
+  echo "  [FALLO] No pudo iniciar WS relay"
+  # Atomico: mata HTTP antes de salir
+  kill "$HTTP_PID" 2>/dev/null || true
+  exit 1
 fi
 
-# 4. Verificar OBS
+# 4. Verificar OBS (no bloquea el arranque)
 echo ""
-echo "▶ Verificando OBS WebSocket (puerto 4455)..."
+echo "Verificando OBS WebSocket (puerto 4455)..."
 if lsof -i :4455 -sTCP:LISTEN >/dev/null 2>&1; then
-    echo "  ✅ OBS WebSocket detectado"
+  echo "  OK OBS WebSocket detectado"
 else
-    echo "  ⚠️  OBS NO está abierto — ábrelo antes de usar el panel"
+  echo "  AVISO: OBS no detectado -- abrelo antes de usar el panel"
 fi
 
-echo ""
-echo "═══════════════════════════════════════════════════"
-echo "  Panel de control:"
-echo "  http://localhost:$HTTP_PORT/control_remoto.html"
-echo ""
-echo "  PIDs: HTTP=$HTTP_PID  WS=$WS_PID"
-echo "  Para detener:"
-echo "    pkill -f 'http.server $HTTP_PORT' && pkill -f ws_relay.py"
-echo "═══════════════════════════════════════════════════"
-echo ""
-
+# Guardar PIDs
 echo "$HTTP_PID" > "$LOG/http.pid"
 echo "$WS_PID"   > "$LOG/ws.pid"
 
-echo "── Logs en vivo (Ctrl+C para salir) ──"
-tail -f "$LOG/http.log" "$LOG/ws.log"
+echo ""
+echo "==================================================="
+echo "  Panel: http://localhost:$HTTP_PORT/control_remoto.html"
+echo ""
+echo "  Para detener:"
+echo "    kill $HTTP_PID $WS_PID"
+echo "    o: lsof -ti :$HTTP_PORT :$WS_PORT | xargs kill -9"
+echo "==================================================="
+echo ""
+echo "-- Log WS en vivo (Ctrl+C para salir) --"
+tail -f "$LOG/ws.log"

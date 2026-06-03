@@ -1,0 +1,25 @@
+{
+  "_comment": "SSOT del perfil SRYiyo. Edita SOLO este archivo para cambiar equipos, colores o puertos.",
+  "_nota_config_js": "config.js es la version browser de este archivo. Si cambias algo aqui, refleja el cambio en config.js.",
+
+  "name":          "SRYiyo",
+  "sponsor":       "Robles Futbol",
+  "sponsorSocial": "RoblesUtbol",
+
+  "home":       "PROVEEDORA ROBLES",
+  "away":       "HERMANOS OSORIO",
+  "matchLabel": "SEMIFINAL DE IDA",
+
+  "homeColor": "#c62828",
+  "awayColor": "#1565C0",
+  "accent":    "#FFD700",
+  "logo":      "./logo_robles.jpeg",
+
+  "httpPort": 8890,
+  "wsPort":   8891,
+  "wsBindAddress": "127.0.0.1",
+
+  "obsCollection": "SRYiyo - Robles Futbol",
+  "obsHost":       "localhost",
+  "obsPort":       4455
+}

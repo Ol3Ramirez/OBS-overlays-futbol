@@ -469,21 +469,7 @@
     window.obsOverlay.setTeams(window.SRYI.HOME, window.SRYI.AWAY);
     document.getElementById('match-label').textContent = window.SRYI.MATCH_LABEL;
   }
-
-  let _wsDelay = 1000;
-  (function wsConnect() {
-    const port = (window.SRYI && window.SRYI.WS_PORT) || 8891;
-    const ws = new WebSocket(`ws://localhost:${port}`);
-    ws.onopen  = () => { _wsDelay = 1000; };
-    ws.onmessage = (e) => {
-      try {
-        const cmd = JSON.parse(e.data);
-        if (window.obsOverlay && window.obsOverlay[cmd.fn])
-          window.obsOverlay[cmd.fn](...(cmd.args || []));
-      } catch(_) {}
-    };
-    ws.onclose = () => { setTimeout(wsConnect, _wsDelay); _wsDelay = Math.min(_wsDelay * 1.5, 30000); };
-  })();
 </script>
+<script src="ws-client.js"></script>
 </body>
 </html>

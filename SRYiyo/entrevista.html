@@ -236,17 +236,7 @@ body.mode-lower-third { background: transparent; }
     document.getElementById('ticker-text').textContent =
       `${window.SRYI.SPONSOR} · ${window.SRYI.MATCH_LABEL} · Transmisión en vivo`;
   }
-
-  let _wsDelay = 1000;
-  (function wsConnect() {
-    const port = (window.SRYI && window.SRYI.WS_PORT) || 8891;
-    const ws = new WebSocket(`ws://localhost:${port}`);
-    ws.onopen    = () => { _wsDelay = 1000; };
-    ws.onmessage = (e) => {
-      try { const cmd=JSON.parse(e.data); if(window.obsOverlay&&window.obsOverlay[cmd.fn]) window.obsOverlay[cmd.fn](...(cmd.args||[])); } catch(_) {}
-    };
-    ws.onclose = () => { setTimeout(wsConnect, _wsDelay); _wsDelay = Math.min(_wsDelay * 1.5, 30000); };
-  })();
 </script>
+<script src="ws-client.js"></script>
 </body>
 </html>
