@@ -20,11 +20,10 @@ echo "   SEMIFINAL DE IDA"
 echo "═══════════════════════════════════════════════════"
 echo ""
 
-# 1. Matar procesos anteriores
+# 1. Matar procesos anteriores (por puerto, no global — coexiste con otros perfiles)
 echo "▶ Limpiando procesos anteriores en puertos $HTTP_PORT / $WS_PORT..."
-pkill -f "http.server $HTTP_PORT" 2>/dev/null
-pkill -f "ws_relay.py" 2>/dev/null
-# Espera liberación de puertos
+lsof -ti :$HTTP_PORT | xargs kill -9 2>/dev/null
+lsof -ti :$WS_PORT   | xargs kill -9 2>/dev/null
 sleep 1
 
 # 2. Servidor HTTP

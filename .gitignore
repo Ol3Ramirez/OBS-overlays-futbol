@@ -1,7 +1,10 @@
-logs/*.pid
-logs/*.log
+# Logs y PIDs (todos los perfiles)
+logs/
+**/logs/
 node_modules/
 .DS_Store
+
+# Imágenes — excluir logos de sponsors
 *.jpeg
 *.jpg
 !SRYiyo/logo_robles.jpeg

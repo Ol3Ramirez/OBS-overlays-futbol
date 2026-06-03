@@ -14,10 +14,10 @@ echo "   SISTEMA DE OVERLAYS — FÚTBOL 5"
 echo "═══════════════════════════════════════════"
 echo ""
 
-# 1. Matar procesos anteriores si quedaron colgados
+# 1. Matar procesos anteriores si quedaron colgados (por puerto, no global)
 echo "▶ Limpiando procesos anteriores..."
-pkill -f "http.server 8888" 2>/dev/null
-pkill -f "ws_relay.py"      2>/dev/null
+lsof -ti :8888 | xargs kill -9 2>/dev/null
+lsof -ti :8889 | xargs kill -9 2>/dev/null
 sleep 1
 
 # 2. Servidor HTTP (overlays)
