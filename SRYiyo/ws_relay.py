@@ -15,6 +15,7 @@ Principios:
   Idempotente -- estado se replica a cada cliente al conectar
 """
 import asyncio
+import hmac
 import json
 import sys
 import os
@@ -98,7 +99,8 @@ async def main() -> None:
 
                 # ── Mensaje de autenticacion ──
                 if "auth" in data:
-                    if data["auth"] == _TOKEN:
+                    # hmac.compare_digest evita timing attacks en la comparacion del token
+                    if hmac.compare_digest(str(data.get("auth", "")), str(_TOKEN or "")):
                         _auth_ok.add(websocket)
                         await websocket.send(json.dumps({"fn": "_authOK"}))
                         print(f"[{_ts()}] [OK] {addr} autenticado")

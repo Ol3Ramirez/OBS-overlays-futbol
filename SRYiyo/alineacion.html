@@ -17,6 +17,8 @@
     animation:slideInLeft 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;
   }
   @keyframes slideInLeft { from{transform:translateY(-50%) translateX(-340px);opacity:0;} to{transform:translateY(-50%) translateX(0);opacity:1;} }
+  @keyframes dotPopIn { from{transform:scale(0) translateY(8px);opacity:0;} to{transform:scale(1) translateY(0);opacity:1;} }
+  @keyframes rowSlideIn { from{transform:translateX(-16px);opacity:0;} to{transform:translateX(0);opacity:1;} }
   .lineup-header { padding:0 16px 12px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
   .lineup-logo { width:36px;height:36px;background:rgba(198,40,40,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px; }
   .lineup-team-name { font-size:16px; font-weight:900; color:#fff; letter-spacing:1px; text-transform:uppercase; }
@@ -83,26 +85,32 @@
   function renderList() {
     const list = document.getElementById('player-list');
     list.innerHTML = '';
-    _team.players.forEach(p => {
+    const frag = document.createDocumentFragment();
+    _team.players.forEach((p, i) => {
       const row = document.createElement('div');
       row.className = 'player-row';
       row.innerHTML = `<span class="player-num">${p.num}</span><span class="player-name">${p.name}</span><span class="player-pos">${p.pos||''}</span>`;
-      list.appendChild(row);
+      row.style.animation = `rowSlideIn 0.3s ease-out ${i * 50}ms both`;
+      frag.appendChild(row);
     });
+    list.appendChild(frag);
   }
 
   function renderPitch() {
     const pitch = document.getElementById('pitch');
     pitch.querySelectorAll('.player-dot').forEach(e => e.remove());
-    _team.players.forEach(p => {
+    const frag = document.createDocumentFragment();
+    _team.players.forEach((p, i) => {
       if (p.x === undefined || p.y === undefined) return;
       const dot = document.createElement('div');
       dot.className = 'player-dot';
       dot.style.left = p.x + '%';
       dot.style.top  = p.y + '%';
+      dot.style.animation = `dotPopIn 0.35s cubic-bezier(0.34,1.56,0.64,1) ${i * 60}ms both`;
       dot.innerHTML = `<div class="dot-circle"><span class="dot-num">${p.num}</span></div><div class="dot-name">${p.name}</div>`;
-      pitch.appendChild(dot);
+      frag.appendChild(dot);
     });
+    pitch.appendChild(frag);
   }
 
   window.obsOverlay = {
