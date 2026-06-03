@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Penales — SRYiyo Robles Fútbol</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;900&display=swap" rel="stylesheet">
+<script src="config.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0810;
+    font-family: 'Barlow Condensed', 'Arial Black', 'Impact', sans-serif;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  :root {
+    --gold: #FFD700;
+    --accent: #c62828;
+    --green: #00c853;
+    --glass: rgba(255,255,255,0.05);
+    --border: rgba(255,255,255,0.10);
+  }
+
+  .penalty-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 80px;
+    filter: drop-shadow(0 8px 40px rgba(0,0,0,0.6));
+    animation: slideUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(80px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+  }
+
+  .team-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    min-width: 280px;
+  }
+
+  .team-name {
+    font-size: 22px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    text-align: center;
+    max-width: 260px;
+  }
+
+  .kicks-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+    min-height: 160px;
+  }
+
+  .kick-slot {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    border: 2px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.03);
+  }
+
+  .kick-slot.pending {
+    border-color: rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.4);
+  }
+
+  .kick-slot.goal {
+    background: rgba(0,200,83,0.25);
+    border-color: var(--green);
+    color: var(--green);
+    animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .kick-slot.miss {
+    background: rgba(255,59,59,0.25);
+    border-color: #ff3b3b;
+    color: #ff3b3b;
+    animation: shakeX 0.4s ease;
+  }
+
+  @keyframes scaleIn {
+    0%   { transform: scale(0); opacity: 0; }
+    60%  { transform: scale(1.15); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes shakeX {
+    0%, 100% { transform: translateX(0); }
+    25%      { transform: translateX(-8px); }
+    75%      { transform: translateX(8px); }
+  }
+
+  .score-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .penalty-score {
+    font-size: 80px;
+    font-weight: 900;
+    color: var(--gold);
+    letter-spacing: 3px;
+    line-height: 1;
+    text-shadow: 0 0 40px rgba(255,213,0,0.4);
+  }
+
+  .penalty-label {
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  /* Badge para estado */
+  .status-badge {
+    background: rgba(198,40,40,0.12);
+    border: 1px solid rgba(198,40,40,0.3);
+    border-radius: 8px;
+    padding: 6px 16px;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="penalty-container">
+  <!-- EQUIPO LOCAL -->
+  <div class="team-column">
+    <div class="team-name" id="home-team">LOCAL</div>
+    <div class="kicks-container" id="home-kicks"></div>
+  </div>
+
+  <!-- SCORE CENTRAL -->
+  <div class="score-center">
+    <div class="penalty-score">
+      <span id="home-count">0</span> – <span id="away-count">0</span>
+    </div>
+    <div class="penalty-label">PENALES</div>
+    <div class="status-badge" id="status-badge">INICIANDO</div>
+  </div>
+
+  <!-- EQUIPO VISITANTE -->
+  <div class="team-column">
+    <div class="team-name" id="away-team">VISITANTE</div>
+    <div class="kicks-container" id="away-kicks"></div>
+  </div>
+</div>
+
+<script>
+  const state = {
+    home: 'LOCAL',
+    away: 'VISITANTE',
+    kicks: 3,
+    homeKicks: [],
+    awayKicks: []
+  };
+
+  function render() {
+    // Renderizar slots del equipo local
+    const homeContainer = document.getElementById('home-kicks');
+    homeContainer.innerHTML = '';
+    const homeFrag = document.createDocumentFragment();
+    for (let i = 0; i < state.kicks; i++) {
+      const slot = document.createElement('div');
+      const result = state.homeKicks[i];
+      slot.className = 'kick-slot ' + (result || 'pending');
+      slot.textContent = result === 'goal' ? '⚽' : result === 'miss' ? '✕' : '○';
+      homeFrag.appendChild(slot);
+    }
+    homeContainer.appendChild(homeFrag);
+
+    // Renderizar slots del equipo visitante
+    const awayContainer = document.getElementById('away-kicks');
+    awayContainer.innerHTML = '';
+    const awayFrag = document.createDocumentFragment();
+    for (let i = 0; i < state.kicks; i++) {
+      const slot = document.createElement('div');
+      const result = state.awayKicks[i];
+      slot.className = 'kick-slot ' + (result || 'pending');
+      slot.textContent = result === 'goal' ? '⚽' : result === 'miss' ? '✕' : '○';
+      awayFrag.appendChild(slot);
+    }
+    awayContainer.appendChild(awayFrag);
+
+    // Actualizar contadores
+    const homeGoals = state.homeKicks.filter(r => r === 'goal').length;
+    const awayGoals = state.awayKicks.filter(r => r === 'goal').length;
+    document.getElementById('home-count').textContent = homeGoals;
+    document.getElementById('away-count').textContent = awayGoals;
+
+    // Actualizar estado
+    const totalKicks = state.homeKicks.length + state.awayKicks.length;
+    const maxKicks = state.kicks * 2;
+    if (totalKicks === 0) {
+      document.getElementById('status-badge').textContent = 'INICIANDO';
+    } else if (totalKicks === maxKicks) {
+      document.getElementById('status-badge').textContent = homeGoals > awayGoals ? 'LOCAL GANA' : awayGoals > homeGoals ? 'VISITANTE GANA' : 'EMPATADO';
+    } else {
+      document.getElementById('status-badge').textContent = 'EN JUEGO';
+    }
+  }
+
+  window.obsOverlay = {
+    setPenaltyTeams: (home, away) => {
+      state.home = home.toUpperCase();
+      state.away = away.toUpperCase();
+      document.getElementById('home-team').textContent = state.home;
+      document.getElementById('away-team').textContent = state.away;
+    },
+
+    setPenaltyKicks: (n) => {
+      state.kicks = n;
+      state.homeKicks = [];
+      state.awayKicks = [];
+      render();
+    },
+
+    setPenaltyKick: (team, idx, result) => {
+      if (team === 'home') {
+        state.homeKicks[idx] = result === 'pending' ? undefined : result;
+      } else if (team === 'away') {
+        state.awayKicks[idx] = result === 'pending' ? undefined : result;
+      }
+      render();
+    },
+
+    resetPenalty: () => {
+      state.homeKicks = [];
+      state.awayKicks = [];
+      render();
+    }
+  };
+
+  // Auto-init con config SRYI
+  if (window.SRYI) {
+    window.obsOverlay.setPenaltyTeams(window.SRYI.HOME, window.SRYI.AWAY);
+  }
+
+  render();
+</script>
+<script src="ws-client.js"></script>
+</body>
+</html>

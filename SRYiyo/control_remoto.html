@@ -258,6 +258,7 @@ hr.div { border:none;border-top:1px solid var(--border);margin:14px 0; }
   <div class="tab" onclick="switchTab('cambios')">🔄 Cambios</div>
   <div class="tab" onclick="switchTab('tiempo')">⏱ Tiempo</div>
   <div class="tab" onclick="switchTab('lineup')">📋 Alineación</div>
+  <div class="tab" onclick="switchTab('penales')">⚡ Penales</div>
   <div class="tab" onclick="switchTab('escenas')">📺 Escenas</div>
   <div class="tab" onclick="switchTab('entrevista')" style="color:var(--accent)">🎙 Entrevista</div>
 </div>
@@ -362,6 +363,34 @@ hr.div { border:none;border-top:1px solid var(--border);margin:14px 0; }
   </div>
 </div>
 
+<!-- TAB: PENALES -->
+<div id="pane-penales" class="tab-pane">
+  <div class="sec-label">Configuración de Penales</div>
+  <div class="act-grid g2" style="margin-bottom:14px">
+    <button class="btn" onclick="penaltySetKicks(3)" id="btn-3kicks" style="border-color:rgba(255,213,0,0.4)"><span class="ico">⚡</span>3 Penales</button>
+    <button class="btn" onclick="penaltySetKicks(5)" id="btn-5kicks" style="border-color:rgba(255,213,0,0.4)"><span class="ico">⚡</span>5 Penales</button>
+  </div>
+  <div class="sec-label">Estado de la Serie</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;align-items:center;text-align:center">
+    <div style="background:var(--glass);border:1px solid var(--border);border-radius:6px;padding:12px;border-left:3px solid var(--home-color)">
+      <div style="font-size:9px;letter-spacing:1px;color:var(--dim);text-transform:uppercase;margin-bottom:4px">Turno / Equipo</div>
+      <div id="penalty-turn-info" style="font-size:14px;font-weight:700;color:#fff;letter-spacing:0.5px">LOCAL — Penalti #1</div>
+    </div>
+    <div style="background:var(--glass);border:1px solid var(--border);border-radius:6px;padding:12px">
+      <div style="font-size:9px;letter-spacing:1px;color:var(--dim);text-transform:uppercase;margin-bottom:4px">Marcador</div>
+      <div id="penalty-score-display" style="font-size:24px;font-weight:900;color:var(--gold);letter-spacing:1px;line-height:1">0 – 0</div>
+    </div>
+  </div>
+  <div class="sec-label">Resultado del Turno Actual</div>
+  <div class="act-grid g2" style="margin-bottom:14px">
+    <button class="btn btn-green" onclick="penaltyMark('goal')"><span class="ico">⚽</span>Gol</button>
+    <button class="btn btn-danger" onclick="penaltyMark('miss')"><span class="ico">✕</span>Fallo</button>
+  </div>
+  <div class="act-grid g1" style="margin-bottom:14px">
+    <button class="btn btn-gold" onclick="penaltyReset()"><span class="ico">🔄</span>Reiniciar Serie de Penales</button>
+  </div>
+</div>
+
 <!-- TAB: ESCENAS -->
 <div id="pane-escenas" class="tab-pane">
   <div class="sec-label">Pantalla de Inicio — Countdown</div>
@@ -447,6 +476,9 @@ const sel = { goal:null, card:null, sub:null };
 const _history = [];
 const _eventLog = [];
 let _logOpen = false;
+
+// Estado de Penales
+const penaltyState = { kicks: 3, home: [], away: [], turn: 'home', idx: 0 };
 
 // Auto-init con config SRYI
 if (window.SRYI) {
@@ -734,6 +766,74 @@ function toggleLog() {
   _renderLog();
   const btn = document.getElementById('log-toggle-btn');
   if (btn) btn.textContent = _logOpen ? '✕' : '📋';
+}
+
+// ── PENALES ──
+function penaltySetKicks(n) {
+  penaltyState.kicks = n;
+  penaltyState.home = [];
+  penaltyState.away = [];
+  penaltyState.turn = 'home';
+  penaltyState.idx = 0;
+  send('setPenaltyKicks', [n]);
+  updatePenaltyUI();
+  log(`⚡ Serie de ${n} penales configurada`);
+}
+
+function penaltyMark(result) {
+  if (penaltyState.idx >= penaltyState.kicks) {
+    log('⚠️ Serie completada');
+    return;
+  }
+
+  const team = penaltyState.turn;
+  if (team === 'home') {
+    penaltyState.home[penaltyState.idx] = result;
+  } else {
+    penaltyState.away[penaltyState.idx] = result;
+  }
+
+  send('setPenaltyKick', [team, penaltyState.idx, result]);
+
+  const emoji = result === 'goal' ? '⚽' : '✕';
+  const teamName = team === 'home' ? match.home : match.away;
+  _pushLog(emoji, `${teamName} — Penalti #${penaltyState.idx + 1} ${result === 'goal' ? 'GOL' : 'FALLO'}`);
+
+  // Avanzar turno
+  if (penaltyState.turn === 'home') {
+    penaltyState.turn = 'away';
+  } else {
+    penaltyState.turn = 'home';
+    penaltyState.idx++;
+  }
+
+  updatePenaltyUI();
+}
+
+function penaltyReset() {
+  penaltyState.home = [];
+  penaltyState.away = [];
+  penaltyState.turn = 'home';
+  penaltyState.idx = 0;
+  send('resetPenalty', []);
+  updatePenaltyUI();
+  log('🔄 Serie de penales reiniciada');
+}
+
+function updatePenaltyUI() {
+  const homeGoals = penaltyState.home.filter(r => r === 'goal').length;
+  const awayGoals = penaltyState.away.filter(r => r === 'goal').length;
+
+  document.getElementById('penalty-score-display').textContent = `${homeGoals} – ${awayGoals}`;
+
+  const turn = penaltyState.turn === 'home' ? match.home : match.away;
+  const penaltiNum = penaltyState.turn === 'home' ? penaltyState.idx + 1 : penaltyState.idx + 1;
+  const turnLabel = penaltyState.turn === 'home' ? `${turn} — Penalti #${penaltiNum}` : `${turn} — Penalti #${penaltiNum}`;
+  document.getElementById('penalty-turn-info').textContent = turnLabel;
+
+  // Botones de toggle (visual feedback)
+  document.getElementById('btn-3kicks').style.borderColor = penaltyState.kicks === 3 ? 'var(--gold)' : 'rgba(255,213,0,0.4)';
+  document.getElementById('btn-5kicks').style.borderColor = penaltyState.kicks === 5 ? 'var(--gold)' : 'rgba(255,213,0,0.4)';
 }
 
 function _isInputFocused() {
