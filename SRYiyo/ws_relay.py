@@ -123,8 +123,15 @@ async def main() -> None:
 
                 print(f"[{_ts()}]    -> {data}")
 
-                # Broadcast a todas las conexiones activas
-                broadcast(list(server.connections), message)
+                targets = list(server.connections)
+                if targets:
+                    try:
+                        await asyncio.wait_for(
+                            asyncio.gather(*[ws.send(message) for ws in targets], return_exceptions=True),
+                            timeout=2.0
+                        )
+                    except asyncio.TimeoutError:
+                        print(f"[{_ts()}] [!] broadcast timeout — cliente lento detectado")
 
         except Exception as e:
             print(f"[{_ts()}] [!] {addr} error: {e}")

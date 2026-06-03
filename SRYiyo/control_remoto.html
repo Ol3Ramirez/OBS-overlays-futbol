@@ -184,8 +184,30 @@ hr.div { border:none;border-top:1px solid var(--border);margin:14px 0; }
 }
 .log-item:last-child { border-bottom: none; }
 .status-bar { position:fixed;bottom:0;left:0;right:0;background:rgba(8,6,20,0.97);border-top:1px solid var(--border);padding:7px 14px;font-size:11px;color:var(--accent);letter-spacing:1px;z-index:200;display:flex;align-items:center;gap:6px; }
-.ws-dot { width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0; }
+.ws-dot { width:12px;height:12px;border-radius:50%;background:var(--red);flex-shrink:0;transition:background 0.3s;cursor:default; }
 .ws-dot.ok { background:var(--green); }
+.ws-dot.connecting { background:#FFD700;animation:wsPulse 1s ease-in-out infinite; }
+@keyframes wsPulse { 0%,100% { opacity:1; } 50% { opacity:0.25; } }
+@media (prefers-reduced-motion:reduce) { .ws-dot.connecting { animation:none;opacity:0.6; } }
+/* ── Quick Start Modal ── */
+.qs-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;display:flex;align-items:center;justify-content:center;animation:qsFadeIn 0.25s ease;}
+.qs-overlay.hidden{display:none;}
+.qs-box{background:#0d0a14;border:1px solid rgba(198,40,40,0.3);border-radius:14px;padding:32px 28px;max-width:380px;width:90%;box-shadow:0 8px 48px rgba(0,0,0,0.7);animation:qsSlideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);}
+.qs-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:6px;letter-spacing:0.5px;}
+.qs-sub{font-size:12px;color:var(--dim);margin-bottom:22px;}
+.qs-step{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;}
+.qs-num{width:26px;height:26px;min-width:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;}
+.qs-step-text strong{display:block;font-size:14px;color:#fff;margin-bottom:3px;}
+.qs-step-text span{font-size:12px;color:var(--dim);line-height:1.5;}
+.qs-step-text code{background:rgba(255,255,255,0.08);padding:1px 5px;border-radius:3px;font-size:11px;}
+.qs-btn{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-weight:800;font-size:14px;cursor:pointer;margin-top:10px;letter-spacing:0.5px;transition:opacity 0.2s;}
+.qs-btn:hover{opacity:0.85;}
+.qs-btn:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+.qs-skip{display:block;text-align:center;margin-top:10px;font-size:11px;color:var(--dim);cursor:pointer;}
+.qs-skip:hover{color:#fff;}
+@keyframes qsFadeIn{from{opacity:0;}to{opacity:1;}}
+@keyframes qsSlideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+@media(prefers-reduced-motion:reduce){.qs-overlay,.qs-box{animation:none;}}
 .lu-row { display:grid;grid-template-columns:44px 1fr 56px 32px;gap:6px;align-items:center;margin-bottom:6px; }
 
 /* ── MOBILE (celular en el campo) ── */
@@ -230,6 +252,37 @@ hr.div { border:none;border-top:1px solid var(--border);margin:14px 0; }
   <div class="header-clock">
     <div class="hc-label"><span class="hc-dot" id="hc-dot"></span>Tiempo</div>
     <div class="hc-time" id="hc-time">00:00</div>
+  </div>
+</div>
+
+<!-- ═══ QUICK START MODAL (primera visita) ═══ -->
+<div class="qs-overlay hidden" id="qs-overlay" role="dialog" aria-modal="true" aria-labelledby="qs-title">
+  <div class="qs-box">
+    <div class="qs-title" id="qs-title">Panel Robles Futbol</div>
+    <div class="qs-sub">3 pasos para empezar el partido</div>
+    <div class="qs-step">
+      <div class="qs-num">1</div>
+      <div class="qs-step-text">
+        <strong>Servidores activos</strong>
+        <span>Corre <code>.\iniciar_stream.ps1</code> (Windows) o <code>bash iniciar_stream.sh</code> (Mac) — punto verde = OK</span>
+      </div>
+    </div>
+    <div class="qs-step">
+      <div class="qs-num">2</div>
+      <div class="qs-step-text">
+        <strong>Configura equipos</strong>
+        <span>Toca "Configurar Equipos" — ya tiene PROVEEDORA ROBLES vs HERMANOS OSORIO precargado</span>
+      </div>
+    </div>
+    <div class="qs-step">
+      <div class="qs-num">3</div>
+      <div class="qs-step-text">
+        <strong>A jugar</strong>
+        <span>Tab Tiempo para iniciar reloj · Tab Goles para marcar · Atajos: <code>G</code> / <code>H</code> / <code>ESPACIO</code> · Desde el campo: usa Tailscale</span>
+      </div>
+    </div>
+    <button class="qs-btn" onclick="closeQS(true)">Entendido — Empezar</button>
+    <span class="qs-skip" onclick="closeQS(false)">Recordarmelo la proxima vez</span>
   </div>
 </div>
 
@@ -544,21 +597,26 @@ function wsConnect() {
     if(token && host !== 'localhost' && host !== '127.0.0.1') {
       ws.send(JSON.stringify({auth: token}));
     }
-    log('✅ Conectado' + (host !== 'localhost' ? ` (remoto: ${host})` : ''));
-    document.getElementById('ws-dot').classList.add('ok');
-    _reconnTimer=null;
+    const dot=document.getElementById('ws-dot'),txt=document.getElementById('status-text');
+    log('Conectado' + (host !== 'localhost' ? ` (remoto: ${host})` : ''));
+    dot.className='ws-dot ok'; dot.title=`Conectado — ws://${host}:${port}`;
+    if(txt) txt.textContent='Relay conectado'; _reconnTimer=null;
   };
   ws.onmessage=(e)=>{
     try {
       const d=JSON.parse(e.data);
-      // Mensajes del servidor sobre autenticacion
-      if(d.fn==='_authOK')       { log('✅ Autenticado — control activo'); return; }
-      if(d.fn==='_authFailed')   { log('❌ Token incorrecto'); return; }
-      if(d.fn==='_authRequired') { log('⚠️ Token requerido'); return; }
+      if(d.fn==='_authOK')       { log('Autenticado — control activo'); return; }
+      if(d.fn==='_authFailed')   { log('Token incorrecto'); return; }
+      if(d.fn==='_authRequired') { log('Token requerido'); return; }
     } catch(_) {}
   };
-  ws.onclose=()=>{ document.getElementById('ws-dot').classList.remove('ok'); log('⚠️ Desconectado — reconectando...'); if(!_reconnTimer) _reconnTimer=setTimeout(()=>{ _reconnTimer=null; wsConnect(); },2000); };
-  ws.onerror=()=>log('❌ Error WebSocket — ¿está corriendo ws_relay.py?');
+  ws.onclose=()=>{
+    const dot=document.getElementById('ws-dot'),txt=document.getElementById('status-text');
+    dot.className='ws-dot connecting'; dot.title='Desconectado — reconectando...';
+    if(txt) txt.textContent='Reconectando...';
+    log('Desconectado — reconectando...'); if(!_reconnTimer) _reconnTimer=setTimeout(()=>{ _reconnTimer=null; wsConnect(); },2000);
+  };
+  ws.onerror=()=>{ document.getElementById('ws-dot').className='ws-dot'; log('Error WebSocket — verifica ws_relay.py'); };
 }
 // QR para compartir la URL del panel en el campo
 function mostrarQR() {
@@ -864,6 +922,13 @@ updateHeader();
 rebuildAllChips();
 try { const s=sessionStorage.getItem('sryiyo_log'); if(s) { _eventLog.push(...JSON.parse(s)); _renderLog(); } } catch(_) {}
 wsConnect();
+showQS();
+
+function showQS() { if (!localStorage.getItem('obs-qs-done')) document.getElementById('qs-overlay').classList.remove('hidden'); }
+function closeQS(persist) {
+  document.getElementById('qs-overlay').classList.add('hidden');
+  if (persist) localStorage.setItem('obs-qs-done', '1');
+}
 </script>
 </body>
 </html>

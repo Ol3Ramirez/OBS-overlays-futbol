@@ -181,8 +181,8 @@ body.mode-standalone .spark   { opacity: 1; }
 .interview-badge.visible { opacity:1; animation:badgePulse 2.5s ease-in-out infinite; }
 
 @keyframes badgePulse {
-  0%,100% { box-shadow:0 0 12px rgba(255,215,0,0.15); }
-  50%      { box-shadow:0 0 28px rgba(255,215,0,0.35); }
+  0%,100% { opacity:1; }
+  50%      { opacity:0.65; }
 }
 
 .badge-dot {
@@ -466,7 +466,7 @@ body.mode-standalone .spark   { opacity: 1; }
 
 <!-- Sponsor Logo (top right) -->
 <div class="sponsor-logo">
-  <img src="./logo_sponsor.jpg" alt="Avila Fisioterapia" />
+  <img src="./logo_sponsor.jpg" alt="Avila Fisioterapia" width="160" height="64" />
 </div>
 
 <!-- Topic Ticker -->
@@ -574,20 +574,7 @@ body.mode-standalone .spark   { opacity: 1; }
     }
   };
 
-  // ── WebSocket relay con exponential backoff ──
-  let _wsDelay = 1000;
-  (function wsConnect() {
-    const ws = new WebSocket('ws://localhost:8889');
-    ws.onopen  = () => { _wsDelay = 1000; };
-    ws.onmessage = (e) => {
-      try {
-        const cmd = JSON.parse(e.data);
-        if (window.obsOverlay && window.obsOverlay[cmd.fn])
-          window.obsOverlay[cmd.fn](...(cmd.args || []));
-      } catch(_) {}
-    };
-    ws.onclose = () => { setTimeout(wsConnect, _wsDelay); _wsDelay = Math.min(_wsDelay * 1.5, 30000); };
-  })();
+
 </script>
 <script src="ws-client.js"></script>
 </body>

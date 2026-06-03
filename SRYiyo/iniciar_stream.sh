@@ -15,6 +15,19 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG="$DIR/logs"
 mkdir -p "$LOG"
 
+# Rotar logs si superan 5 MB (evita llenado de disco en streams largos)
+_rotate_log() {
+  local f="$1"
+  [ -f "$f" ] || return
+  local size
+  size=$(wc -c < "$f" 2>/dev/null || echo 0)
+  if [ "$size" -gt 5242880 ]; then
+    mv "$f" "${f%.log}.$(date +%Y%m%d_%H%M%S).log"
+  fi
+}
+_rotate_log "$LOG/http.log"
+_rotate_log "$LOG/ws.log"
+
 # Leer puertos desde profile.json (SSOT)
 if ! command -v python3 &>/dev/null; then
   echo "[FATAL] python3 no encontrado. Instala Python 3.11+."

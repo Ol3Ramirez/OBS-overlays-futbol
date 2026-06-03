@@ -234,11 +234,10 @@
     90%     { transform: translateX(6px); }
   }
 
-  /* Flip 3D para tarjetas */
   @keyframes cardFlip {
-    0%   { transform: scale(0) rotateY(-90deg); }
-    60%  { transform: scale(1.1) rotateY(10deg); }
-    100% { transform: scale(1) rotateY(0deg); }
+    0%   { transform: scale(0);   opacity: 0; }
+    60%  { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1);   opacity: 1; }
   }
 
   /* ── Tarjeta amarilla/roja visual ── */
@@ -465,20 +464,7 @@
     clear: clearAll
   };
 
-  // WebSocket relay con exponential backoff
-  let _wsDelay = 1000;
-  (function wsConnect() {
-    const ws = new WebSocket('ws://localhost:8889');
-    ws.onopen  = () => { _wsDelay = 1000; };
-    ws.onmessage = (e) => {
-      try {
-        const cmd = JSON.parse(e.data);
-        if (window.obsOverlay && window.obsOverlay[cmd.fn])
-          window.obsOverlay[cmd.fn](...(cmd.args || []));
-      } catch(_) {}
-    };
-    ws.onclose = () => { setTimeout(wsConnect, _wsDelay); _wsDelay = Math.min(_wsDelay * 1.5, 30000); };
-  })();
+
 </script>
 <script src="ws-client.js"></script>
 </body>
