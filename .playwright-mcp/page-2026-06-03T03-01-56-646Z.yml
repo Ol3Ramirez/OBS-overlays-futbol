@@ -1,0 +1,47 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]: ⚽ SEMIFINAL DE IDA — Robles Fútbol
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: PROVEEDORA ROBLES
+      - generic [ref=e6]: 1–1
+      - generic [ref=e7]: HERMANOS OSORIO
+    - generic [ref=e8]:
+      - generic [ref=e9]: Tiempo
+      - generic [ref=e10]: 00:00
+  - generic [ref=e12] [cursor=pointer]:
+    - generic [ref=e13]: ⚙ Configurar Equipos & Plantilla
+    - generic [ref=e14]: ▼
+  - generic [ref=e15]:
+    - generic [ref=e16] [cursor=pointer]: ⚽ Goles
+    - generic [ref=e17] [cursor=pointer]: 🟨 Tarjetas
+    - generic [ref=e18] [cursor=pointer]: 🔄 Cambios
+    - generic [ref=e19] [cursor=pointer]: ⏱ Tiempo
+    - generic [ref=e20] [cursor=pointer]: 📋 Alineación
+    - generic [ref=e21] [cursor=pointer]: 📺 Escenas
+    - generic [ref=e22] [cursor=pointer]: 🎙 Entrevista
+  - generic [ref=e96]:
+    - generic [ref=e97]: Jugador que SALE — Local
+    - generic [ref=e98]:
+      - button "#7 HERNANDEZ" [ref=e99] [cursor=pointer]:
+        - generic [ref=e100]: "#7"
+        - text: HERNANDEZ
+      - button "#10 RAMIREZ" [ref=e101] [cursor=pointer]:
+        - generic [ref=e102]: "#10"
+        - text: RAMIREZ
+      - button "#9 TORRES" [ref=e103] [cursor=pointer]:
+        - generic [ref=e104]: "#9"
+        - text: TORRES
+    - generic [ref=e105]: Jugador que SALE — Visitante
+    - textbox "Nombre jugador visitante que sale" [ref=e107]
+    - generic [ref=e108]: Jugador que ENTRA
+    - textbox "Nombre del jugador que entra" [ref=e110]
+    - generic [ref=e111]:
+      - button "Local" [ref=e112] [cursor=pointer]
+      - button "Visitante" [ref=e113] [cursor=pointer]
+    - generic [ref=e114]:
+      - generic [ref=e115]: Minuto
+      - spinbutton [ref=e116]: "0"
+    - button "🔄 Registrar Cambio" [ref=e117] [cursor=pointer]:
+      - generic [ref=e118]: 🔄
+      - text: Registrar Cambio
+  - generic [ref=e41]: 🟨 RED — RAMIREZ (PROVEEDORA ROBLES) • 0'

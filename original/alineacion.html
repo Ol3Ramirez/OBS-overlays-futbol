@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Alineación</title>
+<script src="config.js"></script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
 
@@ -408,5 +409,6 @@
     ws.onclose = () => { setTimeout(wsConnect, _wsDelay); _wsDelay = Math.min(_wsDelay * 1.5, 30000); };
   })();
 </script>
+<script src="ws-client.js"></script>
 </body>
 </html>

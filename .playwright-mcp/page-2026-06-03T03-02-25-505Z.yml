@@ -1,0 +1,53 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]: ⚽ SEMIFINAL DE IDA — Robles Fútbol
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: PROVEEDORA ROBLES
+      - generic [ref=e6]: 1–1
+      - generic [ref=e7]: HERMANOS OSORIO
+    - generic [ref=e8]:
+      - generic [ref=e9]: Tiempo
+      - generic [ref=e10]: 00:00
+  - generic [ref=e12] [cursor=pointer]:
+    - generic [ref=e13]: ⚙ Configurar Equipos & Plantilla
+    - generic [ref=e14]: ▼
+  - generic [ref=e15]:
+    - generic [ref=e16] [cursor=pointer]: ⚽ Goles
+    - generic [ref=e17] [cursor=pointer]: 🟨 Tarjetas
+    - generic [ref=e18] [cursor=pointer]: 🔄 Cambios
+    - generic [ref=e19] [cursor=pointer]: ⏱ Tiempo
+    - generic [ref=e20] [cursor=pointer]: 📋 Alineación
+    - generic [ref=e21] [cursor=pointer]: 📺 Escenas
+    - generic [ref=e22] [cursor=pointer]: 🎙 Entrevista
+  - generic [ref=e157]:
+    - generic [ref=e158]: Alineación — desde Plantilla
+    - generic [ref=e159]:
+      - textbox "Nombre del equipo" [ref=e160]: PROVEEDORA ROBLES
+      - textbox "Formación" [ref=e161]: 2-2
+    - textbox "DT (opcional)" [ref=e163]
+    - generic [ref=e164]: Jugadores
+    - generic [ref=e165]:
+      - generic [ref=e166]:
+        - spinbutton [ref=e167]: "7"
+        - textbox "Nombre" [ref=e168]: HERNANDEZ
+        - textbox "Pos" [ref=e169]
+        - button "✕" [ref=e170] [cursor=pointer]
+      - generic [ref=e171]:
+        - spinbutton [ref=e172]: "10"
+        - textbox "Nombre" [ref=e173]: RAMIREZ
+        - textbox "Pos" [ref=e174]
+        - button "✕" [ref=e175] [cursor=pointer]
+      - generic [ref=e176]:
+        - spinbutton [ref=e177]: "9"
+        - textbox "Nombre" [ref=e178]: TORRES
+        - textbox "Pos" [ref=e179]
+        - button "✕" [ref=e180] [cursor=pointer]
+    - button "＋ Agregar Jugador" [ref=e181] [cursor=pointer]
+    - generic [ref=e182]:
+      - button "📋 Enviar Alineación" [ref=e183] [cursor=pointer]:
+        - generic [ref=e184]: 📋
+        - text: Enviar Alineación
+      - button "🗑️ Limpiar" [ref=e185] [cursor=pointer]:
+        - generic [ref=e186]: 🗑️
+        - text: Limpiar
+  - generic [ref=e41]: Reloj reiniciado → 00:00

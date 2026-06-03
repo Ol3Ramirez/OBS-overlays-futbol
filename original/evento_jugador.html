@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>Evento Jugador</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<script src="config.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;900&family=Barlow:wght@400;700&display=swap" rel="stylesheet">
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -479,5 +480,6 @@
     ws.onclose = () => { setTimeout(wsConnect, _wsDelay); _wsDelay = Math.min(_wsDelay * 1.5, 30000); };
   })();
 </script>
+<script src="ws-client.js"></script>
 </body>
 </html>

@@ -1,0 +1,56 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]: ⚽ SEMIFINAL DE IDA — Robles Fútbol
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: PROVEEDORA ROBLES
+      - generic [ref=e6]: 1–1
+      - generic [ref=e7]: HERMANOS OSORIO
+    - generic [ref=e8]:
+      - generic [ref=e9]: Tiempo
+      - generic [ref=e10]: 00:00
+  - generic [ref=e12] [cursor=pointer]:
+    - generic [ref=e13]: ⚙ Configurar Equipos & Plantilla
+    - generic [ref=e14]: ▼
+  - generic [ref=e15]:
+    - generic [ref=e16] [cursor=pointer]: ⚽ Goles
+    - generic [ref=e17] [cursor=pointer]: 🟨 Tarjetas
+    - generic [ref=e18] [cursor=pointer]: 🔄 Cambios
+    - generic [ref=e19] [cursor=pointer]: ⏱ Tiempo
+    - generic [ref=e20] [cursor=pointer]: 📋 Alineación
+    - generic [ref=e21] [cursor=pointer]: 📺 Escenas
+    - generic [ref=e22] [cursor=pointer]: 🎙 Entrevista
+  - generic [ref=e210]:
+    - generic [ref=e211]: Speaker / Entrevistado
+    - generic [ref=e212]:
+      - textbox "Nombre del speaker" [ref=e213]
+      - textbox "Rol / Cargo" [ref=e214]
+    - generic [ref=e215]:
+      - button "◄ Izquierda" [ref=e216] [cursor=pointer]:
+        - generic [ref=e217]: ◄
+        - text: Izquierda
+      - button "► Derecha" [ref=e218] [cursor=pointer]:
+        - generic [ref=e219]: ►
+        - text: Derecha
+      - button "✕ Limpiar" [ref=e220] [cursor=pointer]:
+        - generic [ref=e221]: ✕
+        - text: Limpiar
+    - generic [ref=e222]: Tema de Entrevista
+    - generic [ref=e223]:
+      - textbox "Tema actual (ticker)" [ref=e224]
+      - button "📡 Enviar" [ref=e225] [cursor=pointer]:
+        - generic [ref=e226]: 📡
+        - text: Enviar
+      - button "✕" [ref=e227] [cursor=pointer]:
+        - generic [ref=e228]: ✕
+    - generic [ref=e229]: Acciones Rápidas
+    - generic [ref=e230]:
+      - button "🎙 ENTREVISTA EN VIVO" [ref=e231] [cursor=pointer]:
+        - generic [ref=e232]: 🎙
+        - text: ENTREVISTA EN VIVO
+      - button "⚽ ANÁLISIS MEDIO TIEMPO" [ref=e233] [cursor=pointer]:
+        - generic [ref=e234]: ⚽
+        - text: ANÁLISIS MEDIO TIEMPO
+      - button "🧹 Limpiar Todo" [ref=e235] [cursor=pointer]:
+        - generic [ref=e236]: 🧹
+        - text: Limpiar Todo
+  - generic [ref=e41]: 📺 Badge Medio Tiempo enviado

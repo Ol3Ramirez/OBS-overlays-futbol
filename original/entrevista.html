@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>Entrevista / Talk Show</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<script src="config.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -588,5 +589,6 @@ body.mode-standalone .spark   { opacity: 1; }
     ws.onclose = () => { setTimeout(wsConnect, _wsDelay); _wsDelay = Math.min(_wsDelay * 1.5, 30000); };
   })();
 </script>
+<script src="ws-client.js"></script>
 </body>
 </html>

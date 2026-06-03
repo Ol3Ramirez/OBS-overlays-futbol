@@ -1,0 +1,47 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]: ⚽ SEMIFINAL DE IDA — Robles Fútbol
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: PROVEEDORA ROBLES
+      - generic [ref=e6]: 1–1
+      - generic [ref=e7]: HERMANOS OSORIO
+    - generic [ref=e8]:
+      - generic [ref=e9]: Tiempo
+      - generic [ref=e10]: 00:00
+  - generic [ref=e12] [cursor=pointer]:
+    - generic [ref=e13]: ⚙ Configurar Equipos & Plantilla
+    - generic [ref=e14]: ▼
+  - generic [ref=e15]:
+    - generic [ref=e16] [cursor=pointer]: ⚽ Goles
+    - generic [ref=e17] [cursor=pointer]: 🟨 Tarjetas
+    - generic [ref=e18] [cursor=pointer]: 🔄 Cambios
+    - generic [ref=e19] [cursor=pointer]: ⏱ Tiempo
+    - generic [ref=e20] [cursor=pointer]: 📋 Alineación
+    - generic [ref=e21] [cursor=pointer]: 📺 Escenas
+    - generic [ref=e22] [cursor=pointer]: 🎙 Entrevista
+  - generic [ref=e187]:
+    - generic [ref=e188]: Pantalla de Inicio — Countdown
+    - generic [ref=e189]:
+      - spinbutton [ref=e190]: "5"
+      - button "▶️ Iniciar Countdown" [ref=e191] [cursor=pointer]:
+        - generic [ref=e192]: ▶️
+        - text: Iniciar Countdown
+    - generic [ref=e193]:
+      - button "⏹ Detener" [ref=e194] [cursor=pointer]:
+        - generic [ref=e195]: ⏹
+        - text: Detener
+      - button "🔁 Reiniciar" [ref=e196] [cursor=pointer]:
+        - generic [ref=e197]: 🔁
+        - text: Reiniciar
+    - generic [ref=e198]: Pantalla Medio Tiempo
+    - textbox "Texto principal" [ref=e200]
+    - textbox "Subtexto" [ref=e202]
+    - textbox "Badge" [ref=e204]: Medio Tiempo
+    - generic [ref=e205]:
+      - button "✏️ Actualizar Textos" [ref=e206] [cursor=pointer]:
+        - generic [ref=e207]: ✏️
+        - text: Actualizar Textos
+      - button "📺 Badge Medio Tiempo" [ref=e208] [cursor=pointer]:
+        - generic [ref=e209]: 📺
+        - text: Badge Medio Tiempo
+  - generic [ref=e41]: 🗑️ Alineación limpiada
