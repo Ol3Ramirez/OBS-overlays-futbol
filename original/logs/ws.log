@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/oleramirez/Movies/MY CLOUDE CODE/OBS_OVERLAYS_FUTBOL/ws_relay.py", line 12, in <module>
-    from websockets.asyncio.server import broadcast, serve
-ModuleNotFoundError: No module named 'websockets'
