@@ -32,6 +32,26 @@ echo "  HTTP: $HTTP_PORT  |  WS: $WS_PORT"
 echo "==================================================="
 echo ""
 
+# Auto-crear .env si no existe (primera vez en Mac — idempotente)
+ENV_FILE="$DIR/.env"
+if [ ! -f "$ENV_FILE" ]; then
+  echo "AVISO: .env no encontrado — configuracion inicial"
+  echo ""
+  if [ -f "$DIR/.env.example" ]; then
+    # Intentar leer password de forma interactiva
+    printf "  Ingresa el password de OBS WebSocket (puerto 4455): "
+    read -r -s OBS_PWD
+    echo ""
+    if [ -n "$OBS_PWD" ]; then
+      echo "OBS_WS_PASSWORD=$OBS_PWD" > "$ENV_FILE"
+      echo "  OK .env creado (gitignoreado)"
+    else
+      echo "  AVISO: .env no creado — setup_obs.py pedira el password al conectar"
+    fi
+  fi
+  echo ""
+fi
+
 # Funcion de limpieza atomica: si algo falla, mata lo que ya arranco
 HTTP_PID=""
 WS_PID=""

@@ -230,12 +230,26 @@ async def main() -> None:
             },
             "sceneItemEnabled": True,
         })
-        ok   = r2["requestStatus"]["result"]
+        ok    = r2["requestStatus"]["result"]
         code2 = r2["requestStatus"].get("code")
         if ok:
-            print(f"    OK -> {url}")
+            print(f"    OK creado -> {url}")
         elif code2 == 601:
-            print(f"    (ya existe) -> {url}")
+            # Source ya existe — actualizar URL y refrescar (idempotente en git pull)
+            await req("SetInputSettings", {
+                "inputName":     src,
+                "inputSettings": {"url": url},
+                "overlay":       True,
+            })
+            # Simula el boton "Refresh" de OBS en la browser source
+            r_ref = await req("PressInputPropertiesButton", {
+                "inputName":    src,
+                "propertyName": "refreshnocache",
+            })
+            if r_ref["requestStatus"]["result"]:
+                print(f"    OK refrescado -> {url}")
+            else:
+                print(f"    OK actualizado -> {url}")
         else:
             print(f"    Error {code2}: {r2['requestStatus'].get('comment','')}")
 
@@ -259,7 +273,6 @@ async def main() -> None:
     print("  1. Corre: .\\iniciar_stream.ps1  (Windows)")
     print("         o: bash iniciar_stream.sh  (Mac)")
     print("  2. Abre el panel en Chrome")
-    print("  3. OBS: clic derecho cada source -> Refresh")
     print("=" * 51)
     print()
 
