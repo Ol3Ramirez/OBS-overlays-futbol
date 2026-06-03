@@ -56,6 +56,24 @@ function Kill-Port {
 }
 
 # Idempotencia: matar procesos anteriores
+# Auto-crear .env si no existe (primera vez — idempotente)
+$envFile = Join-Path $DIR ".env"
+if (-not (Test-Path $envFile)) {
+    Write-Host ""
+    Write-Host "AVISO: .env no encontrado -- configuracion inicial" -ForegroundColor Yellow
+    Write-Host ""
+    $obsPwd = Read-Host -Prompt "  Ingresa el password de OBS WebSocket (puerto 4455)" -AsSecureString
+    $plain  = [Runtime.InteropServices.Marshal]::PtrToStringAuto(
+                  [Runtime.InteropServices.Marshal]::SecureStringToBSTR($obsPwd))
+    if ($plain) {
+        "OBS_WS_PASSWORD=$plain" | Out-File $envFile -Encoding utf8
+        Write-Host "  OK .env creado (gitignoreado)" -ForegroundColor Green
+    } else {
+        Write-Host "  AVISO: .env no creado -- setup_obs.py pedira el password al conectar" -ForegroundColor Yellow
+    }
+    Write-Host ""
+}
+
 Write-Host "Limpiando puertos $HTTP_PORT / $WS_PORT..." -ForegroundColor DarkGray
 Kill-Port $HTTP_PORT
 Kill-Port $WS_PORT

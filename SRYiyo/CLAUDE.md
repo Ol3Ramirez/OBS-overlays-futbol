@@ -9,19 +9,29 @@
 
 ## Arranque rápido
 
-**Mac:**
+**Mac (primera vez o despues de git pull):**
 ```bash
 cd SRYiyo
-bash iniciar_stream.sh
+bash iniciar_stream.sh   # pide password OBS si .env no existe, lo crea solo
+uv run setup_obs.py      # configura OBS + refresca Browser Sources automaticamente
+```
+
+**Mac (siguiente vez — ya configurado):**
+```bash
+bash iniciar_stream.sh   # arranca y listo
 ```
 
 **Windows:**
 ```powershell
 cd SRYiyo
-.\iniciar_stream.ps1
+.\iniciar_stream.ps1     # pide password OBS si .env no existe, lo crea solo
+uv run setup_obs.py      # configura OBS + refresca Browser Sources
 ```
 
 Panel local: `http://localhost:8890/control_remoto.html`
+
+> **Idempotente:** correr cualquiera de estos comandos N veces produce el mismo resultado.
+> El `.env` se crea solo la primera vez. `setup_obs.py` refresca sources si ya existen.
 
 ---
 
