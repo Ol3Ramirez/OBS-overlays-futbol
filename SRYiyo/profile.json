@@ -17,7 +17,8 @@
 
   "httpPort": 8890,
   "wsPort":   8891,
-  "wsBindAddress": "127.0.0.1",
+  "wsBindAddress": "0.0.0.0",
+  "wsToken":       "robles2025",
 
   "obsCollection": "SRYiyo - Robles Futbol",
   "obsHost":       "localhost",
