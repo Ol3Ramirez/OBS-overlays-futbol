@@ -449,5 +449,6 @@ html, body {
     ws.onclose = () => { setTimeout(wsConnect, _wsDelay); _wsDelay = Math.min(_wsDelay * 1.5, 30000); };
   })();
 </script>
+<script src="ws-client.js"></script>
 </body>
 </html>

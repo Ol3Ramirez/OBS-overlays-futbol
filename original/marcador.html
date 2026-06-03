@@ -6,6 +6,7 @@
 <title>Marcador Fútbol</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;900&family=Barlow:wght@400;700&display=swap" rel="stylesheet">
+<script src="config.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -529,21 +530,7 @@
   };
 
   // Reloj inicia detenido — arrancar desde el panel de control
-
-  // WebSocket relay con exponential backoff
-  let _wsDelay = 1000;
-  (function wsConnect() {
-    const ws = new WebSocket('ws://localhost:8889');
-    ws.onopen  = () => { _wsDelay = 1000; };
-    ws.onmessage = (e) => {
-      try {
-        const cmd = JSON.parse(e.data);
-        if (window.obsOverlay && window.obsOverlay[cmd.fn])
-          window.obsOverlay[cmd.fn](...(cmd.args || []));
-      } catch(_) {}
-    };
-    ws.onclose = () => { setTimeout(wsConnect, _wsDelay); _wsDelay = Math.min(_wsDelay * 1.5, 30000); };
-  })();
 </script>
+<script src="ws-client.js"></script>
 </body>
 </html>
