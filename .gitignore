@@ -4,6 +4,16 @@ logs/
 node_modules/
 .DS_Store
 
+# Artefactos de pruebas automáticas
+.playwright-mcp/
+playwright-report/
+test-results/
+
+# Variables de entorno
+.env
+.env.local
+**/. env
+
 # Imágenes — excluir logos de sponsors
 *.jpeg
 *.jpg
