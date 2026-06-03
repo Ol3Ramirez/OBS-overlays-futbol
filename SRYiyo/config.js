@@ -13,6 +13,10 @@ window.SRYI = {
   HTTP_PORT:   8890,
   WS_URL:      'ws://localhost:8891',
   LOGO:        './logo_robles.jpeg',
-  SPONSOR:     'Robles Fútbol',
+  SPONSOR:        'Robles Fútbol',
   SPONSOR_SOCIAL: 'RoblesUtbol',
+  // Control remoto desde cancha (Tailscale)
+  // null = auto-detectar desde window.location.hostname
+  WS_HOST:  null,
+  WS_TOKEN: '***REMOVED-TOKEN***',
 };
