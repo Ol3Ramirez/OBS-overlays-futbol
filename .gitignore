@@ -14,6 +14,8 @@ __pycache__/
 .playwright-mcp/
 playwright-report/
 test-results/
+playwright-tmp/
+*playwright-tmp*/
 
 # Variables de entorno
 .env
