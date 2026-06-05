@@ -116,6 +116,9 @@ async def main() -> None:
                     continue
 
                 # ── Guardar en state store ──
+                if fn == "resetClock":
+                    _state_store.pop("setMinute", None)
+                    _state_store.pop("addedTime", None)
                 if fn and fn not in _NO_STORE:
                     _state_store[fn] = message
                     if len(_state_store) > _MAX_STORE:
