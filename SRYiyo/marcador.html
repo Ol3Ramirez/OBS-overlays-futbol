@@ -27,8 +27,8 @@
     --dark:       #0a0a0f;
     --glass:      rgba(8, 8, 20, 0.92);
     --accent:     #FFD700;
-    --home-color: #c62828;
-    --away-color: #1565C0;
+    --home-color: #9E9E9E;
+    --away-color: #F5F5F5;
   }
 
   .scoreboard {
@@ -37,7 +37,7 @@
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: 0;
     filter: drop-shadow(0 4px 24px rgba(0,0,0,0.7));
     animation: slideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
@@ -85,8 +85,8 @@
     flex-shrink: 0;
   }
 
-  .team-block.home .team-logo { background: rgba(198,40,40,0.18); }
-  .team-block.away .team-logo { background: rgba(21,101,192,0.18); }
+  .team-block.home .team-logo { background: color-mix(in srgb, var(--home-color) 20%, transparent); }
+  .team-block.away .team-logo { background: color-mix(in srgb, var(--away-color) 20%, transparent); }
 
   .team-name {
     font-size: 18px;
@@ -288,6 +288,22 @@
   .added-time.show { display: block; animation: addedIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
   .added-time-value { font-size: 22px; font-weight: 900; color: var(--gold); letter-spacing: 1px; }
   @keyframes addedIn { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
+
+  /* Marcador global acumulado (IDA + VUELTA) */
+  .global-line {
+    font-size: 8px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(255,213,0,0.15);
+    white-space: nowrap;
+    display: none;
+  }
+  .global-line.visible { display: block; }
+  .gl-hl { color: var(--gold); }
 </style>
 </head>
 <body>
@@ -295,7 +311,7 @@
 <div class="scoreboard">
   <div class="team-block home">
     <span class="team-name" id="home-name">PROVEEDORA ROBLES</span>
-    <div class="team-logo" id="home-logo">🔴</div>
+    <div class="team-logo" id="home-logo">⚫</div>
   </div>
 
   <div class="score-center">
@@ -306,10 +322,11 @@
     </div>
     <div class="match-time" id="match-status">EN VIVO</div>
     <div class="match-label" id="match-label">SEMIFINAL DE IDA</div>
+    <div class="global-line" id="global-line">IDA <span id="gl-ida-h">0</span>–<span id="gl-ida-a">0</span> &nbsp;·&nbsp; <span class="gl-hl">GLOBAL <span id="gl-global-h">0</span>–<span id="gl-global-a">0</span></span></div>
   </div>
 
   <div class="team-block away">
-    <div class="team-logo" id="away-logo">🔵</div>
+    <div class="team-logo" id="away-logo">⚪</div>
     <span class="team-name" id="away-name">HERMANOS OSORIO</span>
   </div>
 </div>
@@ -334,7 +351,8 @@
   const state = {
     homeScore: 0, awayScore: 0,
     minutes: 0, seconds: 0,
-    running: false, half: 1
+    running: false, half: 1,
+    idaHome: 0, idaAway: 0
   };
 
   let _lastTick = 0, _rafId = null;
@@ -422,6 +440,7 @@
     document.getElementById('home-score').textContent = state.homeScore;
     animateScore('home-score');
     showGoal(document.getElementById('home-name').textContent, scorer);
+    updateGlobalLine();
   }
 
   function goalAway(scorer) {
@@ -429,6 +448,18 @@
     document.getElementById('away-score').textContent = state.awayScore;
     animateScore('away-score');
     showGoal(document.getElementById('away-name').textContent, scorer);
+    updateGlobalLine();
+  }
+
+  function updateGlobalLine() {
+    const el = document.getElementById('global-line');
+    if (!el) return;
+    if (state.idaHome === 0 && state.idaAway === 0) { el.classList.remove('visible'); return; }
+    el.classList.add('visible');
+    document.getElementById('gl-ida-h').textContent = state.idaHome;
+    document.getElementById('gl-ida-a').textContent = state.idaAway;
+    document.getElementById('gl-global-h').textContent = state.idaHome + state.homeScore;
+    document.getElementById('gl-global-a').textContent = state.idaAway + state.awayScore;
   }
 
   window.obsOverlay = {
@@ -440,6 +471,7 @@
       document.getElementById('home-score').textContent = h;
       document.getElementById('away-score').textContent = a;
       state.homeScore = h; state.awayScore = a;
+      updateGlobalLine();
     },
     goalHome, goalAway, toggleClock, nextHalf,
     startClock:  () => { if (!state.running) toggleClock(); },
@@ -462,6 +494,11 @@
       el.classList.add('show');
       clearTimeout(window._addedTimer);
       window._addedTimer = setTimeout(() => el.classList.remove('show'), 8000);
+    },
+    setGlobalScore: (idaH, idaA) => {
+      state.idaHome = idaH;
+      state.idaAway = idaA;
+      updateGlobalLine();
     }
   };
 
@@ -469,6 +506,14 @@
   if (window.SRYI) {
     window.obsOverlay.setTeams(window.SRYI.HOME, window.SRYI.AWAY);
     document.getElementById('match-label').textContent = window.SRYI.MATCH_LABEL;
+    if (window.SRYI.HOME_COLOR) document.documentElement.style.setProperty('--home-color', window.SRYI.HOME_COLOR);
+    if (window.SRYI.AWAY_COLOR) document.documentElement.style.setProperty('--away-color', window.SRYI.AWAY_COLOR);
+    if (window.SRYI.ACCENT)     document.documentElement.style.setProperty('--gold', window.SRYI.ACCENT);
+    if (window.SRYI.HOME_LOGO)  document.getElementById('home-logo').textContent = window.SRYI.HOME_LOGO;
+    if (window.SRYI.AWAY_LOGO)  document.getElementById('away-logo').textContent = window.SRYI.AWAY_LOGO;
+    if (window.SRYI.IDA_HOME || window.SRYI.IDA_AWAY) {
+      window.obsOverlay.setGlobalScore(window.SRYI.IDA_HOME || 0, window.SRYI.IDA_AWAY || 0);
+    }
   }
 </script>
 <script src="ws-client.js"></script>
