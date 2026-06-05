@@ -10,12 +10,6 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Artefactos de pruebas automáticas
-.playwright-mcp/
-playwright-report/
-test-results/
-playwright-tmp/
-*playwright-tmp*/
 
 # Variables de entorno
 .env
