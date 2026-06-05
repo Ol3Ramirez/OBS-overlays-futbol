@@ -142,10 +142,7 @@ html, body {
       <img src="./logo_altavoz_studio.png" alt="Altavoz Studio" />
     </div>
   </div>
-  <div class="robles-secondary">
-    <img src="./logo_robles.jpeg" alt="Robles Fútbol" class="robles-secondary-img" />
-    <span class="robles-secondary-label">Equipo local</span>
-  </div>
+  <div id="team-logo-wrap"></div>
   <div class="divider"></div>
   <div class="badge">
     <div class="badge-dot"></div>
@@ -207,6 +204,10 @@ html, body {
     document.getElementById('live-text').textContent = window.SRYI.SPONSOR + ' en vivo';
     document.getElementById('sponsor-name').textContent = window.SRYI.SPONSOR;
     document.getElementById('side-label-l').textContent = window.SRYI.SPONSOR;
+    if (window.SRYI.LOGO) {
+      document.getElementById('team-logo-wrap').innerHTML =
+        `<div class="robles-secondary"><img src="${window.SRYI.LOGO}" alt="Logo equipo" class="robles-secondary-img" /><span class="robles-secondary-label">Equipo local</span></div>`;
+    }
   }
 </script>
 <script src="ws-client.js"></script>
