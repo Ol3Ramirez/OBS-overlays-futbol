@@ -133,8 +133,26 @@
     }
   };
 
-  // Auto-init
-  if (window.SRYI) window.obsOverlay.setName(window.SRYI.HOME);
+  // Auto-init — formación 2-2 fútbol 5 (POR, DEF×2, FWD×2)
+  if (window.SRYI) {
+    const byPos = (p) => (window.SRYI.PLAYERS || []).filter(pl => pl.pos === p);
+    const gks   = byPos('POR');
+    const defs  = byPos('DEF');
+    const fwds  = [...byPos('MED'), ...byPos('DEL')];
+    const starters = [
+      gks[0]  && { ...gks[0],  x: 50, y: 88 },
+      defs[0] && { ...defs[0], x: 27, y: 65 },
+      defs[1] && { ...defs[1], x: 73, y: 65 },
+      fwds[0] && { ...fwds[0], x: 27, y: 32 },
+      fwds[1] && { ...fwds[1], x: 73, y: 32 },
+    ].filter(Boolean);
+    window.obsOverlay.setTeam({
+      name:      window.SRYI.HOME,
+      formation: '2-2',
+      coach:     '',
+      players:   starters
+    });
+  }
 </script>
 <script src="ws-client.js"></script>
 </body>

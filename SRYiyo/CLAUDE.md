@@ -2,8 +2,9 @@
 
 ## Perfil
 **Partido**: PROVEEDORA ROBLES vs HERMANOS OSORIO  
-**Torneo**: SEMIFINAL DE IDA  
-**Sponsor**: Robles Fútbol (`logo_robles.jpeg`)
+**Torneo**: SEMIFINAL DE VUELTA  
+**Productora**: Altavoz Studio (`logo_altavoz_studio.png`)  
+**Equipo local**: Proveedora Robles (`logo_robles.jpeg`, secundario)
 
 ---
 

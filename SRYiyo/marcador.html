@@ -366,8 +366,8 @@
       document.getElementById('clock').textContent =
         `${String(state.minutes).padStart(2,'0')}:${String(state.seconds).padStart(2,'0')}`;
       document.getElementById('match-status').textContent =
-        state.minutes >= 45 && state.half === 1 ? `${state.minutes}'+` :
-        state.minutes >= 90 ? `${state.minutes}'+` : `${state.minutes}'`;
+        state.minutes >= 20 && state.half === 1 ? `${state.minutes}'+` :
+        state.minutes >= 20 && state.half === 2 ? `${state.minutes}'+` : `${state.minutes}'`;
     }
     _rafId = requestAnimationFrame(_rafTick);
   }
@@ -391,9 +391,9 @@
   }
 
   function nextHalf() {
-    state.half = 2; state.minutes = 45; state.seconds = 0;
+    state.half = 2; state.minutes = 20; state.seconds = 0;
     document.getElementById('half').textContent = '2do Tiempo';
-    document.getElementById('clock').textContent = '45:00';
+    document.getElementById('clock').textContent = '20:00';
   }
 
   function animateScore(id) {
@@ -516,6 +516,11 @@
     }
   }
 </script>
+<style>
+.altavoz-wm { position:absolute; bottom:28px; right:40px; background:rgba(0,0,0,0.35); border-radius:6px; padding:4px 10px; display:flex; align-items:center; gap:6px; }
+.altavoz-wm img { height:18px; opacity:0.7; }
+</style>
+<div class="altavoz-wm"><img src="./logo_altavoz_studio.png" alt="Altavoz Studio" /></div>
 <script src="ws-client.js"></script>
 </body>
 </html>
