@@ -16,9 +16,13 @@ window.SRYI = {
   WS_PORT:     8891,
   HTTP_PORT:   8890,
   WS_URL:      'ws://localhost:8891',
-  LOGO:        './logo_robles.jpeg',
-  SPONSOR:        'Robles Fútbol',
-  SPONSOR_SOCIAL: 'RoblesUtbol',
+  LOGO:           './logo_robles.jpeg',
+  ALTAVOZ_LOGO:   './logo_altavoz_studio.png',
+  ALTAVOZ_FB:     'https://www.facebook.com/profile.php?id=61575665086642',
+  HOST_FB:        'https://www.facebook.com/profile.php?id=61581762022193',
+  SPORT:          'FÚTBOL 5',
+  SPONSOR:        'Altavoz Studio',
+  SPONSOR_SOCIAL: 'AltavozEstudio',
   // Control remoto desde cancha (Tailscale)
   // null = auto-detectar desde window.location.hostname
   WS_HOST:  null,

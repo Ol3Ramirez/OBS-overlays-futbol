@@ -36,7 +36,7 @@
 
   /* Logo */
   .logo-wrap {
-    margin-bottom: 32px;
+    margin-bottom: 16px;
     background: rgba(255,255,255,0.96);
     border-radius: 18px;
     padding: 18px 28px;
@@ -132,6 +132,13 @@
     color: rgba(255,255,255,0.25); text-transform: uppercase;
     animation: fadeDown 1s 0.8s both;
   }
+  .logos-secondary {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 28px;
+    animation: fadeDown 0.8s 0.08s both;
+  }
+  .logos-secondary-label { font-size: 10px; letter-spacing: 3px; color: rgba(255,255,255,0.28); text-transform: uppercase; }
+  .logo-robles-sm { height: 28px; border-radius: 4px; background: rgba(255,255,255,0.9); padding: 2px 5px; }
 </style>
 </head>
 <body>
@@ -153,7 +160,11 @@
 
 <div class="logo-glow"></div>
 <div class="logo-wrap">
-  <img src="./logo_robles.jpeg" alt="Robles Fútbol" id="logo-img" width="160" height="64" />
+  <img src="./logo_altavoz_studio.png" alt="Altavoz Studio" id="logo-img" />
+</div>
+<div class="logos-secondary">
+  <span class="logos-secondary-label">Equipo</span>
+  <img src="./logo_robles.jpeg" alt="Robles Fútbol" class="logo-robles-sm" />
 </div>
 
 <div class="match-badge">
@@ -229,7 +240,7 @@
     document.getElementById('home-team').textContent  = window.SRYI.HOME;
     document.getElementById('away-team').textContent  = window.SRYI.AWAY;
     document.getElementById('match-label').textContent = window.SRYI.MATCH_LABEL + ' — EN VIVO';
-    document.getElementById('sponsor-tag').textContent = 'Transmisión — ' + window.SRYI.SPONSOR;
+    document.getElementById('sponsor-tag').textContent = 'Transmisión en vivo · ' + window.SRYI.SPONSOR + ' · Facebook';
   }
 
   startCountdown(300);
