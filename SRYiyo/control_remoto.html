@@ -246,7 +246,10 @@ hr.div { border:none;border-top:1px solid var(--border);margin:14px 0; }
 <div class="header">
   <div class="header-score">
     <span class="h-team" id="hdr-home">PROVEEDORA ROBLES</span>
-    <span class="h-score"><span id="hdr-hs">0</span>–<span id="hdr-as">0</span></span>
+    <span style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">
+      <span class="h-score"><span id="hdr-hs">0</span>–<span id="hdr-as">0</span></span>
+      <span id="hdr-global" style="display:none;font-size:8px;color:rgba(255,213,0,0.7);letter-spacing:1.5px;font-weight:700;text-transform:uppercase;margin-top:1px">GLOBAL <span id="hdr-global-score">0–0</span></span>
+    </span>
     <span class="h-team" id="hdr-away">HERMANOS OSORIO</span>
   </div>
   <div class="header-clock">
@@ -296,6 +299,11 @@ hr.div { border:none;border-top:1px solid var(--border);margin:14px 0; }
     <div class="team-inputs">
       <input class="field" id="in-home" placeholder="Equipo Local" oninput="this.value=this.value.toUpperCase()">
       <input class="field" id="in-away" placeholder="Equipo Visitante" oninput="this.value=this.value.toUpperCase()">
+    </div>
+    <div class="roster-label" style="margin-top:10px">Resultado de la IDA</div>
+    <div class="team-inputs">
+      <input class="field" id="in-ida-home" type="number" placeholder="Goles Local (IDA)" min="0" max="30" value="0">
+      <input class="field" id="in-ida-away" type="number" placeholder="Goles Visitante (IDA)" min="0" max="30" value="0">
     </div>
     <div class="roster-label">Jugadores del Equipo Local</div>
     <div class="roster-rows" id="roster-rows"></div>
@@ -523,7 +531,7 @@ hr.div { border:none;border-top:1px solid var(--border);margin:14px 0; }
 </div>
 
 <script>
-const match = { home:'PROVEEDORA ROBLES', away:'HERMANOS OSORIO', hs:0, as:0 };
+const match = { home:'PROVEEDORA ROBLES', away:'HERMANOS OSORIO', hs:0, as:0, idaHome:0, idaAway:0 };
 let localPlayers = [], subTeam = 'local';
 const sel = { goal:null, card:null, sub:null };
 const _history = [];
@@ -537,7 +545,11 @@ const penaltyState = { kicks: 3, home: [], away: [], turn: 'home', idx: 0 };
 if (window.SRYI) {
   match.home = window.SRYI.HOME;
   match.away = window.SRYI.AWAY;
+  match.idaHome = window.SRYI.IDA_HOME || 0;
+  match.idaAway = window.SRYI.IDA_AWAY || 0;
   document.getElementById('mb-label').textContent = window.SRYI.MATCH_LABEL;
+  document.getElementById('in-ida-home').value = match.idaHome;
+  document.getElementById('in-ida-away').value = match.idaAway;
 }
 
 function loadRoster() { try { const s=sessionStorage.getItem('sryiyo_roster'); if(s) localPlayers=JSON.parse(s); } catch(_){} }
@@ -646,12 +658,15 @@ function renderRosterRows() { document.getElementById('roster-rows').innerHTML='
 function saveTeams() {
   const hv=document.getElementById('in-home').value.trim(), av=document.getElementById('in-away').value.trim();
   if(hv) match.home=hv; if(av) match.away=av;
+  match.idaHome = parseInt(document.getElementById('in-ida-home').value) || 0;
+  match.idaAway = parseInt(document.getElementById('in-ida-away').value) || 0;
   const rows=document.querySelectorAll('#roster-rows .roster-row');
   localPlayers=[];
   rows.forEach(row=>{ const num=parseInt(row.querySelector('.rr-num').value)||0,name=row.querySelector('.rr-name').value.trim(); if(name) localPlayers.push({num,name}); });
   saveRoster(); updateHeader(); rebuildAllChips(); syncLineupFromRoster();
   send('setTeams',[match.home,match.away]);
-  log(`✅ Guardado — ${match.home} vs ${match.away} | ${localPlayers.length} jugadores`);
+  if (match.idaHome > 0 || match.idaAway > 0) send('setGlobalScore',[match.idaHome, match.idaAway]);
+  log(`✅ Guardado — ${match.home} vs ${match.away} | IDA ${match.idaHome}-${match.idaAway}`);
   document.getElementById('setup-body').classList.remove('open');
   document.getElementById('setup-arrow').classList.remove('open');
 }
@@ -661,6 +676,13 @@ function updateHeader() {
   document.getElementById('hdr-away').textContent=match.away;
   document.getElementById('hdr-hs').textContent=match.hs;
   document.getElementById('hdr-as').textContent=match.as;
+  const globalEl = document.getElementById('hdr-global');
+  if (globalEl) {
+    if (match.idaHome > 0 || match.idaAway > 0) {
+      globalEl.style.display='inline-block';
+      document.getElementById('hdr-global-score').textContent = `${match.idaHome+match.hs}–${match.idaAway+match.as}`;
+    } else { globalEl.style.display='none'; }
+  }
 }
 
 function buildChips(containerId,tab) {
@@ -786,7 +808,12 @@ function quickInterview(badge) { send('showBadge',[badge]); send('setMode',['ove
 function clearInterview() { send('clearSpeaker',[]); send('clearTopic',[]); send('hideBadge',[]); log('🧹 Entrevista limpiada'); }
 
 function resetMatch() { match.hs=0; match.as=0; cp.reset(); send('resetClock',[]); send('setScore',[0,0]); updateHeader(); log('🔄 Marcador reiniciado'); }
-function fullReset() { resetMatch(); send('setTeams',[match.home,match.away]); log('⚠️ Reset total ejecutado'); }
+function fullReset() {
+  resetMatch();
+  send('setTeams',[match.home,match.away]);
+  if (match.idaHome > 0 || match.idaAway > 0) send('setGlobalScore',[match.idaHome, match.idaAway]);
+  log('⚠️ Reset total ejecutado');
+}
 
 function undoLast() {
   if (!_history.length) return;
@@ -915,6 +942,10 @@ document.addEventListener('keydown', function(e) {
 
 // Init
 loadRoster();
+// Si no hay plantilla en sesión, cargar desde config.js
+if (!localPlayers.length && window.SRYI && window.SRYI.PLAYERS) {
+  localPlayers = window.SRYI.PLAYERS.map(p => ({ num: p.num, name: p.name }));
+}
 document.getElementById('in-home').value = match.home;
 document.getElementById('in-away').value = match.away;
 renderRosterRows();

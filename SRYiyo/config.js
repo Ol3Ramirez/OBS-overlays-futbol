@@ -5,9 +5,13 @@
 window.SRYI = {
   HOME:        'PROVEEDORA ROBLES',
   AWAY:        'HERMANOS OSORIO',
-  MATCH_LABEL: 'SEMIFINAL DE IDA',
-  HOME_COLOR:  '#c62828',   // rojo Robles (sincronizado con profile.json)
-  AWAY_COLOR:  '#1565C0',   // azul marino Osorio (sincronizado con profile.json)
+  MATCH_LABEL: 'SEMIFINAL DE VUELTA',
+  IDA_HOME:    8,   // Robles en la IDA
+  IDA_AWAY:    11,  // Osorio en la IDA (van ganando global)
+  HOME_COLOR:  '#9E9E9E',   // gris/negro — Robles juega de negro
+  AWAY_COLOR:  '#F5F5F5',   // blanco — Osorio juega de blanco
+  HOME_LOGO:   '⚫',
+  AWAY_LOGO:   '⚪',
   ACCENT:      '#FFD700',   // gold
   WS_PORT:     8891,
   HTTP_PORT:   8890,
@@ -19,4 +23,17 @@ window.SRYI = {
   // null = auto-detectar desde window.location.hostname
   WS_HOST:  null,
   WS_TOKEN: 'robles2025',
+
+  // Plantilla Proveedora Robles — VUELTA
+  PLAYERS: [
+    { num: 1, name: 'TOVAR',    pos: 'POR' },
+    { num: 2, name: 'TOCHO',    pos: 'DEF' },
+    { num: 3, name: 'PABLO',    pos: 'DEF' },
+    { num: 4, name: 'MUNDO',    pos: 'DEF' },
+    { num: 5, name: 'VELASCO',  pos: 'MED' },
+    { num: 6, name: 'MAGALI',   pos: 'MED' },
+    { num: 7, name: 'BANE',     pos: 'MED' },
+    { num: 8, name: 'CHILANGO', pos: 'DEL' },
+    { num: 9, name: 'POLLITO',  pos: 'DEL' },
+  ],
 };
