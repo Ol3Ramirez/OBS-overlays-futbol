@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Setup Partido — Altavoz Studio</title>
+<script src="config.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:#0d0d14; color:#e0e0e0;
+  font-family: Arial, sans-serif;
+  min-height: 100vh; padding: 32px;
+}
+.container { max-width: 860px; margin: 0 auto; }
+header {
+  display:flex; align-items:center; gap:16px;
+  margin-bottom:28px; padding-bottom:16px;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+header img { height:36px; background:rgba(255,255,255,0.9); border-radius:6px; padding:4px 8px; }
+h1 { font-size:22px; font-weight:900; color:#FFD700; letter-spacing:2px; text-transform:uppercase; }
+header small { font-size:11px; letter-spacing:2px; color:rgba(255,255,255,0.28); text-transform:uppercase; display:block; margin-top:2px; }
+h2 { font-size:10px; letter-spacing:3px; color:rgba(255,255,255,0.35); text-transform:uppercase; margin-bottom:14px; }
+section {
+  background:rgba(255,255,255,0.035); border:1px solid rgba(255,255,255,0.07);
+  border-radius:10px; padding:18px 20px; margin-bottom:12px;
+}
+.grid  { display:grid; grid-template-columns:1fr 1fr;     gap:10px; }
+.grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+label { display:flex; flex-direction:column; gap:5px; font-size:10px; letter-spacing:1px; color:rgba(255,255,255,0.4); text-transform:uppercase; }
+input[type=text], input[type=number], textarea {
+  background:rgba(0,0,0,0.45); border:1px solid rgba(255,255,255,0.1);
+  border-radius:6px; color:#fff; padding:9px 11px;
+  font-size:14px; font-family:inherit; width:100%; outline:none;
+  transition:border-color 0.2s;
+}
+input[type=color] {
+  width:100%; height:40px; border:1px solid rgba(255,255,255,0.1);
+  border-radius:6px; background:rgba(0,0,0,0.4); cursor:pointer; padding:2px;
+}
+input:focus, textarea:focus { border-color:#FFD700; }
+textarea { resize:vertical; font-size:13px; line-height:1.65; }
+.checkbox-row { display:flex; align-items:center; gap:10px; margin-top:10px; cursor:pointer; font-size:12px; color:rgba(255,255,255,0.55); letter-spacing:0.5px; }
+.checkbox-row input { width:16px; height:16px; cursor:pointer; }
+small { font-size:10px; color:rgba(255,255,255,0.25); letter-spacing:0.5px; margin-top:4px; display:block; }
+.output-area {
+  background:rgba(0,0,0,0.4); border:1px solid rgba(255,215,0,0.15);
+  border-radius:10px; padding:20px; margin-top:8px;
+}
+#output-config {
+  width:100%; font-family:'Courier New',monospace; font-size:11px;
+  color:#7eff7e; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.07);
+  border-radius:6px; padding:12px; margin-bottom:12px;
+}
+.buttons { display:flex; gap:8px; flex-wrap:wrap; }
+button {
+  padding:11px 22px; border-radius:8px; border:none; cursor:pointer;
+  font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+  transition:transform 0.1s, opacity 0.15s; font-family:inherit;
+}
+button:active { transform:scale(0.95); }
+.btn-gen      { background:#FFD700; color:#000; }
+.btn-copy     { background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.15); }
+.btn-dl       { background:rgba(0,200,100,0.12); color:#00c864; border:1px solid rgba(0,200,100,0.25); }
+.btn-live     { background:rgba(198,40,40,0.12); color:#ff5555; border:1px solid rgba(198,40,40,0.25); }
+.toast {
+  position:fixed; bottom:24px; right:24px;
+  background:#1a1a2e; border:1px solid #FFD700; color:#FFD700;
+  padding:10px 18px; border-radius:8px; font-size:12px; font-weight:700; letter-spacing:1px;
+  opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:9999;
+}
+.toast.show { opacity:1; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <img src="./logo_altavoz_studio.png" alt="Altavoz Studio" />
+    <div>
+      <h1>Setup Partido</h1>
+      <small>Configura el match · Genera config.js</small>
+    </div>
+  </header>
+
+  <!-- Datos del partido -->
+  <section>
+    <h2>Datos del partido</h2>
+    <div class="grid">
+      <label>Equipo Local <input type="text" id="home" /></label>
+      <label>Equipo Visitante <input type="text" id="away" /></label>
+      <label>Etiqueta del partido <input type="text" id="match-label" placeholder="SEMIFINAL DE VUELTA" /></label>
+      <label>Deporte <input type="text" id="sport" placeholder="FÚTBOL 5" /></label>
+      <label>Marcador IDA — Local <input type="number" id="ida-home" min="0" value="0" /></label>
+      <label>Marcador IDA — Visitante <input type="number" id="ida-away" min="0" value="0" /></label>
+    </div>
+  </section>
+
+  <!-- Colores -->
+  <section>
+    <h2>Colores y emojis</h2>
+    <div class="grid3">
+      <label>Color local <input type="color" id="home-color" /></label>
+      <label>Color visitante <input type="color" id="away-color" /></label>
+      <label>Color acento <input type="color" id="accent" /></label>
+      <label>Emoji local <input type="text" id="home-logo" maxlength="4" /></label>
+      <label>Emoji visitante <input type="text" id="away-logo" maxlength="4" /></label>
+    </div>
+  </section>
+
+  <!-- Logo del equipo -->
+  <section>
+    <h2>Logo del equipo local (opcional — aparece secundario en overlays)</h2>
+    <div class="grid">
+      <label>Archivo de logo
+        <input type="text" id="logo" placeholder="./logo_equipo.png" />
+        <small>Ruta relativa desde la carpeta SRYiyo/. Vacío = sin logo de equipo.</small>
+      </label>
+      <div>
+        <label class="checkbox-row">
+          <input type="checkbox" id="show-logo" />
+          Mostrar logo de equipo en overlays
+        </label>
+        <small style="margin-top:8px">intro.html · medio_tiempo.html · entrevista.html</small>
+      </div>
+    </div>
+  </section>
+
+  <!-- Jugadores -->
+  <section>
+    <h2>Jugadores (num, nombre, posición — uno por línea)</h2>
+    <textarea id="players" rows="10" placeholder="1,PORTERO,POR&#10;2,DEFENSA1,DEF&#10;3,DEFENSA2,DEF&#10;4,MEDIO1,MED&#10;5,DELANTERO1,DEL"></textarea>
+    <small>Posiciones: POR · DEF · MED · DEL &nbsp;|&nbsp; Fútbol 5: mínimo 5 (1 POR, 2 DEF, 2 MED/DEL)</small>
+  </section>
+
+  <!-- Output -->
+  <div class="output-area">
+    <h2 style="margin-bottom:12px">config.js generado</h2>
+    <textarea id="output-config" rows="18" readonly placeholder="Presiona Generar para ver el config.js..."></textarea>
+    <div class="buttons">
+      <button class="btn-gen"  onclick="generateConfig()">⚙ Generar</button>
+      <button class="btn-copy" onclick="copyConfig()">⎘ Copiar</button>
+      <button class="btn-dl"   onclick="downloadConfig()">↓ Descargar config.js</button>
+      <button class="btn-live" onclick="applyLive()">▶ Aplicar en vivo</button>
+    </div>
+    <small style="margin-top:10px">
+      Flujo normal: Generar → Descargar → reemplazar SRYiyo/config.js → recargar Browser Sources en OBS.<br>
+      "Aplicar en vivo" difunde los cambios por WebSocket a los overlays ya abiertos (sin recargar OBS).
+    </small>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const C = window.SRYI || {};
+
+function playersToText(arr) {
+  return (arr || []).map(p => `${p.num},${p.name},${p.pos}`).join('\n');
+}
+
+function textToPlayers(text) {
+  return text.trim().split('\n')
+    .filter(l => l.trim())
+    .map(l => {
+      const parts = l.split(',').map(s => s.trim());
+      return { num: parseInt(parts[0]) || 0, name: (parts[1] || '').toUpperCase(), pos: (parts[2] || '').toUpperCase() };
+    })
+    .filter(p => p.num && p.name);
+}
+
+function loadConfig() {
+  document.getElementById('home').value        = C.HOME        || '';
+  document.getElementById('away').value        = C.AWAY        || '';
+  document.getElementById('match-label').value = C.MATCH_LABEL || '';
+  document.getElementById('sport').value       = C.SPORT       || 'FÚTBOL 5';
+  document.getElementById('ida-home').value    = C.IDA_HOME    ?? 0;
+  document.getElementById('ida-away').value    = C.IDA_AWAY    ?? 0;
+  document.getElementById('home-color').value  = C.HOME_COLOR  || '#9E9E9E';
+  document.getElementById('away-color').value  = C.AWAY_COLOR  || '#F5F5F5';
+  document.getElementById('accent').value      = C.ACCENT      || '#FFD700';
+  document.getElementById('home-logo').value   = C.HOME_LOGO   || '⚫';
+  document.getElementById('away-logo').value   = C.AWAY_LOGO   || '⚪';
+  document.getElementById('logo').value        = C.LOGO        || '';
+  document.getElementById('show-logo').checked = !!(C.LOGO);
+  document.getElementById('players').value     = playersToText(C.PLAYERS);
+}
+
+function buildObj() {
+  const logoPath = document.getElementById('logo').value.trim();
+  const showLogo = document.getElementById('show-logo').checked;
+  return {
+    HOME:        document.getElementById('home').value.trim().toUpperCase(),
+    AWAY:        document.getElementById('away').value.trim().toUpperCase(),
+    MATCH_LABEL: document.getElementById('match-label').value.trim().toUpperCase(),
+    SPORT:       document.getElementById('sport').value.trim().toUpperCase(),
+    IDA_HOME:    parseInt(document.getElementById('ida-home').value) || 0,
+    IDA_AWAY:    parseInt(document.getElementById('ida-away').value) || 0,
+    HOME_COLOR:  document.getElementById('home-color').value,
+    AWAY_COLOR:  document.getElementById('away-color').value,
+    ACCENT:      document.getElementById('accent').value,
+    HOME_LOGO:   document.getElementById('home-logo').value.trim(),
+    AWAY_LOGO:   document.getElementById('away-logo').value.trim(),
+    LOGO:        (showLogo && logoPath) ? logoPath : null,
+    PLAYERS:     textToPlayers(document.getElementById('players').value),
+  };
+}
+
+function renderConfigJs(cfg) {
+  const playersStr = cfg.PLAYERS.map(p =>
+    `    { num: ${p.num}, name: '${p.name}', pos: '${p.pos}' },`
+  ).join('\n');
+  return `/**
+ * SRYiyo — Configuración del partido
+ * Generado por setup.html · ${new Date().toLocaleString('es-MX')}
+ */
+window.SRYI = {
+  HOME:        '${cfg.HOME}',
+  AWAY:        '${cfg.AWAY}',
+  MATCH_LABEL: '${cfg.MATCH_LABEL}',
+  SPORT:       '${cfg.SPORT}',
+  IDA_HOME:    ${cfg.IDA_HOME},
+  IDA_AWAY:    ${cfg.IDA_AWAY},
+  HOME_COLOR:  '${cfg.HOME_COLOR}',
+  AWAY_COLOR:  '${cfg.AWAY_COLOR}',
+  ACCENT:      '${cfg.ACCENT}',
+  HOME_LOGO:   '${cfg.HOME_LOGO}',
+  AWAY_LOGO:   '${cfg.AWAY_LOGO}',
+  LOGO:        ${cfg.LOGO ? `'${cfg.LOGO}'` : 'null'},
+  ALTAVOZ_LOGO:   './logo_altavoz_studio.png',
+  ALTAVOZ_FB:     'https://www.facebook.com/profile.php?id=61575665086642',
+  HOST_FB:        'https://www.facebook.com/profile.php?id=61581762022193',
+  SPONSOR:        'Altavoz Studio',
+  SPONSOR_SOCIAL: 'AltavozEstudio',
+  WS_PORT:     8891,
+  HTTP_PORT:   8890,
+  WS_URL:      'ws://localhost:8891',
+  WS_HOST:     null,
+  WS_TOKEN:    '***REMOVED-TOKEN***',
+
+  PLAYERS: [
+${playersStr}
+  ],
+};`;
+}
+
+function generateConfig() {
+  document.getElementById('output-config').value = renderConfigJs(buildObj());
+  toast('config.js generado ✓');
+}
+
+function copyConfig() {
+  if (!document.getElementById('output-config').value) generateConfig();
+  navigator.clipboard.writeText(document.getElementById('output-config').value)
+    .then(() => toast('Copiado al portapapeles ✓'));
+}
+
+function downloadConfig() {
+  if (!document.getElementById('output-config').value) generateConfig();
+  const blob = new Blob([document.getElementById('output-config').value], { type: 'text/javascript' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'config.js';
+  a.click(); URL.revokeObjectURL(url);
+  toast('Descargando config.js...');
+}
+
+let _ws;
+function getWs() {
+  if (_ws && _ws.readyState === WebSocket.OPEN) return _ws;
+  _ws = new WebSocket(`ws://localhost:${C.WS_PORT || 8891}`);
+  return _ws;
+}
+
+function applyLive() {
+  const cfg = buildObj();
+  const sock = getWs();
+  const doSend = () => {
+    sock.send(JSON.stringify({ fn: 'configUpdate', args: [cfg] }));
+    toast('Enviado a overlays en vivo ▶');
+  };
+  if (sock.readyState === WebSocket.OPEN) doSend();
+  else sock.addEventListener('open', doSend, { once: true });
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+loadConfig();
+</script>
+</body>
+</html>

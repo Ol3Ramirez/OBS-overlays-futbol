@@ -162,10 +162,7 @@
 <div class="logo-wrap">
   <img src="./logo_altavoz_studio.png" alt="Altavoz Studio" id="logo-img" />
 </div>
-<div class="logos-secondary">
-  <span class="logos-secondary-label">Equipo</span>
-  <img src="./logo_robles.jpeg" alt="Robles Fútbol" class="logo-robles-sm" />
-</div>
+<div id="team-logo-wrap"></div>
 
 <div class="match-badge">
   <span class="match-badge-text" id="home-team">PROVEEDORA ROBLES</span>
@@ -241,6 +238,10 @@
     document.getElementById('away-team').textContent  = window.SRYI.AWAY;
     document.getElementById('match-label').textContent = window.SRYI.MATCH_LABEL + ' — EN VIVO';
     document.getElementById('sponsor-tag').textContent = 'Transmisión en vivo · ' + window.SRYI.SPONSOR + ' · Facebook';
+    if (window.SRYI.LOGO) {
+      document.getElementById('team-logo-wrap').innerHTML =
+        `<div class="logos-secondary"><span class="logos-secondary-label">Equipo</span><img src="${window.SRYI.LOGO}" alt="Logo equipo" class="logo-robles-sm" /></div>`;
+    }
   }
 
   startCountdown(300);
