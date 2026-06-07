@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demo Pre-Stream — SRYiyo</title>
+<script src="config.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --gold: #FFD700;
+  --green: #00c853;
+  --red: #ff3b3b;
+  --dim: rgba(255,255,255,0.45);
+  --bg: #0a0810;
+  --border: rgba(255,255,255,0.10);
+  --glass: rgba(255,255,255,0.05);
+}
+body {
+  background: var(--bg); color: #fff;
+  font-family: 'Arial Black', Arial, sans-serif;
+  min-height: 100vh; padding: 20px;
+  max-width: 700px; margin: 0 auto;
+}
+h1 { font-size: 18px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+.subtitle { font-size: 11px; color: var(--dim); letter-spacing: 1px; margin-bottom: 24px; }
+
+.match-banner {
+  background: rgba(255,215,0,0.06); border: 1px solid rgba(255,215,0,0.2);
+  border-radius: 10px; padding: 16px; margin-bottom: 20px; text-align: center;
+}
+.match-teams { font-size: 22px; font-weight: 900; letter-spacing: 1px; margin-bottom: 4px; }
+.match-label { font-size: 11px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; }
+.team-home { color: #fff; }
+.team-sep { color: var(--dim); margin: 0 8px; }
+.team-away { color: #E91E63; }
+
+.section { margin-bottom: 20px; }
+.section-title {
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--dim); margin-bottom: 10px; padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* CHECKLIST */
+.checklist { display: flex; flex-direction: column; gap: 8px; }
+.check-item {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--glass); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 14px; cursor: pointer;
+  transition: all 0.2s; user-select: none;
+}
+.check-item.done { border-color: rgba(0,200,83,0.4); background: rgba(0,200,83,0.06); }
+.check-dot {
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 2px solid var(--dim); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; transition: all 0.2s;
+}
+.check-item.done .check-dot { background: var(--green); border-color: var(--green); }
+.check-text { font-size: 13px; font-weight: 700; }
+.check-sub { font-size: 10px; color: var(--dim); margin-top: 2px; }
+
+/* WS STATUS */
+.ws-box {
+  background: var(--glass); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px;
+  display: flex; align-items: center; gap: 14px;
+}
+.ws-indicator {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--red); flex-shrink: 0; transition: background 0.3s;
+}
+.ws-indicator.ok { background: var(--green); }
+.ws-indicator.connecting { background: var(--gold); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+.ws-label { font-size: 13px; font-weight: 700; }
+.ws-sub { font-size: 10px; color: var(--dim); margin-top: 2px; }
+
+/* OVERLAYS GRID */
+.overlays-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.overlay-btn {
+  background: var(--glass); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px; cursor: pointer;
+  transition: all 0.15s; text-decoration: none; color: #fff;
+  display: block; text-align: left;
+}
+.overlay-btn:hover { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.08); }
+.overlay-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+.overlay-url { font-size: 9px; color: var(--dim); letter-spacing: 0.5px; }
+
+/* TEST BUTTONS */
+.test-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.btn-test {
+  background: rgba(255,215,0,0.08); border: 1px solid rgba(255,215,0,0.3);
+  color: var(--gold); padding: 10px 6px; border-radius: 8px;
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  transition: all 0.15s; letter-spacing: 0.5px; text-transform: uppercase;
+}
+.btn-test:hover { background: rgba(255,215,0,0.15); }
+.btn-test:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.btn-panel {
+  display: block; width: 100%;
+  background: var(--green); border: none;
+  color: #000; padding: 14px; border-radius: 10px;
+  font-size: 16px; font-weight: 900; cursor: pointer;
+  letter-spacing: 1px; transition: opacity 0.2s;
+  text-decoration: none; text-align: center;
+  margin-top: 20px;
+}
+.btn-panel:hover { opacity: 0.85; }
+
+.log-box {
+  background: rgba(0,0,0,0.4); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px; font-size: 11px;
+  color: var(--dim); min-height: 44px; max-height: 120px;
+  overflow-y: auto; margin-top: 8px;
+  font-family: monospace; letter-spacing: 0.5px;
+}
+</style>
+</head>
+<body>
+
+<h1>Demo Pre-Stream</h1>
+<div class="subtitle" id="subtitle">Verificando configuración...</div>
+
+<div class="match-banner">
+  <div class="match-teams">
+    <span class="team-home" id="team-home">LOCAL</span>
+    <span class="team-sep">vs</span>
+    <span class="team-away" id="team-away">VISITANTE</span>
+  </div>
+  <div class="match-label" id="match-label">PARTIDO</div>
+</div>
+
+<!-- WS CONNECTION -->
+<div class="section">
+  <div class="section-title">Conexión WebSocket</div>
+  <div class="ws-box">
+    <div class="ws-indicator connecting" id="ws-dot"></div>
+    <div>
+      <div class="ws-label" id="ws-label">Conectando...</div>
+      <div class="ws-sub" id="ws-sub">ws://localhost:<span id="ws-port">8891</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAYS -->
+<div class="section">
+  <div class="section-title">Overlays de OBS</div>
+  <div class="overlays-grid" id="overlays-grid"></div>
+</div>
+
+<!-- TESTS -->
+<div class="section">
+  <div class="section-title">Test rápido de overlays</div>
+  <div class="test-grid">
+    <button class="btn-test" id="btn-goal"    onclick="testGoal()">⚽ Gol</button>
+    <button class="btn-test" id="btn-yellow"  onclick="testYellow()">🟨 Tarjeta</button>
+    <button class="btn-test" id="btn-clock"   onclick="testClock()">⏱ Reloj</button>
+    <button class="btn-test" id="btn-teams"   onclick="testTeams()">🏷 Equipos</button>
+    <button class="btn-test" id="btn-clear"   onclick="testClear()">✕ Limpiar</button>
+    <button class="btn-test" id="btn-reset"   onclick="testReset()">↺ Reset</button>
+  </div>
+  <div class="log-box" id="log-box">Esperando WS...</div>
+</div>
+
+<!-- CHECKLIST -->
+<div class="section">
+  <div class="section-title">Checklist pre-stream</div>
+  <div class="checklist">
+    <div class="check-item" id="chk-obs" onclick="toggle('chk-obs')">
+      <div class="check-dot">✓</div>
+      <div><div class="check-text">OBS Studio abierto</div><div class="check-sub">Colección SRYiyo - Robles Futbol activa</div></div>
+    </div>
+    <div class="check-item done" id="chk-ws">
+      <div class="check-dot">✓</div>
+      <div><div class="check-text">WebSocket Relay corriendo</div><div class="check-sub" id="chk-ws-sub">Verificando...</div></div>
+    </div>
+    <div class="check-item" id="chk-sources" onclick="toggle('chk-sources')">
+      <div class="check-dot">✓</div>
+      <div><div class="check-text">Browser Sources en OBS</div><div class="check-sub">marcador, evento, alineacion visibles</div></div>
+    </div>
+    <div class="check-item" id="chk-stream" onclick="toggle('chk-stream')">
+      <div class="check-dot">✓</div>
+      <div><div class="check-text">Streaming configurado en OBS</div><div class="check-sub">RTMP key, bitrate, resolución</div></div>
+    </div>
+    <div class="check-item" id="chk-audio" onclick="toggle('chk-audio')">
+      <div class="check-dot">✓</div>
+      <div><div class="check-text">Audio verificado</div><div class="check-sub">Micrófono y niveles OK</div></div>
+    </div>
+    <div class="check-item" id="chk-roster" onclick="toggle('chk-roster')">
+      <div class="check-dot">✓</div>
+      <div><div class="check-text">Plantilla Robles cargada</div><div class="check-sub">Jugadores en el panel de control</div></div>
+    </div>
+    <div class="check-item" id="chk-tailscale" onclick="toggle('chk-tailscale')">
+      <div class="check-dot">✓</div>
+      <div><div class="check-text">Tailscale activo (si usas celular)</div><div class="check-sub">IP: 100.112.130.14 — Connected</div></div>
+    </div>
+  </div>
+</div>
+
+<a class="btn-panel" href="control_remoto.html">⚡ IR AL PANEL DE CONTROL</a>
+
+<script>
+const C = window.SRYI || {};
+const PORT = C.WS_PORT || 8891;
+const HTTP = C.HTTP_PORT || 8890;
+
+// Match banner
+document.getElementById('team-home').textContent  = C.HOME  || 'LOCAL';
+document.getElementById('team-away').textContent  = C.AWAY  || 'VISITANTE';
+document.getElementById('match-label').textContent = C.MATCH_LABEL || 'PARTIDO';
+document.getElementById('subtitle').textContent   = `${C.HOME || 'LOCAL'} vs ${C.AWAY || 'VISITANTE'} · ${C.MATCH_LABEL || ''}`;
+document.getElementById('ws-port').textContent    = PORT;
+
+// Overlays
+const overlays = [
+  { name: 'Marcador',       file: 'marcador.html' },
+  { name: 'Evento Jugador', file: 'evento_jugador.html' },
+  { name: 'Alineación',     file: 'alineacion.html' },
+  { name: 'Entrevista',     file: 'entrevista.html' },
+  { name: 'Intro/Countdown',file: 'intro.html' },
+  { name: 'Medio Tiempo',   file: 'medio_tiempo.html' },
+];
+const grid = document.getElementById('overlays-grid');
+overlays.forEach(o => {
+  const url = `http://localhost:${HTTP}/${o.file}`;
+  const a = document.createElement('a');
+  a.className = 'overlay-btn';
+  a.href = url;
+  a.target = '_blank';
+  a.innerHTML = `<div class="overlay-name">${o.name}</div><div class="overlay-url">${url}</div>`;
+  grid.appendChild(a);
+});
+
+// WS
+let ws = null;
+function wsLog(msg) {
+  const box = document.getElementById('log-box');
+  const t = new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  box.textContent += `\n[${t}] ${msg}`;
+  box.scrollTop = box.scrollHeight;
+}
+function wsSend(fn, args) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) { wsLog('⚠️ Sin conexión WS'); return false; }
+  ws.send(JSON.stringify({ fn, args: args || [] }));
+  wsLog(`→ ${fn}(${(args||[]).join(', ')})`);
+  return true;
+}
+function wsConnect() {
+  const dot   = document.getElementById('ws-dot');
+  const label = document.getElementById('ws-label');
+  const sub   = document.getElementById('ws-sub');
+  const chkSub= document.getElementById('chk-ws-sub');
+  const chk   = document.getElementById('chk-ws');
+  ws = new WebSocket(`ws://localhost:${PORT}`);
+  ws.onopen = () => {
+    dot.className   = 'ws-indicator ok';
+    label.textContent = '✅ Conectado — listo para transmitir';
+    sub.textContent   = `ws://localhost:${PORT}`;
+    chkSub.textContent = `ws://localhost:${PORT} — OK`;
+    chk.classList.add('done');
+    wsLog('✅ WebSocket conectado');
+    document.querySelectorAll('.btn-test').forEach(b => b.disabled = false);
+  };
+  ws.onclose = () => {
+    dot.className   = 'ws-indicator connecting';
+    label.textContent = 'Reconectando...';
+    chk.classList.remove('done');
+    chkSub.textContent = 'No conectado — ¿corre ws_relay.py?';
+    wsLog('⚠️ Desconectado — reintentando...');
+    document.querySelectorAll('.btn-test').forEach(b => b.disabled = true);
+    setTimeout(wsConnect, 2000);
+  };
+  ws.onerror = () => { wsLog('✕ Error WS'); };
+}
+
+// Tests
+function testGoal()   { wsSend('goal',   ['TOVAR', C.HOME||'LOCAL', 1, `${C.HOME||'LOCAL'} 1 – 0 ${C.AWAY||'VISIT'}`]); wsSend('goalHome',['TOVAR']); }
+function testYellow() { wsSend('yellow', ['CHILANGO', C.HOME||'LOCAL', 5]); }
+function testClock()  { wsSend('startClock',[]); wsLog('▶ Reloj iniciado'); }
+function testTeams()  { wsSend('setTeams', [C.HOME||'LOCAL', C.AWAY||'VISIT']); }
+function testClear()  { wsSend('clear',  []); }
+function testReset()  { wsSend('setScore',[0,0]); wsSend('resetClock',[]); wsLog('↺ Reset marcador'); }
+
+// Checklist toggle
+function toggle(id) {
+  document.getElementById(id).classList.toggle('done');
+}
+
+// Init
+document.querySelectorAll('.btn-test').forEach(b => b.disabled = true);
+document.getElementById('log-box').textContent = `Conectando a ws://localhost:${PORT}...`;
+wsConnect();
+</script>
+</body>
+</html>

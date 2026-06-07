@@ -1,7 +1,7 @@
 # Guía de Operador — SRYiyo Robles Fútbol
 
-**Última actualización:** 2026-06-02  
-**Perfil:** PROVEEDORA ROBLES vs HERMANOS OSORIO — Semifinal de Ida
+**Última actualización:** 2026-06-06  
+**Perfil:** PROVEEDORA ROBLES (negros) vs SAN SEBASTIÁN (rosa) — Tercer Lugar
 
 ---
 
@@ -301,8 +301,8 @@ ipconfig getifaddr en0
 **Configurar equipos:**
 1. Toca "⚙ Configurar Equipos & Plantilla"
 2. Rellena:
-   - Equipo Local: `PROVEEDORA ROBLES`
-   - Equipo Visitante: `HERMANOS OSORIO`
+   - Equipo Local: `PROVEEDORA ROBLES` (negros)
+   - Equipo Visitante: `SAN SEBASTIÁN` (rosa)
 3. Agrega jugadores locales (número y nombre)
 4. Presiona **Guardar Equipos y Plantilla**
 
@@ -458,6 +458,6 @@ Si algo falla, revisa:
 
 ---
 
-**Última actualización:** 2026-06-02  
-**Versión:** 1.0  
-**Estado:** Listo para Semifinal de Ida PROVEEDORA ROBLES vs HERMANOS OSORIO
+**Última actualización:** 2026-06-06  
+**Versión:** 1.1  
+**Estado:** Listo para Tercer Lugar — PROVEEDORA ROBLES (negros) vs SAN SEBASTIÁN (rosa)

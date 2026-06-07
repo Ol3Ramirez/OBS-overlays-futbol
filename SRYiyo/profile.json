@@ -7,11 +7,11 @@
   "sponsorSocial": "RoblesUtbol",
 
   "home":       "PROVEEDORA ROBLES",
-  "away":       "HERMANOS OSORIO",
-  "matchLabel": "SEMIFINAL DE IDA",
+  "away":       "SAN SEBASTIÁN",
+  "matchLabel": "TERCER LUGAR",
 
-  "homeColor": "#c62828",
-  "awayColor": "#1565C0",
+  "homeColor": "#212121",
+  "awayColor": "#E91E63",
   "accent":    "#FFD700",
   "logo":      "./logo_robles.jpeg",
 
