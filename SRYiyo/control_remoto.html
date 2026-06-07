@@ -361,9 +361,30 @@ body {
   .clock-buttons { grid-template-columns: repeat(2, 1fr); }
   .btn { font-size: 13px; padding: 12px 6px; }
 }
+
+/* ── WS OFFLINE BANNER ── */
+.ws-banner {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: #b71c1c;
+  color: #fff;
+  text-align: center;
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.ws-offline .ws-banner { display: block; }
+.ws-offline .btn, .ws-offline .btn-clock { opacity: 0.4; pointer-events: none; }
+.ws-offline #in-set-min, .ws-offline #in-set-sec, .ws-offline #in-score-h, .ws-offline #in-score-a { opacity: 0.4; pointer-events: none; }
 </style>
 </head>
 <body>
+
+<!-- WS OFFLINE BANNER -->
+<div class="ws-banner">⚠️ SIN CONEXIÓN — Inicia ws_relay.py para controlar el marcador</div>
 
 <!-- HEADER STICKY -->
 <div class="header">
@@ -409,6 +430,15 @@ body {
       <button class="btn-clock" onclick="sendAddedTime(4)">+4'</button>
       <button class="btn-clock" onclick="sendAddedTime(5)">+5'</button>
     </div>
+    <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+      <div style="font-size:9px;color:var(--dim);letter-spacing:1px;margin-bottom:6px">FIJAR TIEMPO EXACTO</div>
+      <div style="display:grid;grid-template-columns:1fr 10px 1fr auto;gap:6px;align-items:center">
+        <input class="field" type="number" id="in-set-min" placeholder="Min" min="0" max="120" style="margin:0;text-align:center">
+        <span style="text-align:center;color:var(--dim);font-size:14px">:</span>
+        <input class="field" type="number" id="in-set-sec" placeholder="Seg" min="0" max="59" style="margin:0;text-align:center">
+        <button class="btn-clock" style="padding:8px 14px" onclick="setClockTime()">Fijar</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -422,6 +452,15 @@ body {
   <div class="action-grid grid-2">
     <button class="btn btn-gold" onclick="sendGoal('home')">⚽ GOL LOCAL</button>
     <button class="btn btn-gold" onclick="sendGoal('away')">⚽ GOL VISIT</button>
+  </div>
+  <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px">
+    <div style="font-size:9px;color:var(--dim);letter-spacing:1px;margin-bottom:6px">MARCADOR DIRECTO</div>
+    <div style="display:grid;grid-template-columns:1fr 20px 1fr auto;gap:6px;align-items:center">
+      <input class="field" type="number" id="in-score-h" placeholder="Local" min="0" max="30" style="margin:0;text-align:center;font-size:20px;font-weight:700">
+      <span style="text-align:center;color:var(--dim);font-size:16px;font-weight:700">–</span>
+      <input class="field" type="number" id="in-score-a" placeholder="Visit" min="0" max="30" style="margin:0;text-align:center;font-size:20px;font-weight:700">
+      <button class="btn btn-gold" style="padding:8px 14px;margin:0" onclick="applyScore()">✓</button>
+    </div>
   </div>
 </div>
 </div><!-- /tab-goles -->
@@ -684,6 +723,7 @@ function wsConnect() {
     hs.className='header-status ok';
     st.textContent='Conectado';
     dot.className='ws-dot ok';
+    document.body.classList.remove('ws-offline');
     _reconnTimer=null;
   };
   ws.onmessage=(e)=>{
@@ -699,9 +739,10 @@ function wsConnect() {
     hs.className='header-status connecting';
     st.textContent='Reconectando...';
     dot.className='ws-dot connecting';
+    document.body.classList.add('ws-offline');
     if(!_reconnTimer) _reconnTimer=setTimeout(()=>{ _reconnTimer=null; wsConnect(); },2000);
   };
-  ws.onerror=()=>{ document.getElementById('header-status').className='ws-dot'; log('⚠️ Error WS'); };
+  ws.onerror=()=>{ document.getElementById('header-status').className='ws-dot'; document.body.classList.add('ws-offline'); log('⚠️ Error WS'); };
 }
 
 function mostrarQR() {
@@ -1010,6 +1051,28 @@ function clockHalf2() {
 function sendAddedTime(n) {
   send('addedTime', [n]);
   log('⏱ +' + n + "'");
+}
+
+function setClockTime() {
+  const m = parseInt(document.getElementById('in-set-min').value) || 0;
+  const s = parseInt(document.getElementById('in-set-sec').value) || 0;
+  if (m < 0 || m > 120 || s < 0 || s > 59) { log('⚠️ Tiempo inválido'); return; }
+  const totalSecs = m * 60 + s;
+  send('setMinute', [m]);
+  _panelSecs = totalSecs;
+  const el = document.getElementById('panel-clock');
+  if (el) el.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  log(`⏱ Reloj → ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`);
+}
+
+function applyScore() {
+  const h = parseInt(document.getElementById('in-score-h').value);
+  const a = parseInt(document.getElementById('in-score-a').value);
+  if (isNaN(h) || isNaN(a) || h < 0 || a < 0) { log('⚠️ Ingresa ambos marcadores'); return; }
+  match.hs = h; match.as = a;
+  send('setScore', [h, a]);
+  if (typeof updateHeader === 'function') updateHeader();
+  log(`🏆 Marcador: ${h}–${a}`);
 }
 
 function _isInputFocused() {
