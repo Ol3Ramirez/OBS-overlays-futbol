@@ -1,0 +1,16 @@
+{
+  "name": "wifitlx-obs-automation",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "setup":  "node setup_obs.js",
+    "grabar": "node grabar_templates.js",
+    "05":     "node grabar_templates.js 05",
+    "06":     "node grabar_templates.js 06",
+    "07":     "node grabar_templates.js 07"
+  },
+  "dependencies": {
+    "dotenv":          "^16.4.5",
+    "obs-websocket-js": "^5.0.6"
+  }
+}
