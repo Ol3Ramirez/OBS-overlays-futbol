@@ -1,16 +1,29 @@
 # ROADMAP — OBS Overlays Fútbol
 
 > Lee este archivo al inicio de una nueva sesión para retomar sin perder contexto.
-> Actualizado: 2026-06-02
+> Actualizado: 2026-06-07
 
 ---
 
 ## Estado actual del proyecto
 
-Perfil activo: **SRYiyo** (Robles Fútbol · Semifinal de Ida)
-Repo: `main` — limpio, sincronizado con origin
+Perfil activo: **SRYiyo** (Robles Fútbol · siguiente partido pendiente de fecha)
+Equipos actuales: **MOTO EQUIPOS RODRIGUEZ** (rojo #C62828) vs **HERMANOS OSORIO** (blanco #FFFFFF)
+Repo: `main` — limpio ✅ (commiteado sesión 2026-06-07)
 
-### Últimos cambios (2026-06-02)
+### Cambios sesión 2026-06-07 ✅ COMMITEADOS
+
+| Archivo | Cambio |
+|---------|--------|
+| `SRYiyo/control_remoto.html` | Rediseño Stream Deck: tabs (Reloj/Goles/Cards/Cambios/Más), reloj restaurado, hotkeys G/H/Space |
+| `SRYiyo/marcador.html` | Logo Altavoz Studio: 18px → 34px, opacidad 0.7 → 0.85 |
+| `SRYiyo/profile.json` | Equipos sesión 2026-06-06: MOTO EQUIPOS vs HERMANOS OSORIO |
+| `SRYiyo/config.js` | Espejo de profile.json — equipos/colores actualizados |
+| `SRYiyo/ws_relay.py` | Token auth, keepalive, mejoras de estabilidad |
+| `SRYiyo/setup_obs.py` | Escenas adicionales configuradas automáticamente |
+| `SRYiyo/musica_inicio.html` | Nuevo overlay de música de inicio |
+
+### Últimos cambios commiteados (2026-06-02)
 
 | Commit | Descripción |
 |--------|-------------|
@@ -37,6 +50,39 @@ Repo: `main` — limpio, sincronizado con origin
 
 ---
 
+## Control en vivo desde Claude (sin panel)
+
+Cuando el usuario necesite corregir el marcador o manejar el reloj directamente:
+
+```bash
+cd "/Users/oleramirez/Movies/MY CLOUDE CODE/OBS_OVERLAYS_FUTBOL/SRYiyo"
+uv run --with websockets python3 -c "
+import asyncio, json, websockets
+async def go():
+    async with websockets.connect('ws://localhost:8891') as ws:
+        await ws.send(json.dumps({'fn': 'FUNCION', 'args': [ARGS]}))
+asyncio.run(go())
+"
+```
+
+| fn | args | Efecto |
+|----|------|--------|
+| `setScore` | `[home, away]` | Fijar marcador exacto |
+| `goalHome` | `['Jugador', min]` | +1 local + banner GOL |
+| `goalAway` | `['Jugador', min]` | +1 visitante |
+| `toggleClock` | `[]` | Iniciar / Pausar reloj |
+| `setMinute` | `[45]` | Saltar a minuto específico |
+| `nextHalf` | `[]` | Activar 2do tiempo (45:00) |
+| `addedTime` | `[3]` | Banner +3 minutos descuento |
+
+Para refrescar un Browser Source en OBS (después de editar un overlay):
+```
+mcp__obs__obs-set-input-settings(NombreSource, {url: "URL?v=N"})  → revertir sin ?v=N
+```
+Source del marcador: `Browser-Partido`
+
+---
+
 ## Pendientes — retomar aquí
 
 ### 1. Tests Playwright — panel de control (MEDIA prioridad)
@@ -55,14 +101,9 @@ const sryiyo = require('./SRYiyo/profile.json');
 args: `-m http.server ${sryiyo.httpPort}`,
 ```
 
-### 3. Overlay `jugador_del_partido.html` (ROADMAP)
-Lower-third post-partido para anunciar al MVP.
-```javascript
-// API propuesta:
-setMOM(name, team, stats)   // mostrar jugador del partido
-clearMOM()                  // ocultar
-```
-Basarse en la estructura de `entrevista.html` (lower-third + speaker).
+### 3. Overlay `jugador_del_partido.html` ✅ LISTO (sesión 2026-06-03)
+Implementado como `Browser-MVP` en OBS (desactivado por defecto).
+API: `setMOM(name, team, stats)` / `clearMOM()`. Toggle desde tab Escenas del panel.
 
 ---
 

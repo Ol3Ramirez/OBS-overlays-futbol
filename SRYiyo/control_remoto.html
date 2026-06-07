@@ -94,6 +94,7 @@ body {
 .section.cards { border-color: rgba(255,59,59,0.25); background: rgba(255,59,59,0.03); }
 .section.subs { border-color: rgba(0,200,83,0.25); background: rgba(0,200,83,0.03); }
 .section.scenes { border-color: rgba(100,150,200,0.25); background: rgba(100,150,200,0.03); }
+.section.music  { border-color: rgba(255,165,0,0.25);  background: rgba(255,165,0,0.03); }
 
 .section-title {
   font-size: 11px; letter-spacing: 2px; color: var(--dim);
@@ -336,7 +337,27 @@ body {
   .btn-clock { padding: 12px 4px; font-size: 11px; }
 }
 
+/* ── STREAM DECK TABS ── */
+.tabs-nav {
+  display: flex; position: sticky; top: 46px; z-index: 90;
+  background: rgba(8,8,20,0.97); border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(6px);
+}
+.tab-btn {
+  flex: 1; padding: 10px 4px 8px; background: none; border: none;
+  color: var(--dim); font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+  cursor: pointer; transition: all 0.15s; font-family: inherit;
+  text-transform: uppercase; line-height: 1.4; text-align: center;
+  border-bottom: 2px solid transparent;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-btn:hover { color: #fff; }
+.tab-pane { display: none; padding-bottom: 80px; }
+.tab-pane.active { display: block; }
+
 @media (max-width: 480px) {
+  .tabs-nav { top: 40px; }
+  .tab-btn { font-size: 9px; padding: 8px 2px; }
   .clock-buttons { grid-template-columns: repeat(2, 1fr); }
   .btn { font-size: 13px; padding: 12px 6px; }
 }
@@ -361,34 +382,52 @@ body {
   <div class="global-score" id="global-score">IDA: <span id="global-score-text">0–0</span></div>
 </div>
 
-<!-- RELOJ SECTION -->
-<div class="clock-section">
-  <div class="clock-label" id="clock-label">Reloj del Partido</div>
-  <div class="clock-display" id="clock-display">00:00</div>
-  <div class="clock-buttons">
-    <button class="btn-clock btn-start" onclick="clockStart()">▶ Iniciar</button>
-    <button class="btn-clock btn-pause" onclick="clockPause()">⏸ Pausar</button>
-    <button class="btn-clock btn-reset" onclick="clockReset()">↺ Reset</button>
-    <button class="btn-clock btn-next" onclick="clockHalf2()">▶▶ 2do (20')</button>
+<!-- STREAM DECK TABS NAV -->
+<div class="tabs-nav">
+  <button class="tab-btn active" onclick="showTab('reloj')" data-tab="reloj">⏱<br>Reloj</button>
+  <button class="tab-btn" onclick="showTab('goles')" data-tab="goles">⚽<br>Goles</button>
+  <button class="tab-btn" onclick="showTab('cards')" data-tab="cards">🟨<br>Cards</button>
+  <button class="tab-btn" onclick="showTab('subs')" data-tab="subs">🔄<br>Cambios</button>
+  <button class="tab-btn" onclick="showTab('mas')" data-tab="mas">···<br>Más</button>
+</div>
+
+<!-- TAB: RELOJ -->
+<div class="tab-pane active" id="tab-reloj">
+  <div class="clock-section">
+    <div class="clock-display" id="panel-clock">00:00</div>
+    <div class="clock-label" id="panel-half">1er Tiempo</div>
+    <div class="clock-buttons">
+      <button class="btn-clock btn-start" onclick="clockStart()">▶ Inicio</button>
+      <button class="btn-clock btn-pause" onclick="clockPause()">⏸ Pausa</button>
+      <button class="btn-clock btn-reset" onclick="clockReset()">↺ Reset</button>
+      <button class="btn-clock btn-next" onclick="clockHalf2()">⏭ 2do T</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:8px">
+      <button class="btn-clock" onclick="sendAddedTime(1)">+1'</button>
+      <button class="btn-clock" onclick="sendAddedTime(2)">+2'</button>
+      <button class="btn-clock" onclick="sendAddedTime(3)">+3'</button>
+      <button class="btn-clock" onclick="sendAddedTime(4)">+4'</button>
+      <button class="btn-clock" onclick="sendAddedTime(5)">+5'</button>
+    </div>
   </div>
 </div>
 
-<!-- GOLES SECTION -->
+<!-- TAB: GOLES -->
+<div class="tab-pane" id="tab-goles">
 <div class="section goals">
   <div class="section-title">⚽ Goles</div>
   <div class="chips-wrap" id="chips-goal"></div>
   <div class="chips-label" style="font-size:9px;color:var(--dim);margin-bottom:8px">Selecciona jugador local o ingresa nombre visitante</div>
-  <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px">
-    <input class="field" id="in-away-scorer" placeholder="Visitante (nombre)" style="margin-bottom:0">
-    <input class="field" type="number" id="in-goal-min" placeholder="Min" min="0" max="120" style="margin-bottom:0">
-  </div>
+  <input class="field" id="in-away-goal" placeholder="Visitante (nombre)" style="margin-bottom:8px">
   <div class="action-grid grid-2">
     <button class="btn btn-gold" onclick="sendGoal('home')">⚽ GOL LOCAL</button>
     <button class="btn btn-gold" onclick="sendGoal('away')">⚽ GOL VISIT</button>
   </div>
 </div>
+</div><!-- /tab-goles -->
 
-<!-- TARJETAS SECTION -->
+<!-- TAB: TARJETAS -->
+<div class="tab-pane" id="tab-cards">
 <div class="section cards">
   <div class="section-title">🟨 Tarjetas</div>
   <div class="chips-wrap" id="chips-card"></div>
@@ -403,8 +442,10 @@ body {
     <button class="btn btn-red" onclick="sendCard('red')">🟥 ROJA</button>
   </div>
 </div>
+</div><!-- /tab-cards -->
 
-<!-- CAMBIOS SECTION -->
+<!-- TAB: CAMBIOS -->
+<div class="tab-pane" id="tab-subs">
 <div class="section subs">
   <div class="section-title">🔄 Cambios</div>
   <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px">
@@ -424,6 +465,40 @@ body {
   </div>
   <input class="field" type="number" id="in-sub-min" placeholder="Minuto" style="margin-bottom:8px">
   <button class="btn btn-green" style="width:100%" onclick="sendSub()">🔄 CONFIRMAR CAMBIO</button>
+</div>
+</div><!-- /tab-subs -->
+
+<!-- TAB: MÁS (Música · Escenas · Config · Avanzado) -->
+<div class="tab-pane" id="tab-mas">
+
+<!-- MUSICA SECTION -->
+<div class="section music">
+  <div class="section-title">🎵 Música</div>
+  <div class="action-grid grid-2">
+    <button class="btn" style="background:rgba(255,165,0,0.15);border-color:rgba(255,165,0,0.5);color:#FFA500"
+            onclick="send('playKickoffMusic',[])">▶ Música Inicio</button>
+    <button class="btn btn-red"
+            onclick="send('stopKickoffMusic',[])">■ Detener</button>
+  </div>
+</div>
+
+<!-- ALINEACIONES SECTION -->
+<div class="section" style="border-color:rgba(100,220,100,0.25);background:rgba(60,180,60,0.04)">
+  <div class="section-title">📋 Alineaciones</div>
+  <div class="action-grid grid-2">
+    <button class="btn btn-green" onclick="sendLineupTeam('home')">📋 Ver Local</button>
+    <button class="btn" style="background:rgba(33,150,243,0.12);border-color:rgba(33,150,243,0.5);color:#64b5f6"
+            onclick="sendLineupTeam('away')">📋 Ver Visitante</button>
+  </div>
+</div>
+
+<!-- ENTREVISTA RAPIDA -->
+<div class="section" style="border-color:rgba(76,175,80,0.25);background:rgba(76,175,80,0.04)">
+  <div class="section-title">🎙 Entrevista</div>
+  <div class="action-grid grid-2">
+    <button class="btn btn-green" onclick="quickInterview('ENTREVISTA EN VIVO')">🎙 EN VIVO</button>
+    <button class="btn btn-green" onclick="quickInterview('ANÁLISIS MEDIO TIEMPO')">⚽ ANÁLISIS</button>
+  </div>
 </div>
 
 <!-- ESCENAS SECTION -->
@@ -458,7 +533,10 @@ body {
     </div>
     <label style="font-size:9px;letter-spacing:1px;color:var(--dim);text-transform:uppercase;display:block;margin-bottom:6px">Plantilla Local</label>
     <div id="roster-rows"></div>
-    <button class="btn-add" onclick="addRosterRow()">＋ Agregar Jugador</button>
+    <button class="btn-add" onclick="addRosterRow()">＋ Agregar Jugador Local</button>
+    <label style="font-size:9px;letter-spacing:1px;color:var(--dim);text-transform:uppercase;display:block;margin-bottom:6px;margin-top:12px">Plantilla Visitante</label>
+    <div id="away-roster-rows"></div>
+    <button class="btn-add" onclick="addAwayRosterRow()">＋ Agregar Jugador Visitante</button>
     <button class="btn-save" onclick="saveTeams()">✓ Guardar Equipos</button>
   </div>
 </div>
@@ -470,17 +548,6 @@ body {
     <span class="advanced-arrow" id="advanced-arrow">▼</span>
   </div>
   <div class="advanced-content" id="advanced-content">
-    <!-- Tiempo Descuento -->
-    <div style="margin-bottom:14px">
-      <div class="section-title">⏳ Tiempo de Descuento</div>
-      <div class="action-grid" style="grid-template-columns:repeat(5,1fr)">
-        <button class="btn" onclick="sendAddedTime(1)">+1'</button>
-        <button class="btn" onclick="sendAddedTime(2)">+2'</button>
-        <button class="btn" onclick="sendAddedTime(3)">+3'</button>
-        <button class="btn" onclick="sendAddedTime(4)">+4'</button>
-        <button class="btn" onclick="sendAddedTime(5)">+5'</button>
-      </div>
-    </div>
     <!-- Penales -->
     <div style="margin-bottom:14px">
       <div class="section-title">⚡ Penales</div>
@@ -503,14 +570,6 @@ body {
         <button class="btn btn-red" onclick="penaltyMark('miss')">✕ Fallo</button>
       </div>
       <button class="btn" style="width:100%;margin-top:8px" onclick="penaltyReset()">🔄 Reset Penales</button>
-    </div>
-    <!-- Reset -->
-    <div style="margin-bottom:14px">
-      <div class="section-title">🔄 Reset Marcador</div>
-      <div class="action-grid grid-2">
-        <button class="btn btn-gold" onclick="resetMatch()">Marcador 0-0</button>
-        <button class="btn btn-red" onclick="fullReset()">⚠️ Reset Total</button>
-      </div>
     </div>
     <!-- Alineación Manual -->
     <div style="margin-bottom:14px">
@@ -544,6 +603,7 @@ body {
     </div>
   </div>
 </div>
+</div><!-- /tab-mas -->
 
 <!-- LOG PANEL -->
 <div class="log-panel" id="log-panel">
@@ -575,7 +635,7 @@ body {
 
 <script>
 const match = { home:'PROVEEDORA ROBLES', away:'SAN SEBASTIÁN', hs:0, as:0, idaHome:0, idaAway:0 };
-let localPlayers = [], subTeam = 'local';
+let localPlayers = [], awayPlayers = [], subTeam = 'local';
 const sel = { goal:null, card:null, sub:null };
 const _history = [];
 const _eventLog = [];
@@ -596,6 +656,8 @@ if (window.SRYI) {
 
 function loadRoster() { try { const s=sessionStorage.getItem('sryiyo_roster'); if(s) localPlayers=JSON.parse(s); } catch(_){} }
 function saveRoster() { try { sessionStorage.setItem('sryiyo_roster',JSON.stringify(localPlayers)); } catch(_){} }
+function loadAwayRoster() { try { const s=sessionStorage.getItem('sryiyo_away_roster'); if(s) awayPlayers=JSON.parse(s); } catch(_){} }
+function saveAwayRoster() { try { sessionStorage.setItem('sryiyo_away_roster',JSON.stringify(awayPlayers)); } catch(_){} }
 
 function selectChip(tab, name) {
   sel[tab] = name;
@@ -603,33 +665,7 @@ function selectChip(tab, name) {
 }
 function clearSel(tab) { selectChip(tab,null); }
 
-const cp = {
-  running:false, offsetMs:0, startedAt:0, half:1, _iv:null,
-  totalMs()  { return this.running ? this.offsetMs+(Date.now()-this.startedAt) : this.offsetMs; },
-  totalSecs(){ return Math.floor(this.totalMs()/1000); },
-  mins()     { return Math.floor(this.totalSecs()/60); },
-  secs()     { return this.totalSecs()%60; },
-  display()  { return String(this.mins()).padStart(2,'0')+':'+String(this.secs()).padStart(2,'0'); },
-  start()    { if(this.running)return; this.running=true; this.startedAt=Date.now(); this._iv=setInterval(updateAllClocks,500); updateAllClocks(); },
-  pause()    { if(!this.running)return; this.offsetMs+=Date.now()-this.startedAt; this.running=false; clearInterval(this._iv);this._iv=null; updateAllClocks(); },
-  reset()    { clearInterval(this._iv);this._iv=null; this.running=false;this.offsetMs=0;this.startedAt=0;this.half=1; updateAllClocks(); },
-  setMins(m) { const was=this.running; if(was)this.pause(); this.offsetMs=m*60000; if(was)this.start();else updateAllClocks(); },
-  jumpHalf2(){ const was=this.running; if(was)this.pause(); this.offsetMs=20*60000;this.half=2; if(was)this.start();else updateAllClocks(); },
-  currentMin(){ return this.mins(); }
-};
-
-function updateAllClocks() {
-  const t=cp.display();
-  document.getElementById('clock-display').textContent=t;
-  document.getElementById('clock-label').textContent=cp.half===1?'1er Tiempo (20\')':'2do Tiempo (20\')';
-  ['in-goal-min','in-card-min','in-sub-min'].forEach(id=>{ const el=document.getElementById(id); if(el&&document.activeElement!==el) el.value=cp.currentMin(); });
-}
-
-function clockStart()  { cp.start();    send('startClock',[]); log('▶ Reloj iniciado'); }
-function clockPause()  { cp.pause();    send('stopClock',[]);  log('⏸ Reloj pausado'); }
-function clockReset()  { cp.reset();    send('resetClock',[]); log('↺ Reiniciado → 00:00'); }
-function clockHalf2()  { cp.jumpHalf2(); send('nextHalf',[]); log('▶▶ 2do Tiempo → 20:00'); }
-function sendAddedTime(n) { send('addedTime',[n]); log(`⏳ +${n}'`); }
+function currentMin() { return Math.floor(_panelSecs / 60); }
 
 let ws=null, _reconnTimer=null;
 function wsConnect() {
@@ -693,6 +729,13 @@ function addRosterRow(num='',name='') {
   container.appendChild(row);
 }
 function renderRosterRows() { document.getElementById('roster-rows').innerHTML=''; localPlayers.forEach(p=>addRosterRow(p.num,p.name)); if(!localPlayers.length) addRosterRow(); }
+function addAwayRosterRow(num='',name='') {
+  const container=document.getElementById('away-roster-rows'), row=document.createElement('div');
+  row.className='roster-row';
+  row.innerHTML=`<input class="rr-num" type="number" placeholder="#" min="1" max="99" value="${num}"><input class="rr-name" type="text" placeholder="Nombre" value="${name}" oninput="this.value=this.value.toUpperCase()"><button class="rr-del" onclick="this.parentElement.remove()">✕</button>`;
+  container.appendChild(row);
+}
+function renderAwayRosterRows() { document.getElementById('away-roster-rows').innerHTML=''; awayPlayers.forEach(p=>addAwayRosterRow(p.num,p.name)); if(!awayPlayers.length) addAwayRosterRow(); }
 
 function saveTeams() {
   const hv=document.getElementById('in-home').value.trim(), av=document.getElementById('in-away').value.trim();
@@ -702,7 +745,10 @@ function saveTeams() {
   const rows=document.querySelectorAll('#roster-rows .roster-row');
   localPlayers=[];
   rows.forEach(row=>{ const num=parseInt(row.querySelector('.rr-num').value)||0,name=row.querySelector('.rr-name').value.trim(); if(name) localPlayers.push({num,name}); });
-  saveRoster(); updateHeader(); rebuildAllChips(); syncLineupFromRoster();
+  const awayRows=document.querySelectorAll('#away-roster-rows .roster-row');
+  awayPlayers=[];
+  awayRows.forEach(row=>{ const num=parseInt(row.querySelector('.rr-num').value)||0,name=row.querySelector('.rr-name').value.trim(); if(name) awayPlayers.push({num,name}); });
+  saveRoster(); saveAwayRoster(); updateHeader(); rebuildAllChips(); syncLineupFromRoster();
   send('setTeams',[match.home,match.away]);
   if (match.idaHome > 0 || match.idaAway > 0) send('setGlobalScore',[match.idaHome, match.idaAway]);
   log(`✅ ${match.home} vs ${match.away}`);
@@ -730,37 +776,17 @@ function buildChips(containerId,tab) {
 function rebuildAllChips() { buildChips('chips-goal','goal'); buildChips('chips-card','card'); buildChips('chips-sub','sub'); sel.goal=null;sel.card=null;sel.sub=null; }
 
 function sendGoal(side) {
-  const min=parseInt(document.getElementById('in-goal-min').value)||cp.currentMin();
-  let player,teamName;
-  if(side==='home'){
-    player=sel.goal||'Jugador'; teamName=match.home;
-  } else {
-    player=document.getElementById('in-away-scorer').value.trim()||'Visitante';
-    teamName=match.away;
-    document.getElementById('in-away-scorer').value='';
-  }
-  if(side==='home'){ match.hs++; } else { match.as++; }
-  const scoreline=`${match.home} ${match.hs} – ${match.as} ${match.away}`;
-  send('goal',[player,teamName,min,scoreline]);
-  send(side==='home'?'goalHome':'goalAway',[player]);
-  clearSel('goal');
-  updateHeader(); log(`⚽ GOL — ${player}`);
-  _history.push({
-    label: `⚽ GOL ${player}`,
-    undo: () => {
-      if(side==='home') match.hs--; else match.as--;
-      send('setScore',[match.hs,match.as]);
-      send('clear',[]);
-      updateHeader();
-    }
-  });
-  if(_history.length > 10) _history.shift();
-  _pushLog('⚽', `${teamName} — ${player}`);
-  updateUndoBtn();
+  const player = side==='home' ? (sel.goal||'') : (document.getElementById('in-away-goal').value.trim()||'');
+  const min = currentMin();
+  send(side==='home'?'goalHome':'goalAway',[player,min]);
+  if(side==='home'){ sel.goal=null; rebuildAllChips(); }
+  if(side==='away'){ document.getElementById('in-away-goal').value=''; }
+  log(`⚽ GOL ${side==='home'?match.home:match.away}${player?' — '+player:''}`);
 }
 
+
 function sendCard(type) {
-  const min=parseInt(document.getElementById('in-card-min').value)||cp.currentMin();
+  const min=parseInt(document.getElementById('in-card-min').value)||currentMin();
   const player=sel.card||document.getElementById('in-away-card').value.trim()||'Jugador';
   const teamName=sel.card?match.home:match.away;
   send(type,[player,teamName,min]);
@@ -781,7 +807,7 @@ function sendCard(type) {
 function toggleSubTeam(t) { subTeam=t; document.getElementById('tt-local').classList.toggle('sel-local',t==='local'); document.getElementById('tt-away').classList.toggle('sel-away',t==='away'); }
 
 function sendSub() {
-  const min=parseInt(document.getElementById('in-sub-min').value)||cp.currentMin();
+  const min=parseInt(document.getElementById('in-sub-min').value)||currentMin();
   const outPlayer=subTeam==='local'?(sel.sub||'?'):document.getElementById('in-sub-out-away').value.trim()||'?';
   const inPlayer=document.getElementById('in-sub-in').value.trim()||'?';
   const teamName=subTeam==='local'?match.home:match.away;
@@ -818,18 +844,23 @@ function sendLineup() {
   send('setTeam',[data]); log(`📋 Alineación enviada`);
 }
 function clearLineup() { document.getElementById('lu-rows').innerHTML=''; log('🗑️ Limpios'); }
+function sendLineupTeam(side) {
+  const players = side === 'home' ? localPlayers : awayPlayers;
+  const teamName = side === 'home' ? match.home : match.away;
+  if (!players.length) { log('⚠️ Sin jugadores — agrega plantilla en ⚙ Configurar'); return; }
+  const lineup = players.map(function(p, i) {
+    return { num: p.num, name: p.name, pos: '', x: 50, y: 10 + i * (80 / Math.max(players.length - 1, 1)) };
+  });
+  const data = { name: teamName, formation: '2-2', coach: '', players: lineup };
+  send('setTeam', [data]);
+  send('setScene', ['Alineación']);
+  log('📋 ' + teamName);
+}
 
 function sendSpeaker(side) { const n=document.getElementById('in-spk-name').value.trim(),r=document.getElementById('in-spk-role').value.trim(); send('setSpeaker',[n||'Speaker',r||'Invitado',side]); log(`🎙 ${side}`); }
 function sendTopic() { const t=document.getElementById('in-topic').value.trim(); if(t){send('setTopic',[t]);log(`📡 ${t}`);} }
 function quickInterview(badge) { send('showBadge',[badge]); send('setMode',['overlay']); log(`🎙 ${badge}`); }
 
-function resetMatch() { match.hs=0; match.as=0; cp.reset(); send('resetClock',[]); send('setScore',[0,0]); updateHeader(); log('🔄 Marcador → 0-0'); }
-function fullReset() {
-  resetMatch();
-  send('setTeams',[match.home,match.away]);
-  if (match.idaHome > 0 || match.idaAway > 0) send('setGlobalScore',[match.idaHome, match.idaAway]);
-  log('⚠️ Reset total');
-}
 
 function undoLast() {
   if (!_history.length) return;
@@ -844,7 +875,7 @@ function updateUndoBtn() {
 }
 
 function _pushLog(emoji, text) {
-  const ts = cp.currentMin() + "'";
+  const ts = currentMin() + "'";
   _eventLog.unshift({ emoji, text, ts });
   if (_eventLog.length > 20) _eventLog.pop();
   _renderLog();
@@ -924,6 +955,63 @@ function updatePenaltyUI() {
   document.getElementById('penalty-turn-info').textContent = `${turn.split(' ')[0]} #${penaltiNum}`;
 }
 
+// ── Stream Deck tabs ──
+function showTab(name) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelector('.tab-btn[data-tab="' + name + '"]').classList.add('active');
+}
+
+// ── Clock local mirror (optimistic) ──
+let _panelSecs = 0, _panelRunning = false, _panelTimer = null, _panelHalf = 1;
+
+function _panelTick() {
+  if (!_panelRunning) return;
+  _panelSecs++;
+  const m = Math.floor(_panelSecs / 60);
+  const s = _panelSecs % 60;
+  const el = document.getElementById('panel-clock');
+  if (el) el.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  _panelTimer = setTimeout(_panelTick, 1000);
+}
+
+function clockStart() {
+  send('toggleClock', []);
+  if (!_panelRunning) { _panelRunning = true; _panelTick(); }
+}
+
+function clockPause() {
+  send('toggleClock', []);
+  _panelRunning = false;
+  clearTimeout(_panelTimer);
+}
+
+function clockReset() {
+  send('resetClock', []);
+  _panelRunning = false;
+  clearTimeout(_panelTimer);
+  _panelSecs = 0; _panelHalf = 1;
+  const el = document.getElementById('panel-clock');
+  if (el) el.textContent = '00:00';
+  const hl = document.getElementById('panel-half');
+  if (hl) hl.textContent = '1er Tiempo';
+}
+
+function clockHalf2() {
+  send('nextHalf', []);
+  _panelHalf = 2; _panelSecs = 20 * 60;
+  const el = document.getElementById('panel-clock');
+  if (el) el.textContent = '20:00';
+  const hl = document.getElementById('panel-half');
+  if (hl) hl.textContent = '2do Tiempo';
+}
+
+function sendAddedTime(n) {
+  send('addedTime', [n]);
+  log('⏱ +' + n + "'");
+}
+
 function _isInputFocused() {
   const t = document.activeElement && document.activeElement.tagName;
   return t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT';
@@ -935,22 +1023,24 @@ document.addEventListener('keydown', function(e) {
   switch(e.key) {
     case 'g': case 'G': e.preventDefault(); sendGoal('home'); break;
     case 'h': case 'H': e.preventDefault(); sendGoal('away'); break;
+    case ' ':           e.preventDefault(); _panelRunning ? clockPause() : clockStart(); break;
     case 'y': case 'Y': e.preventDefault(); sendCard('yellow'); break;
     case 'r': case 'R': e.preventDefault(); sendCard('red'); break;
-    case ' ':           e.preventDefault(); cp.running ? clockPause() : clockStart(); break;
     case 'z': case 'Z': e.preventDefault(); undoLast(); break;
-    case 'Escape':      e.preventDefault(); ['goal','card','sub'].forEach(t => clearSel(t)); break;
+    case 'Escape':      e.preventDefault(); ['card','sub'].forEach(t => clearSel(t)); break;
   }
 });
 
 // Init
 loadRoster();
+loadAwayRoster();
 if (!localPlayers.length && window.SRYI && window.SRYI.PLAYERS) {
   localPlayers = window.SRYI.PLAYERS.map(p => ({ num: p.num, name: p.name }));
 }
 document.getElementById('in-home').value = match.home;
 document.getElementById('in-away').value = match.away;
 renderRosterRows();
+renderAwayRosterRows();
 updateHeader();
 rebuildAllChips();
 try { const s=sessionStorage.getItem('sryiyo_log'); if(s) { _eventLog.push(...JSON.parse(s)); _renderLog(); } } catch(_) {}
