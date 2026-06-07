@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Musica Inicio — SRYiyo</title>
+<script src="config.js"></script>
+<style>
+* { margin: 0; padding: 0; }
+body { background: transparent; width: 1px; height: 1px; overflow: hidden; }
+</style>
+</head>
+<body>
+<script src="ws-client.js"></script>
+<script>
+/**
+ * musica_inicio.html — Fanfarria de inicio de partido
+ *
+ * Audio 100% sintetizado con Web Audio API — sin copyright, sin licencias.
+ * Recibe comandos via WS relay (ws-client.js).
+ *
+ * En OBS: Browser Source con "Reroute audio to OBS" activado.
+ * Tamaño sugerido: 1x1 px (invisible, solo audio).
+ *
+ * Comandos:
+ *   playKickoffMusic  — toca la fanfarria (auto-stop al terminar)
+ *   stopKickoffMusic  — fade out inmediato
+ */
+(function () {
+  'use strict';
+
+  var _ctx       = null;
+  var _master    = null;
+  var _stopTimer = null;
+
+  // 120 BPM → 0.5 s/beat
+  var BEAT = 0.5;
+
+  // Fanfarria "Kick-Off" — tonalidad Do Mayor, generada algorítmicamente
+  // Formato: [frecuencia Hz, duración en beats]
+  var MELODY = [
+    // Intro: escala ascendente rápida
+    [261.63, 0.25], [329.63, 0.25], [392.00, 0.25], [523.25, 0.25],
+    [659.25, 0.25], [783.99, 0.25],
+    // Llegada en C6 — impacto principal
+    [1046.50, 1.50],
+    // Frase principal
+    [783.99, 0.50], [1046.50, 0.50], [880.00, 0.50], [1046.50, 1.00],
+    [880.00, 0.50], [783.99, 0.50], [659.25, 0.50], [783.99, 2.50],
+    // Final
+    [783.99, 0.33], [1046.50, 0.33], [1174.66, 0.34],
+    [1046.50, 0.50], [783.99, 0.50], [1046.50, 1.00],
+    [1174.66, 0.50], [1046.50, 0.50],
+    [1046.50, 3.00]
+  ];
+
+  function _init() {
+    if (_ctx) return;
+    _ctx    = new AudioContext();
+    _master = _ctx.createGain();
+    _master.gain.setValueAtTime(0, _ctx.currentTime);
+    _master.connect(_ctx.destination);
+  }
+
+  // Trompeta sintética: sawtooth + square armónico + filtro lowpass
+  function _trumpet(freq, start, dur) {
+    var vol = 0.45;
+    var osc   = _ctx.createOscillator();
+    var osc2  = _ctx.createOscillator();
+    var filt  = _ctx.createBiquadFilter();
+    var gain  = _ctx.createGain();
+    var gain2 = _ctx.createGain();
+
+    osc.type  = 'sawtooth';
+    osc.frequency.setValueAtTime(freq, start);
+
+    osc2.type = 'square';
+    osc2.frequency.setValueAtTime(freq * 2.01, start);
+    gain2.gain.setValueAtTime(0.12, start);
+
+    filt.type = 'lowpass';
+    filt.frequency.setValueAtTime(2800, start);
+    filt.frequency.linearRampToValueAtTime(1200, start + dur);
+    filt.Q.setValueAtTime(0.8, start);
+
+    // ADSR
+    gain.gain.setValueAtTime(0,         start);
+    gain.gain.linearRampToValueAtTime(vol,        start + 0.018);
+    gain.gain.linearRampToValueAtTime(vol * 0.72, start + 0.07);
+    gain.gain.setValueAtTime(vol * 0.68, start + dur - 0.06);
+    gain.gain.linearRampToValueAtTime(0, start + dur);
+
+    osc.connect(filt); osc2.connect(gain2); gain2.connect(filt);
+    filt.connect(gain); gain.connect(_master);
+
+    osc.start(start);  osc.stop(start + dur + 0.02);
+    osc2.start(start); osc2.stop(start + dur + 0.02);
+  }
+
+  // Bombo sintético: sine con frecuencia descendente
+  function _kick(start, vol) {
+    vol = vol || 0.85;
+    var osc  = _ctx.createOscillator();
+    var gain = _ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(160, start);
+    osc.frequency.exponentialRampToValueAtTime(42, start + 0.08);
+    gain.gain.setValueAtTime(vol, start);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.28);
+
+    osc.connect(gain); gain.connect(_master);
+    osc.start(start); osc.stop(start + 0.31);
+  }
+
+  // Hi-hat: ruido blanco con filtro highpass
+  function _hat(start) {
+    var bufSize = Math.floor(_ctx.sampleRate * 0.04);
+    var buffer  = _ctx.createBuffer(1, bufSize, _ctx.sampleRate);
+    var data    = buffer.getChannelData(0);
+    for (var i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+
+    var src  = _ctx.createBufferSource();
+    src.buffer = buffer;
+
+    var filt = _ctx.createBiquadFilter();
+    filt.type = 'highpass';
+    filt.frequency.setValueAtTime(8000, start);
+
+    var gain = _ctx.createGain();
+    gain.gain.setValueAtTime(0.08, start);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.04);
+
+    src.connect(filt); filt.connect(gain); gain.connect(_master);
+    src.start(start);
+  }
+
+  // Pad armónico: sinusoides suaves para relleno de fondo
+  function _pad(freqs, start, dur, vol) {
+    vol = vol || 0.06;
+    freqs.forEach(function (freq) {
+      var osc  = _ctx.createOscillator();
+      var filt = _ctx.createBiquadFilter();
+      var gain = _ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, start);
+      filt.type = 'lowpass';
+      filt.frequency.setValueAtTime(700, start);
+
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(vol, start + 0.25);
+      gain.gain.setValueAtTime(vol, start + dur - 0.25);
+      gain.gain.linearRampToValueAtTime(0, start + dur);
+
+      osc.connect(filt); filt.connect(gain); gain.connect(_master);
+      osc.start(start); osc.stop(start + dur + 0.05);
+    });
+  }
+
+  function _play() {
+    clearTimeout(_stopTimer);
+
+    var now = _ctx.currentTime + 0.08;
+
+    // Fade in master
+    _master.gain.cancelScheduledValues(now);
+    _master.gain.setValueAtTime(0, now);
+    _master.gain.linearRampToValueAtTime(0.78, now + 0.35);
+
+    // Melodía principal
+    var t = now;
+    MELODY.forEach(function (note) {
+      var freq  = note[0];
+      var beats = note[1];
+      var dur   = beats * BEAT;
+      _trumpet(freq, t, dur * 0.92);
+      t += dur;
+    });
+
+    // Ritmo: bombo + hi-hat en 16 pulsos
+    for (var i = 0; i < 16; i++) {
+      var kickT = now + i * BEAT;
+      _kick(kickT, i === 0 ? 1.0 : 0.72);
+      _hat(kickT + BEAT * 0.5);
+    }
+
+    // Pad armónico: Do Mayor (C3-E3-G3-C4 + octava superior)
+    var totalBeats = MELODY.reduce(function (s, n) { return s + n[1]; }, 0);
+    var totalDur   = totalBeats * BEAT;
+    _pad([130.81, 164.81, 196.00, 261.63], now,             totalDur * 0.5, 0.07);
+    _pad([261.63, 329.63, 392.00, 523.25], now,             totalDur,       0.05);
+    _pad([523.25, 659.25, 783.99],         now + totalDur * 0.5, totalDur * 0.5, 0.04);
+
+    // Auto-stop tras terminar la música
+    var stopMs = (totalDur + 0.6) * 1000;
+    _stopTimer = setTimeout(stopKickoffMusic, stopMs);
+  }
+
+  function playKickoffMusic() {
+    _init();
+    if (_ctx.state === 'suspended') {
+      _ctx.resume().then(_play);
+    } else {
+      _play();
+    }
+  }
+
+  function stopKickoffMusic() {
+    if (!_ctx || !_master) return;
+
+    var now = _ctx.currentTime;
+    clearTimeout(_stopTimer);
+
+    _master.gain.cancelScheduledValues(now);
+    _master.gain.setValueAtTime(_master.gain.value, now);
+    _master.gain.linearRampToValueAtTime(0, now + 1.4);
+
+    var ctxRef = _ctx;
+    _stopTimer = setTimeout(function () {
+      ctxRef.close();
+      _ctx    = null;
+      _master = null;
+    }, 2000);
+  }
+
+  window.obsOverlay = {
+    playKickoffMusic: playKickoffMusic,
+    stopKickoffMusic: stopKickoffMusic
+  };
+
+  // Pre-init AudioContext al cargar — OBS Browser Source no tiene gesto de usuario
+  document.addEventListener('DOMContentLoaded', function () {
+    _init();
+    _ctx.resume().catch(function () {});
+  });
+}());
+</script>
+</body>
+</html>

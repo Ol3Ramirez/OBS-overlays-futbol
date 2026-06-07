@@ -255,6 +255,47 @@ async def main() -> None:
 
         await asyncio.sleep(0.35)
 
+    # ── Audio Source: Música de Inicio ──────────────────────────────────────────
+    # Se agrega a la escena Partido (invisible 1x1, reroute_audio=True para OBS)
+    MUSIC_SCENE = "SRY - Partido"
+    MUSIC_INPUT = "Audio-Musica-Inicio"
+    MUSIC_URL   = f"http://localhost:{HTTP}/musica_inicio.html"
+    print(f"\n  [Audio-Musica-Inicio] -> {MUSIC_SCENE}")
+
+    r_audio = await req("CreateInput", {
+        "sceneName":    MUSIC_SCENE,
+        "inputName":    MUSIC_INPUT,
+        "inputKind":    "browser_source",
+        "inputSettings": {
+            "url":                 MUSIC_URL,
+            "width":               1,
+            "height":              1,
+            "fps":                 1,
+            "reroute_audio":       True,
+            "restart_when_active": False,
+            "css":                 "body{background:transparent;margin:0;}"
+        },
+        "sceneItemEnabled": True,
+    })
+    ok_a    = r_audio["requestStatus"]["result"]
+    code_a  = r_audio["requestStatus"].get("code")
+    if ok_a:
+        print(f"    OK creado (reroute_audio=True)")
+    elif code_a == 601:
+        await req("SetInputSettings", {
+            "inputName":     MUSIC_INPUT,
+            "inputSettings": {"url": MUSIC_URL, "reroute_audio": True},
+            "overlay":       True,
+        })
+        r_ref_a = await req("PressInputPropertiesButton", {
+            "inputName":    MUSIC_INPUT,
+            "propertyName": "refreshnocache",
+        })
+        print(f"    OK actualizado (ya existia)")
+    else:
+        print(f"    Error {code_a}: {r_audio['requestStatus'].get('comment','')}")
+    await asyncio.sleep(0.35)
+
     # Activar escena inicial
     print()
     r = await req("SetCurrentProgramScene", {"sceneName": "SRY - Inicio"})

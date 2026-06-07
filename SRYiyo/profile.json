@@ -6,12 +6,12 @@
   "sponsor":       "Robles Futbol",
   "sponsorSocial": "RoblesUtbol",
 
-  "home":       "PROVEEDORA ROBLES",
-  "away":       "SAN SEBASTIÁN",
-  "matchLabel": "TERCER LUGAR",
+  "home":       "MOTO EQUIPOS RODRIGUEZ",
+  "away":       "HERMANOS OSORIO",
+  "matchLabel": "PARTIDO",
 
-  "homeColor": "#212121",
-  "awayColor": "#E91E63",
+  "homeColor": "#C62828",
+  "awayColor": "#FFFFFF",
   "accent":    "#FFD700",
   "logo":      "./logo_robles.jpeg",
 

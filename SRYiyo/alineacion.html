@@ -124,6 +124,7 @@
     },
     setTeam(data) {
       if (!data) return;
+      if (typeof data === 'string') { try { data = JSON.parse(data); } catch (e) { return; } }
       _team = { ...data };
       document.getElementById('team-name').textContent      = (_team.name||'').toUpperCase();
       document.getElementById('team-formation').textContent = _team.formation || '2-2';
