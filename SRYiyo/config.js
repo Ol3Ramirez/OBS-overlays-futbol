@@ -4,14 +4,14 @@
  */
 window.SRYI = {
   HOME:        'PROVEEDORA ROBLES',
-  AWAY:        'HERMANOS OSORIO',
-  MATCH_LABEL: 'SEMIFINAL DE VUELTA',
-  IDA_HOME:    8,   // Robles en la IDA
-  IDA_AWAY:    11,  // Osorio en la IDA (van ganando global)
-  HOME_COLOR:  '#9E9E9E',   // gris/negro — Robles juega de negro
-  AWAY_COLOR:  '#F5F5F5',   // blanco — Osorio juega de blanco
+  AWAY:        'SAN SEBASTIÁN',
+  MATCH_LABEL: 'TERCER LUGAR',
+  IDA_HOME:    0,
+  IDA_AWAY:    0,
+  HOME_COLOR:  '#212121',   // negro — Robles
+  AWAY_COLOR:  '#E91E63',   // rosa — San Sebastián
   HOME_LOGO:   '⚫',
-  AWAY_LOGO:   '⚪',
+  AWAY_LOGO:   '🩷',
   ACCENT:      '#FFD700',   // gold
   WS_PORT:     8891,
   HTTP_PORT:   8890,

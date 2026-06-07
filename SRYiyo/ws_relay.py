@@ -144,7 +144,7 @@ async def main() -> None:
                   f"clientes={max(0, len(server.connections) - 1)}")
 
     token_info = f"token={'SI' if _TOKEN else 'NO'}"
-    async with serve(relay, _WS_BIND, _WS_PORT) as server:
+    async with serve(relay, _WS_BIND, _WS_PORT, ping_interval=30, ping_timeout=15) as server:
         print(f"[{_ts()}] {_NAME} WS Relay en ws://{_WS_BIND}:{_WS_PORT}  ({token_info})")
         if _TOKEN:
             print(f"[{_ts()}] Locales auto-autenticados | Remotos necesitan {{\"auth\":\"{_TOKEN}\"}}")
