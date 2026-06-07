@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Marcador — SRYiyo Robles Fútbol</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;900&family=Barlow:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@600;700;900&display=swap" rel="stylesheet">
 <script src="config.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
     background: transparent;
-    font-family: 'Barlow Condensed', 'Arial Black', 'Impact', sans-serif;
+    font-family: 'Barlow Condensed', sans-serif;
     width: 1920px;
     height: 1080px;
     overflow: hidden;
@@ -24,327 +24,459 @@
 
   :root {
     --gold:       #FFD700;
-    --dark:       #0a0a0f;
-    --glass:      rgba(8, 8, 20, 0.92);
-    --accent:     #FFD700;
-    --home-color: #9E9E9E;
-    --away-color: #F5F5F5;
+    --dark:       #060610;
+    --text-main:  #FFFFFF;
+    --text-dim:   rgba(255,255,255,0.4);
+    --home-color: #C62828;
+    --away-color: #FFFFFF;
   }
 
-  .scoreboard {
+  /* === HUD Principal (barra superior) === */
+  .hud {
     position: absolute;
-    top: 28px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 76px;
     display: flex;
     align-items: stretch;
-    gap: 0;
-    filter: drop-shadow(0 4px 24px rgba(0,0,0,0.7));
-    animation: slideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    background: rgba(6, 6, 14, 0.97);
+    border-bottom: 1px solid rgba(255,215,0,0.15);
+    box-shadow: 0 4px 30px rgba(0,0,0,0.6);
+    padding-left: 165px; /* zona segura badge "EN VIVO" de Facebook Live */
+    z-index: 1000;
+    animation: slideDown 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   }
 
   @keyframes slideDown {
-    from { transform: translateX(-50%) translateY(-80px); opacity: 0; }
-    to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
+    from { transform: translateY(-100%); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
   }
 
-  .team-block {
+  /* === Clock Block (izquierda) === */
+  .clock-block {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-width: 130px;
+    border-right: 2px solid rgba(255,215,0,0.4);
+    padding: 0 18px;
+    position: relative;
+  }
+
+  .clock-live {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: 1px;
+    text-transform: uppercase;
     display: flex;
     align-items: center;
-    background: rgba(8, 8, 20, 0.95);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255,255,255,0.10);
-    padding: 10px 22px;
-    gap: 12px;
-    min-width: 220px;
+    gap: 4px;
+    margin-bottom: 4px;
   }
 
-  .team-block.home {
-    border-radius: 6px 0 0 6px;
-    border-right: none;
-    border-left: 3px solid var(--home-color);
-    flex-direction: row;
-    justify-content: flex-end;
-  }
-
-  .team-block.away {
-    border-radius: 0 6px 6px 0;
-    border-left: none;
-    border-right: 3px solid var(--away-color);
-    flex-direction: row;
-    justify-content: flex-start;
-  }
-
-  .team-logo {
-    width: 42px; height: 42px;
+  .live-dot {
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.1);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px;
-    flex-shrink: 0;
+    background: #ff3b3b;
+    display: inline-block;
+    animation: liveBlink 1s ease-in-out infinite;
   }
 
-  .team-block.home .team-logo { background: color-mix(in srgb, var(--home-color) 20%, transparent); }
-  .team-block.away .team-logo { background: color-mix(in srgb, var(--away-color) 20%, transparent); }
+  @keyframes liveBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
 
-  .team-name {
-    font-size: 18px;
-    font-weight: 900;
-    color: #ffffff;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
+  .clock-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px;
+    font-weight: 400;
+    color: var(--text-main);
+    line-height: 1;
+    letter-spacing: 1px;
     text-shadow: 0 2px 8px rgba(0,0,0,0.5);
   }
 
-  .score-center {
+  #clock {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px;
+  }
+
+  .clock-half {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  #half {
+    font-size: 9px;
+  }
+
+  /* === Team Block (local y visitante) === */
+  .team-block {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    padding: 0 16px;
+    background: rgba(8, 8, 20, 0.95);
+    position: relative;
+  }
+
+  .team-block::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--home-color);
+  }
+
+  .team-block.away::after {
+    background: var(--away-color);
+  }
+
+  .team-home {
+    border-right: none;
+  }
+
+  .team-away {
+    flex-direction: row-reverse;
+  }
+
+  .team-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .team-home .team-info {
+    text-align: right;
+  }
+
+  .team-away .team-info {
+    text-align: left;
+  }
+
+  .team-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--text-main);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  #home-name {
+    font-size: 28px;
+  }
+
+  #away-name {
+    font-size: 28px;
+  }
+
+  .team-sub {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .team-logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-main);
+    flex-shrink: 0;
+    margin: 0 12px;
+  }
+
+  /* === Score Block (centro) === */
+  .score-block {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-width: 170px;
     background: var(--dark);
     border-top: 2px solid var(--gold);
     border-bottom: 2px solid var(--gold);
-    padding: 6px 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 130px;
-    position: relative;
-    z-index: 2;
-  }
-
-  .score-display {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    padding: 0 16px;
   }
 
   .score-num {
-    font-size: 56px;
-    font-weight: 900;
-    color: #ffffff;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 68px;
+    font-weight: 400;
+    color: var(--text-main);
     line-height: 1;
-    min-width: 50px;
+    min-width: 80px;
     text-align: center;
     text-shadow: 0 0 24px rgba(255,213,0,0.5);
+    letter-spacing: -2px;
     will-change: transform;
-    letter-spacing: -1px;
+  }
+
+  #home-score {
+    font-size: 68px;
+  }
+
+  #away-score {
+    font-size: 68px;
   }
 
   .score-num.scored {
-    animation: scorePop 0.6s cubic-bezier(0.34,1.56,0.64,1);
+    animation: scorePop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   @keyframes scorePop {
     0%   { transform: scale(1); }
-    40%  { transform: scale(1.7); filter: drop-shadow(0 0 20px var(--gold)); }
-    70%  { transform: scale(0.9); }
-    100% { transform: scale(1);   filter: none; }
+    40%  { transform: scale(1.6); filter: drop-shadow(0 0 20px var(--gold)); }
+    70%  { transform: scale(0.95); }
+    100% { transform: scale(1); filter: none; }
   }
 
   .score-sep {
-    font-size: 40px;
-    color: rgba(255,255,255,0.3);
-    font-weight: 300;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    color: var(--text-dim);
+    font-weight: 400;
     line-height: 1;
+    letter-spacing: -1px;
   }
 
-  /* Badge SEMIFINAL debajo del score */
-  .match-label {
-    font-size: 9px;
-    color: var(--gold);
+  /* === Match Strip (debajo del HUD) === */
+  .match-strip {
+    position: absolute;
+    top: 76px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--gold);
+    color: #000000;
+    padding: 3px 20px;
+    border-radius: 0 0 6px 6px;
+    font-size: 10px;
+    font-weight: 700;
     letter-spacing: 2.5px;
     text-transform: uppercase;
-    font-weight: 700;
-    margin-top: 2px;
+    white-space: nowrap;
+    animation: slideDown 0.5s 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    z-index: 1001;
   }
 
-  /* Partículas */
-  .particle {
+  /* === Added Time Badge === */
+  .added-time {
     position: absolute;
-    width: 7px; height: 7px;
-    border-radius: 50%;
+    top: 88px;
+    left: 170px;
     background: var(--gold);
-    pointer-events: none;
-    animation: particleFly var(--dur, 1.2s) ease-out forwards;
-    will-change: transform, opacity;
-  }
-  .particle.red   { background: var(--home-color); }
-  .particle.blue  { background: var(--away-color); }
-  .particle.white { background: #fff; width: 4px; height: 4px; }
-
-  @keyframes particleFly {
-    0%   { transform: translate(0,0) scale(1); opacity: 1; }
-    100% { transform: translate(var(--tx,0px), var(--ty,-80px)) scale(0); opacity: 0; }
+    color: #000000;
+    padding: 6px 12px;
+    border-radius: 3px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    font-weight: 400;
+    letter-spacing: 1px;
+    display: none;
+    animation: addedIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
 
-  /* Reloj */
-  .clock-running-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: #ff3b3b;
-    display: inline-block;
-    margin-right: 6px;
-    vertical-align: middle;
-    animation: dotBlink 1s ease-in-out infinite;
-  }
-  @keyframes dotBlink { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
-
-  .match-time {
-    font-size: 11px;
-    color: var(--gold);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    font-weight: 700;
-    margin-top: 2px;
+  .added-time.show {
+    display: block;
   }
 
-  @keyframes slideDownLeft {
-    from { transform: translateY(-80px); opacity: 0; }
-    to   { transform: translateY(0);     opacity: 1; }
+  #added-time-val {
+    font-size: 28px;
   }
 
-  .game-clock {
+  @keyframes addedIn {
+    from { opacity: 0; transform: translateX(-100%); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* === Global Score Line === */
+  .global-line {
     position: absolute;
-    top: 28px; left: calc(50% - 545px);
-    background: rgba(8, 8, 20, 0.92);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255,255,255,0.10);
-    border-top: 2px solid var(--home-color);
-    border-radius: 6px;
-    padding: 8px 18px;
-    animation: slideDownLeft 0.6s 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  }
-
-  .clock-label {
-    font-size: 10px;
-    color: var(--gold);
-    letter-spacing: 2px;
+    top: 88px;
+    right: 20px;
+    background: rgba(6, 6, 14, 0.95);
+    border-left: 2px solid var(--gold);
+    padding: 6px 14px;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-dim);
+    letter-spacing: 1px;
     text-transform: uppercase;
+    white-space: nowrap;
+    display: none;
   }
 
-  .clock-value {
-    font-size: 30px;
-    font-weight: 900;
-    color: #fff;
-    letter-spacing: 1px;
-    line-height: 1.1;
+  .global-line.visible {
+    display: block;
   }
 
-  .half-badge {
-    font-size: 10px;
-    color: rgba(255,255,255,0.5);
-    letter-spacing: 1px;
+  .gl-hl {
+    color: var(--gold);
   }
 
-  /* Banner GOL */
+  /* === Goal Banner === */
   .goal-banner {
     position: absolute;
-    top: 50%; left: 50%;
+    top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%) scale(0);
-    background: linear-gradient(135deg, #0a0a0f 0%, #1a0808 100%);
-    border: 2px solid var(--home-color);
+    background: rgba(6, 6, 14, 0.98);
+    border: 3px solid var(--gold);
     border-radius: 12px;
-    padding: 24px 60px;
+    padding: 40px 80px;
     text-align: center;
     display: none;
     flex-direction: column;
     align-items: center;
-    filter: drop-shadow(0 8px 40px rgba(198,40,40,0.4));
+    gap: 12px;
+    filter: drop-shadow(0 12px 48px rgba(255,213,0,0.3));
   }
 
   .goal-banner.show {
     display: flex;
-    animation: goalPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
-               goalFade 0.5s ease 3.5s forwards;
+    animation: goalIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+               goalOut 0.5s ease 3.6s forwards;
   }
 
-  @keyframes goalPop  { to { transform: translate(-50%, -50%) scale(1); } }
-  @keyframes goalFade { to { opacity: 0; transform: translate(-50%, -50%) scale(0.9); } }
+  @keyframes goalIn {
+    from { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+    to   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  }
 
-  .goal-label {
-    font-size: 72px;
-    font-weight: 900;
+  @keyframes goalOut {
+    from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    to   { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+  }
+
+  .goal-word {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 100px;
+    font-weight: 400;
     color: var(--gold);
-    letter-spacing: 8px;
-    text-transform: uppercase;
+    letter-spacing: 4px;
     text-shadow: 0 0 40px rgba(255,213,0,0.6);
     line-height: 1;
   }
 
-  .goal-scorer  { font-size: 22px; color: #fff; letter-spacing: 2px; margin-top: 6px; }
-  .goal-minute  { font-size: 14px; color: var(--home-color); letter-spacing: 3px; margin-top: 4px; }
-
-  /* Tiempo descuento */
-  .added-time {
-    position: absolute;
-    top: 102px; left: 32px;
-    background: var(--dark);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-top: 2px solid var(--gold);
-    border-radius: 6px;
-    padding: 4px 14px;
-    backdrop-filter: blur(12px);
-    display: none;
-  }
-  .added-time.show { display: block; animation: addedIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
-  .added-time-value { font-size: 22px; font-weight: 900; color: var(--gold); letter-spacing: 1px; }
-  @keyframes addedIn { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
-
-  /* Marcador global acumulado (IDA + VUELTA) */
-  .global-line {
-    font-size: 8px;
-    color: rgba(255,255,255,0.4);
+  .goal-scorer {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-main);
     letter-spacing: 2px;
     text-transform: uppercase;
-    font-weight: 700;
-    margin-top: 4px;
-    padding-top: 4px;
-    border-top: 1px solid rgba(255,213,0,0.15);
-    white-space: nowrap;
-    display: none;
   }
-  .global-line.visible { display: block; }
-  .gl-hl { color: var(--gold); }
+
+  #goal-scorer {
+    font-size: 22px;
+  }
+
+  .goal-min {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  #goal-min {
+    font-size: 14px;
+  }
+
+  /* === Partículas === */
+  .particle {
+    position: fixed;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--gold);
+    pointer-events: none;
+    animation: pFly var(--dur, 1.2s) ease-out forwards;
+    will-change: transform, opacity;
+    z-index: 9999;
+  }
+
+  .particle.red   { background: var(--home-color); }
+  .particle.blue  { background: var(--away-color); }
+  .particle.white { background: #fff; width: 4px; height: 4px; }
+
+  @keyframes pFly {
+    0%   { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx,0px), var(--ty,-80px)) scale(0); opacity: 0; }
+  }
 </style>
 </head>
 <body>
 
-<div class="scoreboard">
-  <div class="team-block home">
-    <span class="team-name" id="home-name">PROVEEDORA ROBLES</span>
-    <div class="team-logo" id="home-logo">⚫</div>
-  </div>
-
-  <div class="score-center">
-    <div class="score-display">
-      <span class="score-num" id="home-score">0</span>
-      <span class="score-sep">–</span>
-      <span class="score-num" id="away-score">0</span>
+<div class="hud">
+  <div class="clock-block">
+    <div class="clock-live">
+      <span class="live-dot"></span>EN VIVO
     </div>
-    <div class="match-time" id="match-status">EN VIVO</div>
-    <div class="match-label" id="match-label">SEMIFINAL DE IDA</div>
-    <div class="global-line" id="global-line">IDA <span id="gl-ida-h">0</span>–<span id="gl-ida-a">0</span> &nbsp;·&nbsp; <span class="gl-hl">GLOBAL <span id="gl-global-h">0</span>–<span id="gl-global-a">0</span></span></div>
+    <div class="clock-value" id="clock">00:00</div>
+    <div class="clock-half" id="half">1er Tiempo</div>
   </div>
 
-  <div class="team-block away">
-    <div class="team-logo" id="away-logo">⚪</div>
-    <span class="team-name" id="away-name">HERMANOS OSORIO</span>
+  <div class="team-block team-home">
+    <div class="team-info">
+      <span class="team-name" id="home-name">MOTO EQUIPOS RODRIGUEZ</span>
+      <span class="team-sub">LOCAL</span>
+    </div>
+    <div class="team-logo" id="home-logo">MER</div>
+  </div>
+
+  <div class="score-block">
+    <span class="score-num" id="home-score">0</span>
+    <span class="score-sep">–</span>
+    <span class="score-num" id="away-score">0</span>
+  </div>
+
+  <div class="team-block team-away">
+    <div class="team-logo" id="away-logo">HR</div>
+    <div class="team-info">
+      <span class="team-name" id="away-name">HERMANOS OSORIO</span>
+      <span class="team-sub">VISITANTE</span>
+    </div>
   </div>
 </div>
 
-<div class="game-clock">
-  <div class="clock-label"><span class="clock-running-dot" id="clock-dot"></span>Tiempo</div>
-  <div class="clock-value" id="clock">00:00</div>
-  <div class="half-badge" id="half">1er Tiempo</div>
-</div>
+<div class="match-strip" id="match-label">PARTIDO</div>
 
 <div class="added-time" id="added-time">
-  <div class="added-time-value" id="added-time-value">+3'</div>
+  <div id="added-time-val">+3'</div>
+</div>
+
+<div class="global-line" id="global-line">
+  IDA <span id="gl-ida-h">0</span>–<span id="gl-ida-a">0</span>
+  &nbsp;·&nbsp;
+  <span class="gl-hl">GLOBAL <span id="gl-global-h">0</span>–<span id="gl-global-a">0</span></span>
 </div>
 
 <div class="goal-banner" id="goal-banner">
-  <div class="goal-label">¡GOL!</div>
+  <div class="goal-word">¡GOL!</div>
   <div class="goal-scorer" id="goal-scorer">Jugador</div>
-  <div class="goal-minute" id="goal-minute">• 45'</div>
+  <div class="goal-min" id="goal-min">• 0'</div>
 </div>
 
 <script>
@@ -365,17 +497,8 @@
       if (state.seconds >= 60) { state.seconds = 0; state.minutes++; }
       document.getElementById('clock').textContent =
         `${String(state.minutes).padStart(2,'0')}:${String(state.seconds).padStart(2,'0')}`;
-      document.getElementById('match-status').textContent =
-        state.minutes >= 20 && state.half === 1 ? `${state.minutes}'+` :
-        state.minutes >= 20 && state.half === 2 ? `${state.minutes}'+` : `${state.minutes}'`;
     }
     _rafId = requestAnimationFrame(_rafTick);
-  }
-
-  function updateRunningDot() {
-    // Usar el span persistente del HTML — evita re-parse de innerHTML en cada tick del reloj
-    const dot = document.getElementById('clock-dot');
-    if (dot) dot.style.display = state.running ? 'inline-block' : 'none';
   }
 
   function toggleClock() {
@@ -387,13 +510,14 @@
       _lastTick = 0;
       if (!_rafId) _rafId = requestAnimationFrame(_rafTick);
     }
-    updateRunningDot();
   }
 
   function nextHalf() {
-    state.half = 2; state.minutes = 20; state.seconds = 0;
+    state.half = 2;
+    state.minutes = 45;
+    state.seconds = 0;
     document.getElementById('half').textContent = '2do Tiempo';
-    document.getElementById('clock').textContent = '20:00';
+    document.getElementById('clock').textContent = '45:00';
   }
 
   function animateScore(id) {
@@ -408,7 +532,6 @@
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     const colors = ['particle', 'particle red', 'particle blue', 'particle white'];
-    // DocumentFragment: un solo reflow en lugar de 28
     const frag = document.createDocumentFragment();
     for (let i = 0; i < 28; i++) {
       const p = document.createElement('div');
@@ -427,7 +550,7 @@
   function showGoal(team, scorer) {
     const banner = document.getElementById('goal-banner');
     document.getElementById('goal-scorer').textContent = scorer || team;
-    document.getElementById('goal-minute').textContent = `• ${state.minutes}'`;
+    document.getElementById('goal-min').textContent = `• ${state.minutes}'`;
     banner.classList.remove('show');
     void banner.offsetWidth;
     banner.classList.add('show');
@@ -470,7 +593,8 @@
     setScore: (h, a) => {
       document.getElementById('home-score').textContent = h;
       document.getElementById('away-score').textContent = a;
-      state.homeScore = h; state.awayScore = a;
+      state.homeScore = h;
+      state.awayScore = a;
       updateGlobalLine();
     },
     goalHome, goalAway, toggleClock, nextHalf,
@@ -479,16 +603,21 @@
     resetClock:  () => {
       state.running = false;
       if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
-      state.minutes = 0; state.seconds = 0; state.half = 1;
+      state.minutes = 0;
+      state.seconds = 0;
+      state.half = 1;
       document.getElementById('clock').textContent = '00:00';
-      document.getElementById('match-status').textContent = "1'";
       document.getElementById('half').textContent = '1er Tiempo';
-      updateRunningDot();
     },
-    setMinute: (m) => { state.minutes = m; state.seconds = 0; },
+    setMinute: (m) => {
+      state.minutes = m;
+      state.seconds = 0;
+      document.getElementById('clock').textContent =
+        `${String(m).padStart(2,'0')}:00`;
+    },
     addedTime: (n) => {
       const el = document.getElementById('added-time');
-      document.getElementById('added-time-value').textContent = `+${n}'`;
+      document.getElementById('added-time-val').textContent = `+${n}'`;
       el.classList.remove('show');
       void el.offsetWidth;
       el.classList.add('show');
