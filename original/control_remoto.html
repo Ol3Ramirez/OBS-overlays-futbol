@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Control — Fútbol 5</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<script src="config.js"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 
@@ -288,6 +290,14 @@ body {
 .btn:hover { background: rgba(255,255,255,0.1); border-color: var(--border2); }
 .btn:active { transform: scale(0.97); }
 
+.btn:focus-visible,
+.tt-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tab:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+.chip:focus-visible,
+.sel-clear:focus-visible { outline: 2px solid rgba(0,229,255,0.6); outline-offset: 2px; }
+.ico { line-height: 0; }
+.ico svg { display: inline-block; width: 1em; height: 1em; overflow: visible; vertical-align: middle; }
+
 .btn-gold   { border-color: rgba(255,213,0,0.4); }
 .btn-gold:hover { background: rgba(255,213,0,0.15); border-color: var(--gold); }
 .btn-yellow:hover { background: rgba(255,213,0,0.12); border-color: var(--gold); }
@@ -405,6 +415,13 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
 @keyframes qsSlideUp { from { transform:translateY(20px);opacity:0; } to { transform:translateY(0);opacity:1; } }
 @media (prefers-reduced-motion: reduce) { .qs-overlay, .qs-box { animation:none; } }
 
+/* ── WS offline state ── */
+.ws-banner { display:none; position:sticky; top:0; z-index:1000; background:#b71c1c; color:#fff; text-align:center; padding:10px 16px; font-size:13px; font-weight:700; letter-spacing:0.5px; }
+.ws-offline .ws-banner { display:block; }
+.ws-offline .btn, .ws-offline .btn-clock { opacity:0.4; pointer-events:none; }
+.ws-offline .qs-btn { opacity:1; pointer-events:auto; }
+.ws-offline #in-set-min, .ws-offline #in-set-sec, .ws-offline #in-score-h, .ws-offline #in-score-a { opacity:0.4; pointer-events:none; }
+
 /* ── Mobile responsive (celular en el campo) ── */
 @media (max-width: 480px) {
   body { padding-bottom: 60px; }
@@ -425,6 +442,37 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
 </style>
 </head>
 <body>
+
+<svg style="display:none" aria-hidden="true" focusable="false">
+  <symbol id="i-goal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-card-y" viewBox="0 0 24 24"><rect x="4" y="1" width="16" height="22" rx="2" fill="#FFD700"/></symbol>
+  <symbol id="i-card-b" viewBox="0 0 24 24"><rect x="4" y="1" width="16" height="22" rx="2" fill="#2196F3"/></symbol>
+  <symbol id="i-card-r" viewBox="0 0 24 24"><rect x="4" y="1" width="16" height="22" rx="2" fill="#EF4444"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol>
+  <symbol id="i-rotate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-6.5"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/></symbol>
+  <symbol id="i-arrow-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+  <symbol id="i-plus-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></symbol>
+  <symbol id="i-monitor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="i-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></symbol>
+  <symbol id="i-film" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></symbol>
+  <symbol id="i-chev-l" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></symbol>
+  <symbol id="i-chev-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="4" rx="1"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></symbol>
+  <symbol id="i-bar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol>
+</svg>
+
+<div class="ws-banner" role="alert">Sin conexión al relay — los botones están desactivados</div>
 
 <!-- ═══ QUICK START MODAL (primera visita) ═══ -->
 <div class="qs-overlay hidden" id="qs-overlay" role="dialog" aria-modal="true" aria-labelledby="qs-title">
@@ -493,13 +541,13 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
 
 <!-- ═══ TABS ═══ -->
 <div class="tabs-bar">
-  <div class="tab active" onclick="switchTab('goles')">⚽ Goles</div>
-  <div class="tab" onclick="switchTab('tarjetas')">🟨 Tarjetas</div>
-  <div class="tab" onclick="switchTab('cambios')">🔄 Cambios</div>
-  <div class="tab" onclick="switchTab('tiempo')">⏱ Tiempo</div>
-  <div class="tab" onclick="switchTab('lineup')">📋 Alineación</div>
-  <div class="tab" onclick="switchTab('escenas')">📺 Escenas</div>
-  <div class="tab" onclick="switchTab('entrevista')" style="color:rgba(255,215,0,0.6)">🎙 Entrevista</div>
+  <div class="tab active" onclick="switchTab('goles')">Goles</div>
+  <div class="tab" onclick="switchTab('tarjetas')">Tarjetas</div>
+  <div class="tab" onclick="switchTab('cambios')">Cambios</div>
+  <div class="tab" onclick="switchTab('tiempo')">Tiempo</div>
+  <div class="tab" onclick="switchTab('lineup')">Alineación</div>
+  <div class="tab" onclick="switchTab('escenas')">Escenas</div>
+  <div class="tab" onclick="switchTab('entrevista')" style="color:rgba(255,215,0,0.6)">Entrevista</div>
 </div>
 
 <!-- ═══ TAB: GOLES ═══ -->
@@ -508,7 +556,7 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
   <div class="chips-wrap" id="chips-goal"></div>
   <div class="sel-badge" id="sel-goal-badge">
     <span id="sel-goal-name">—</span>
-    <button class="sel-clear" onclick="clearSel('goal')">✕</button>
+    <button class="sel-clear" aria-label="Quitar selección" onclick="clearSel('goal')">✕</button>
   </div>
 
   <div class="away-label">Goleador — Visitante (escribir nombre)</div>
@@ -524,11 +572,20 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
 
   <div class="act-grid g2">
     <button class="btn btn-gold" onclick="sendGoal('home')">
-      <span class="ico">⚽</span>Gol Local
+      <span class="ico" aria-hidden="true"><svg><use href="#i-goal"/></svg></span>Gol Local
     </button>
     <button class="btn btn-gold" onclick="sendGoal('away')">
-      <span class="ico">⚽</span>Gol Visitante
+      <span class="ico" aria-hidden="true"><svg><use href="#i-goal"/></svg></span>Gol Visitante
     </button>
+  </div>
+
+  <hr class="div">
+  <div class="sec-label">Marcador Directo</div>
+  <div class="input-row" style="align-items:center">
+    <input class="field" type="number" id="in-score-h" min="0" max="99" value="0" style="text-align:center;flex:1">
+    <span style="font-size:22px;color:var(--dim);padding:0 10px;font-weight:700;flex-shrink:0">–</span>
+    <input class="field" type="number" id="in-score-a" min="0" max="99" value="0" style="text-align:center;flex:1">
+    <button class="btn btn-gold" style="min-width:72px;padding:11px 8px" onclick="applyScore()">Fijar</button>
   </div>
 </div>
 
@@ -538,7 +595,7 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
   <div class="chips-wrap" id="chips-card"></div>
   <div class="sel-badge" id="sel-card-badge">
     <span id="sel-card-name">—</span>
-    <button class="sel-clear" onclick="clearSel('card')">✕</button>
+    <button class="sel-clear" aria-label="Quitar selección" onclick="clearSel('card')">✕</button>
   </div>
 
   <div class="away-label">Jugador — Visitante (escribir nombre)</div>
@@ -554,13 +611,13 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
 
   <div class="act-grid g3">
     <button class="btn btn-yellow" onclick="sendCard('yellow')">
-      <span class="ico">🟨</span>Amarilla
+      <span class="ico" aria-hidden="true"><svg><use href="#i-card-y"/></svg></span>Amarilla
     </button>
     <button class="btn btn-blue" onclick="sendCard('blue')">
-      <span class="ico">🟦</span>Azul 2min
+      <span class="ico" aria-hidden="true"><svg><use href="#i-card-b"/></svg></span>Azul 2min
     </button>
     <button class="btn btn-red" onclick="sendCard('red')">
-      <span class="ico">🟥</span>Roja
+      <span class="ico" aria-hidden="true"><svg><use href="#i-card-r"/></svg></span>Roja
     </button>
   </div>
 </div>
@@ -571,7 +628,7 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
   <div class="chips-wrap" id="chips-sub"></div>
   <div class="sel-badge" id="sel-sub-badge">
     <span id="sel-sub-name">—</span>
-    <button class="sel-clear" onclick="clearSel('sub')">✕</button>
+    <button class="sel-clear" aria-label="Quitar selección" onclick="clearSel('sub')">✕</button>
   </div>
 
   <div class="away-label">Jugador que SALE — Visitante</div>
@@ -596,7 +653,7 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
   </div>
 
   <button class="btn btn-green" style="width:100%" onclick="sendSub()">
-    <span class="ico">🔄</span>Registrar Cambio
+    <span class="ico" aria-hidden="true"><svg><use href="#i-refresh"/></svg></span>Registrar Cambio
   </button>
 </div>
 
@@ -610,24 +667,26 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
 
   <div class="act-grid g3" style="margin-bottom:10px">
     <button class="btn btn-start" onclick="clockStart()">
-      <span class="ico">▶️</span>Iniciar
+      <span class="ico" aria-hidden="true"><svg><use href="#i-play"/></svg></span>Iniciar
     </button>
     <button class="btn btn-pause" onclick="clockPause()">
-      <span class="ico">⏸️</span>Pausar
+      <span class="ico" aria-hidden="true"><svg><use href="#i-pause"/></svg></span>Pausar
     </button>
     <button class="btn btn-reset" onclick="clockReset()">
-      <span class="ico">↺</span>Reiniciar
+      <span class="ico" aria-hidden="true"><svg><use href="#i-rotate"/></svg></span>Reiniciar
     </button>
   </div>
 
   <div class="act-grid g2" style="margin-bottom:14px">
     <button class="btn btn-gold" onclick="clockHalf2()">
-      <span class="ico">➡️</span>2do Tiempo (45')
+      <span class="ico" aria-hidden="true"><svg><use href="#i-arrow-r"/></svg></span>2do Tiempo (45')
     </button>
-    <div class="input-row" style="margin-bottom:0">
-      <input class="field" type="number" id="in-set-min" placeholder="Fijar minuto" min="0" max="120" style="flex:1">
+    <div class="input-row" style="margin-bottom:0;align-items:center">
+      <input class="field" type="number" id="in-set-min" placeholder="Min" min="0" max="120" style="flex:1;text-align:center">
+      <span style="font-size:18px;color:var(--dim);padding:0 3px;font-weight:700;flex-shrink:0">:</span>
+      <input class="field" type="number" id="in-set-sec" placeholder="Seg" min="0" max="59" value="0" style="flex:1;text-align:center">
       <button class="btn" style="min-width:56px;padding:9px 6px" onclick="clockSetManual()">
-        <span class="ico">⏱️</span>Fijar
+        <span class="ico" aria-hidden="true"><svg><use href="#i-clock"/></svg></span>Fijar
       </button>
     </div>
   </div>
@@ -635,20 +694,20 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
   <hr class="div">
   <div class="sec-label">Tiempo de Descuento</div>
   <div class="act-grid g5">
-    <button class="btn" onclick="sendAddedTime(1)"><span class="ico">⏳</span>+1'</button>
-    <button class="btn" onclick="sendAddedTime(2)"><span class="ico">⏳</span>+2'</button>
-    <button class="btn" onclick="sendAddedTime(3)"><span class="ico">⏳</span>+3'</button>
-    <button class="btn" onclick="sendAddedTime(4)"><span class="ico">⏳</span>+4'</button>
-    <button class="btn" onclick="sendAddedTime(5)"><span class="ico">⏳</span>+5'</button>
+    <button class="btn" onclick="sendAddedTime(1)"><span class="ico" aria-hidden="true"><svg><use href="#i-plus-c"/></svg></span>+1'</button>
+    <button class="btn" onclick="sendAddedTime(2)"><span class="ico" aria-hidden="true"><svg><use href="#i-plus-c"/></svg></span>+2'</button>
+    <button class="btn" onclick="sendAddedTime(3)"><span class="ico" aria-hidden="true"><svg><use href="#i-plus-c"/></svg></span>+3'</button>
+    <button class="btn" onclick="sendAddedTime(4)"><span class="ico" aria-hidden="true"><svg><use href="#i-plus-c"/></svg></span>+4'</button>
+    <button class="btn" onclick="sendAddedTime(5)"><span class="ico" aria-hidden="true"><svg><use href="#i-plus-c"/></svg></span>+5'</button>
   </div>
 
   <hr class="div">
   <div class="act-grid g2">
     <button class="btn btn-gold" onclick="resetMatch()">
-      <span class="ico">🔄</span>Reiniciar Marcador
+      <span class="ico" aria-hidden="true"><svg><use href="#i-refresh"/></svg></span>Reiniciar Marcador
     </button>
     <button class="btn btn-danger" onclick="fullReset()">
-      <span class="ico">⚠️</span>Reset Total
+      <span class="ico" aria-hidden="true"><svg><use href="#i-alert"/></svg></span>Reset Total
     </button>
   </div>
 </div>
@@ -671,10 +730,10 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
 
   <div class="act-grid g2">
     <button class="btn btn-green" onclick="sendLineup()">
-      <span class="ico">📋</span>Enviar Alineación
+      <span class="ico" aria-hidden="true"><svg><use href="#i-list"/></svg></span>Enviar Alineación
     </button>
     <button class="btn btn-danger" onclick="clearLineup()">
-      <span class="ico">🗑️</span>Limpiar
+      <span class="ico" aria-hidden="true"><svg><use href="#i-trash"/></svg></span>Limpiar
     </button>
   </div>
 </div>
@@ -685,12 +744,12 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
   <div class="input-row" style="margin-bottom:10px">
     <input class="field" type="number" id="in-countdown-min" value="5" min="1" max="60" style="max-width:100px">
     <button class="btn" style="flex:1" onclick="startCountdown()">
-      <span class="ico">▶️</span>Iniciar Countdown
+      <span class="ico" aria-hidden="true"><svg><use href="#i-play"/></svg></span>Iniciar Countdown
     </button>
   </div>
   <div class="act-grid g2" style="margin-bottom:20px">
-    <button class="btn" onclick="send('stopCountdown',[])"><span class="ico">⏹</span>Detener</button>
-    <button class="btn" onclick="resetCountdown()"><span class="ico">🔁</span>Reiniciar</button>
+    <button class="btn" onclick="send('stopCountdown',[])"><span class="ico" aria-hidden="true"><svg><use href="#i-stop"/></svg></span>Detener</button>
+    <button class="btn" onclick="resetCountdown()"><span class="ico" aria-hidden="true"><svg><use href="#i-refresh"/></svg></span>Reiniciar</button>
   </div>
 
   <div class="sec-label">Pantalla Medio Tiempo</div>
@@ -704,8 +763,8 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
     <input class="field" id="in-mt-badge" placeholder="Badge (ej. Medio Tiempo)" value="Medio Tiempo">
   </div>
   <div class="act-grid g2">
-    <button class="btn" onclick="sendMedioTiempo()"><span class="ico">✏️</span>Actualizar Textos</button>
-    <button class="btn btn-green" onclick="setBadgeHalftime()"><span class="ico">📺</span>Badge Medio Tiempo</button>
+    <button class="btn" onclick="sendMedioTiempo()"><span class="ico" aria-hidden="true"><svg><use href="#i-pencil"/></svg></span>Actualizar Textos</button>
+    <button class="btn btn-green" onclick="setBadgeHalftime()"><span class="ico" aria-hidden="true"><svg><use href="#i-monitor"/></svg></span>Badge Medio Tiempo</button>
   </div>
 </div>
 
@@ -717,38 +776,38 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
     <input class="field" id="in-spk-role" placeholder="Rol / Cargo">
   </div>
   <div class="act-grid g3" style="margin-bottom:14px">
-    <button class="btn" onclick="sendSpeaker('left')"  style="border-color:rgba(0,229,255,0.4)"><span class="ico">◄</span>Izquierda</button>
-    <button class="btn" onclick="sendSpeaker('right')" style="border-color:rgba(255,215,0,0.4)"><span class="ico">►</span>Derecha</button>
+    <button class="btn" onclick="sendSpeaker('left')"  style="border-color:rgba(0,229,255,0.4)"><span class="ico" aria-hidden="true"><svg><use href="#i-chev-l"/></svg></span>Izquierda</button>
+    <button class="btn" onclick="sendSpeaker('right')" style="border-color:rgba(255,215,0,0.4)"><span class="ico" aria-hidden="true"><svg><use href="#i-chev-r"/></svg></span>Derecha</button>
     <button class="btn btn-danger" onclick="send('clearSpeaker',[])"><span class="ico">✕</span>Limpiar</button>
   </div>
 
   <div class="sec-label">Tema de Entrevista</div>
   <div class="input-row" style="margin-bottom:14px">
     <input class="field" id="in-topic" placeholder="Tema actual (ticker)">
-    <button class="btn" style="min-width:80px" onclick="sendTopic()"><span class="ico">📡</span>Enviar</button>
-    <button class="btn btn-danger" style="min-width:56px" onclick="send('clearTopic',[])"><span class="ico">✕</span></button>
+    <button class="btn" style="min-width:80px" onclick="sendTopic()"><span class="ico" aria-hidden="true"><svg><use href="#i-send"/></svg></span>Enviar</button>
+    <button class="btn btn-danger" style="min-width:56px" aria-label="Limpiar tema" onclick="send('clearTopic',[])"><span class="ico">✕</span></button>
   </div>
 
   <div class="sec-label">Badge Superior</div>
   <div class="input-row" style="margin-bottom:14px">
     <input class="field" id="in-badge-txt" value="ENTREVISTA EN VIVO">
-    <button class="btn" style="min-width:80px" onclick="send('showBadge',[document.getElementById('in-badge-txt').value.trim()])"><span class="ico">✅</span>Mostrar</button>
-    <button class="btn btn-danger" style="min-width:56px" onclick="send('hideBadge',[])"><span class="ico">🙈</span></button>
+    <button class="btn" style="min-width:80px" onclick="send('showBadge',[document.getElementById('in-badge-txt').value.trim()])"><span class="ico" aria-hidden="true"><svg><use href="#i-check"/></svg></span>Mostrar</button>
+    <button class="btn btn-danger" style="min-width:56px" aria-label="Ocultar badge" onclick="send('hideBadge',[])"><span class="ico" aria-hidden="true"><svg><use href="#i-eye-off"/></svg></span></button>
   </div>
 
   <div class="sec-label">Modo Pantalla</div>
   <div class="act-grid g3" style="margin-bottom:14px">
-    <button class="btn" onclick="setMode('overlay')"     style="border-color:rgba(0,229,255,0.5)"><span class="ico">🎥</span>Overlay</button>
-    <button class="btn" onclick="setMode('standalone')"  style="border-color:rgba(255,215,0,0.5)"><span class="ico">🖥</span>Standalone</button>
-    <button class="btn" onclick="setMode('lower-third')" style="border-color:rgba(0,200,83,0.5)"><span class="ico">▬</span>Lower Third</button>
+    <button class="btn" onclick="setMode('overlay')"     style="border-color:rgba(0,229,255,0.5)"><span class="ico" aria-hidden="true"><svg><use href="#i-film"/></svg></span>Overlay</button>
+    <button class="btn" onclick="setMode('standalone')"  style="border-color:rgba(255,215,0,0.5)"><span class="ico" aria-hidden="true"><svg><use href="#i-monitor"/></svg></span>Standalone</button>
+    <button class="btn" onclick="setMode('lower-third')" style="border-color:rgba(0,200,83,0.5)"><span class="ico" aria-hidden="true"><svg><use href="#i-minus"/></svg></span>Lower Third</button>
   </div>
 
   <div class="sec-label">Acciones Rápidas</div>
   <div class="act-grid g2">
-    <button class="btn btn-green" onclick="quickInterview('ENTREVISTA EN VIVO')"><span class="ico">🎙</span>ENTREVISTA EN VIVO</button>
-    <button class="btn btn-green" onclick="quickInterview('ANÁLISIS MEDIO TIEMPO')"><span class="ico">⚽</span>ANÁLISIS MEDIO TIEMPO</button>
-    <button class="btn" onclick="quickInterview('COMENTARISTA')"><span class="ico">📊</span>COMENTARISTA</button>
-    <button class="btn btn-danger" onclick="clearInterview()"><span class="ico">🧹</span>Limpiar Todo</button>
+    <button class="btn btn-green" onclick="quickInterview('ENTREVISTA EN VIVO')"><span class="ico" aria-hidden="true"><svg><use href="#i-mic"/></svg></span>ENTREVISTA EN VIVO</button>
+    <button class="btn btn-green" onclick="quickInterview('ANÁLISIS MEDIO TIEMPO')"><span class="ico" aria-hidden="true"><svg><use href="#i-goal"/></svg></span>ANÁLISIS MEDIO TIEMPO</button>
+    <button class="btn" onclick="quickInterview('COMENTARISTA')"><span class="ico" aria-hidden="true"><svg><use href="#i-bar"/></svg></span>COMENTARISTA</button>
+    <button class="btn btn-danger" onclick="clearInterview()"><span class="ico" aria-hidden="true"><svg><use href="#i-trash"/></svg></span>Limpiar Todo</button>
   </div>
 </div>
 
@@ -844,6 +903,13 @@ const cp = {
     this.offsetMs = m * 60000;
     if (was) this.start(); else updateAllClocks();
   },
+  setTime(m, s) {
+    s = s || 0;
+    const was = this.running;
+    if (was) this.pause();
+    this.offsetMs = m * 60000 + s * 1000;
+    if (was) this.start(); else updateAllClocks();
+  },
   jumpHalf2() {
     const was = this.running;
     if (was) this.pause();
@@ -876,10 +942,11 @@ function clockReset()  { cp.reset();  send('resetClock',[]); log('Reloj reinicia
 function clockHalf2()  { cp.jumpHalf2(); send('nextHalf',[]); log('2do Tiempo — 45:00'); }
 function clockSetManual() {
   const m = parseInt(document.getElementById('in-set-min').value);
+  const s = parseInt(document.getElementById('in-set-sec').value) || 0;
   if (isNaN(m)) { log('⚠️ Ingresa un minuto válido'); return; }
-  cp.setMins(m);
-  send('setMinute',[m]);
-  log(`Minuto fijado → ${m}'`);
+  cp.setTime(m, s);
+  send('setTime',[m, s]);
+  log(`Tiempo fijado → ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`);
 }
 function sendAddedTime(n) {
   send('addedTime',[n]);
@@ -899,12 +966,14 @@ function wsConnect() {
   dot.className = 'ws-dot connecting';
   dot.title = 'Conectando al relay...';
   if (txt) txt.textContent = 'Conectando...';
-  ws = new WebSocket('ws://localhost:8889');
+  const wsUrl = (window.SRYI && window.SRYI.WS_URL) || 'ws://localhost:8889';
+  ws = new WebSocket(wsUrl);
   ws.onopen = () => {
     log('Conectado al relay');
     dot.className = 'ws-dot ok';
-    dot.title = 'Conectado — ws://localhost:8889';
+    dot.title = 'Conectado — ' + wsUrl;
     if (txt) txt.textContent = 'Relay conectado';
+    document.body.classList.remove('ws-offline');
     _reconnTimer = null;
   };
   ws.onclose = () => {
@@ -912,6 +981,7 @@ function wsConnect() {
     dot.title = 'Desconectado — reconectando...';
     if (txt) txt.textContent = 'Reconectando...';
     log('Desconectado — reconectando...');
+    document.body.classList.add('ws-offline');
     if (!_reconnTimer) _reconnTimer = setTimeout(() => { _reconnTimer = null; wsConnect(); }, 2000);
   };
   ws.onerror = () => {
@@ -1081,6 +1151,15 @@ function sendGoal(side) {
     updateHeader();
     log(`⚽ GOL VISITANTE — ${scorer} (${min}')`);
   }
+}
+
+function applyScore() {
+  const h = parseInt(document.getElementById('in-score-h').value) || 0;
+  const a = parseInt(document.getElementById('in-score-a').value) || 0;
+  match.hs = h; match.as = a;
+  updateHeader();
+  send('setScore', [h, a]);
+  log(`Marcador fijado → ${h}–${a}`);
 }
 
 // ══════════════════════════════════════════════════
@@ -1295,10 +1374,15 @@ function clearInterview() {
 (function init() {
   loadRoster();
 
-  // Pre-fill team inputs from sessionStorage
+  // Pre-fill team inputs from sessionStorage or config.js
   try {
     const ss = sessionStorage.getItem('matchTeams');
-    if (ss) { const t = JSON.parse(ss); match.home = t.h || match.home; match.away = t.a || match.away; }
+    if (ss) {
+      const t = JSON.parse(ss); match.home = t.h || match.home; match.away = t.a || match.away;
+    } else if (window.SRYI) {
+      if (window.SRYI.HOME) match.home = window.SRYI.HOME;
+      if (window.SRYI.AWAY) match.away = window.SRYI.AWAY;
+    }
   } catch(_) {}
 
   document.getElementById('in-home').value = match.home;
