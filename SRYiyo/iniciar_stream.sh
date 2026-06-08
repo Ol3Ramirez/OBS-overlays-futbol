@@ -85,7 +85,7 @@ sleep 1
 
 # 2. HTTP server
 echo "Iniciando HTTP en puerto $HTTP_PORT..."
-python3 -m http.server "$HTTP_PORT" \
+python3 -m http.server "$HTTP_PORT" --directory "$DIR" \
   > "$LOG/http.log" 2>&1 &
 HTTP_PID=$!
 sleep 1

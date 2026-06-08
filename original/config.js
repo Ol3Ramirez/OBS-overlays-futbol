@@ -13,6 +13,7 @@ window.SRYI = {
   HTTP_PORT:   8888,
   WS_URL:      'ws://localhost:8889',
   LOGO:        './logo_sponsor.jpg',
+  ALTAVOZ_LOGO: './logo_sponsor.jpg',
   SPONSOR:     'Avila Fisioterapia',
   SPONSOR_SOCIAL: 'AvilaFisioterapia',
 };

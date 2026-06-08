@@ -649,7 +649,13 @@
 .altavoz-wm { position:absolute; bottom:28px; right:40px; background:rgba(0,0,0,0.35); border-radius:6px; padding:4px 10px; display:flex; align-items:center; gap:6px; }
 .altavoz-wm img { height:34px; opacity:0.85; }
 </style>
-<div class="altavoz-wm"><img src="./logo_altavoz_studio.png" alt="Altavoz Studio" /></div>
+<div class="altavoz-wm"><img src="" alt="Altavoz Studio" /></div>
+<script>
+  (function() {
+    const img = document.querySelector('.altavoz-wm img');
+    if (img && window.SRYI && window.SRYI.ALTAVOZ_LOGO) img.src = window.SRYI.ALTAVOZ_LOGO;
+  })();
+</script>
 <script src="ws-client.js"></script>
 </body>
 </html>
