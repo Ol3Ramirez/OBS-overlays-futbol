@@ -213,15 +213,49 @@ nano profile.json   # cambiar puertos (usar 8892/8893 para no conflictar)
 
 ## 📱 Control remoto desde celular
 
-1. Asegúrate de que tu celular esté en la misma red WiFi que la PC con OBS
-2. Abre el navegador del celular
-3. Entra a: `http://<IP_de_tu_PC>:<HTTP_PORT>/control_remoto.html`
-   - Ejemplo: `http://192.168.1.50:8890/control_remoto.html`
-4. Para encontrar la IP de tu PC:
+El panel de control está diseñado para operarse desde un celular en la cancha mientras la PC corre OBS en la mesa de transmisión. Hay dos modos:
+
+---
+
+### 🌐 Opción A — Tailscale (recomendado para el campo)
+
+[Tailscale](https://tailscale.com) crea una VPN privada entre tu celular y tu PC. Funciona desde cualquier red — no importa si el celular tiene datos o WiFi diferente.
+
+**Configuración (una sola vez):**
+1. Instala Tailscale en tu PC: [tailscale.com/download](https://tailscale.com/download)
+2. Instala Tailscale en tu celular (iOS / Android)
+3. Inicia sesión con la misma cuenta en ambos dispositivos
+4. En tu PC, ejecuta: `tailscale ip -4` → anota tu IP Tailscale (ej. `100.112.130.14`)
+
+**Verificar que `wsBindAddress` sea `"0.0.0.0"`** en `profile.json` (necesario para aceptar conexiones fuera de localhost):
+```json
+"wsBindAddress": "0.0.0.0"
+```
+
+**El día del partido:**
+1. Abre Tailscale en el celular → verifica que diga *Connected*
+2. En el navegador del celular: `http://100.112.130.14:8890/control_remoto.html`
+   (reemplaza con tu IP Tailscale)
+3. El panel detecta automáticamente que es una conexión remota y envía el token
+
+El panel QR (ícono 📱 en la barra superior) genera el link listo para escanear.
+
+---
+
+### 📶 Opción B — WiFi local (misma red)
+
+Si el celular y la PC están en la misma red WiFi:
+
+1. Encuentra la IP local de tu PC:
    - **macOS:** `ipconfig getifaddr en0`
    - **Windows:** `ipconfig` → busca "Dirección IPv4"
+2. En el celular: `http://192.168.1.X:8890/control_remoto.html`
 
-El panel de control tiene pestañas: **Reloj / Goles / Cards / Cambios**.
+> ⚠️ Esta opción falla si el estadio/cancha tiene WiFi que aísla clientes (modo AP isolation). En ese caso usa Tailscale.
+
+---
+
+El panel tiene pestañas: **Reloj / Goles / Cards / Cambios / Más**.
 
 ---
 
