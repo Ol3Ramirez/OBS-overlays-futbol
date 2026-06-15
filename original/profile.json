@@ -17,7 +17,7 @@
 
   "httpPort": 8888,
   "wsPort":   8889,
-  "wsBindAddress": "127.0.0.1",
+  "wsBindAddress": "0.0.0.0",
 
   "obsCollection": "original - Avila Fisioterapia",
   "obsHost":       "localhost",

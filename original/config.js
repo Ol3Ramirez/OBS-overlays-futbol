@@ -11,7 +11,7 @@ window.SRYI = {
   ACCENT:      '#FFD700',   // gold
   WS_PORT:     8889,
   HTTP_PORT:   8888,
-  WS_URL:      'ws://localhost:8889',
+  WS_HOST:     null,  // null = auto-detectar desde window.location.hostname (Tailscale)
   LOGO:        './logo_sponsor.jpg',
   ALTAVOZ_LOGO: './logo_sponsor.jpg',
   SPONSOR:     'Avila Fisioterapia',
