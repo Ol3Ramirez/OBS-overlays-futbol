@@ -27,35 +27,53 @@
 ## 🏗️ Arquitectura
 
 ```
-┌─────────────────────┐
-│  Panel Control Web  │  ← celular / PC en la cancha
-│  control_remoto.html│
-└────────┬────────────┘
-         │ WebSocket (puerto 8891)
-         ▼
-┌─────────────────────┐      broadcast
-│  ws_relay.py        │ ──────────────────────┐
-│  (Python relay)     │                       │
-└────────┬────────────┘                       │
-         │                                    │
-         ▼                                    ▼
-┌─────────────────────┐          ┌────────────────────┐
-│  OBS Studio         │          │  Otros overlays    │
-│  Browser Sources    │          │  (marcador, goles) │
-│  (puerto 8888)      │          │  en la misma red   │
-└─────────────────────┘          └────────────────────┘
-         │
-         ▼ OBS WebSocket (puerto 4455)
-┌─────────────────────┐
-│  Cambio de escenas  │
-│  automático         │
-└─────────────────────┘
+  MESA DE TRANSMISIÓN                      CANCHA (celular)
+  ┌──────────────────────────────┐         ┌────────────────────┐
+  │  Python HTTP Server :8890    │         │  control_remoto    │
+  │  Sirve archivos HTML         │         │  .html             │
+  └────────────┬─────────────────┘         │  vía Tailscale     │
+               │ http://localhost:8890      │  100.x.x.x:8890   │
+               │                           └────────┬───────────┘
+    ┌──────────┴──────────────────────────┐         │
+    │          │            │             │         │
+    ▼          ▼            ▼             ▼         │
+marcador   evento_     alineacion   entrevista      │
+ .html     jugador.html  .html        .html         │
+ intro     medio_tiempo  penalty  (Browser Sources  │
+ .html       .html        .html    en OBS Studio)   │
+    │          │            │             │         │
+    └──────────┴────────────┴─────────────┴────┐    │
+                                               │    │
+                    WebSocket ws://:8891        │    │
+                    (clientes → relay)          │    │
+                                               ▼    ▼
+                              ┌─────────────────────────────┐
+                              │       ws_relay.py :8891      │
+                              │       Python — broadcast      │
+                              │       a todos los clientes   │
+                              └──────────────┬──────────────┘
+                                             │
+                                             │ ws://localhost:4455
+                                             ▼
+                              ┌─────────────────────────────┐
+                              │       OBS Studio             │
+                              │       WebSocket :4455        │
+                              │  ← setScene automático       │
+                              └─────────────────────────────┘
 ```
 
-**Flujo de datos:**
-`Comando en celular → relay WebSocket → broadcast simultáneo → todos los overlays actualizan`
+**Flujo de un comando:**
+```
+Celular (cancha) → ws_relay.py → broadcast → todos los overlays actualizan simultáneamente
+                                           → OBS cambia de escena (si el comando es setScene)
+```
 
-`profile.json` es la fuente única de verdad (puertos, equipos, colores). `config.js` lo espeja para el navegador.
+**Reglas clave:**
+- Todos los HTMLs (overlays + panel) son **clientes WebSocket** que se conectan al relay
+- El relay hace **broadcast** a todos — un comando del celular actualiza todos los overlays a la vez
+- `control_remoto.html` no es un Browser Source de OBS — es el panel de operación
+- `ws_relay.py` mantiene conexión persistente con OBS WS (4455) para cambios de escena
+- `profile.json` es la fuente única de verdad — puertos, equipos, colores, token
 
 ---
 
@@ -66,9 +84,10 @@
 | 🏆 Marcador | `marcador.html` | Marcador con reloj en vivo, equipos y escudo |
 | ⚽ Evento jugador | `evento_jugador.html` | Animación de gol, tarjeta amarilla/roja, cambio |
 | 📋 Formaciones | `alineacion.html` | Formación táctica con nombres de jugadores |
-| 📢 Lower third | `lower_third.html` | Banner inferior con mensaje personalizable |
-| ⏱️ Cuenta regresiva | `cuenta_regresiva.html` | Temporizador para pre-partido |
+| 🎙️ Entrevista | `entrevista.html` | Lower third deslizable + ticker de texto inferior |
+| ⏱️ Intro / Cuenta regresiva | `intro.html` | Pantalla de inicio con countdown |
 | ⏸️ Medio tiempo | `medio_tiempo.html` | Pantalla de intermedio |
+| 🥅 Penales | `penalty.html` | Tablero de tanda de penales |
 
 ---
 
@@ -85,8 +104,8 @@ OBS-overlays-futbol/
 │   ├── marcador.html
 │   ├── evento_jugador.html
 │   ├── alineacion.html
-│   ├── lower_third.html
-│   ├── cuenta_regresiva.html
+│   ├── entrevista.html
+│   ├── intro.html
 │   ├── medio_tiempo.html
 │   └── control_remoto.html    # Panel de control web
 ├── SRYiyo/                    # Perfil secundario (Robles Futbol)
