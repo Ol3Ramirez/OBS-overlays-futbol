@@ -27,6 +27,12 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 cp .env.example .env
 nano .env   # Escribe: OBS_WS_PASSWORD=tu_password_de_obs
 
+# 3b. Configurar token del WebSocket relay (solo perfiles con auth, ej. SRYiyo)
+cp profile.local.json.example profile.local.json
+cp config.local.js.example config.local.js
+python3 -c "import secrets; print(secrets.token_hex(16))"   # genera el token
+# Pega el MISMO valor como "wsToken" en profile.local.json y como WS_TOKEN en config.local.js
+
 # 4. Arrancar servidores
 bash iniciar_stream.sh
 
@@ -49,6 +55,12 @@ winget install --id=astral-sh.uv -e
 # 3. Configurar password de OBS (una sola vez)
 copy .env.example .env
 notepad .env   # Escribe: OBS_WS_PASSWORD=tu_password_de_obs
+
+# 3b. Configurar token del WebSocket relay (solo perfiles con auth, ej. SRYiyo)
+copy profile.local.json.example profile.local.json
+copy config.local.js.example config.local.js
+python -c "import secrets; print(secrets.token_hex(16))"
+# Pega el MISMO valor como "wsToken" en profile.local.json y como WS_TOKEN en config.local.js
 
 # 4. Arrancar servidores
 .\iniciar_stream.ps1
@@ -86,6 +98,32 @@ El password **nunca se hardcodea en el codigo**. `setup_obs.py` lo lee en este o
 
 **Encontrar el password en OBS:**
 OBS -> Herramientas -> Ajustes del servidor WebSocket -> Mostrar informacion de conexion
+
+---
+
+## Token del WebSocket relay (perfiles con auth, ej. SRYiyo)
+
+El token **nunca se commitea** — `profile.json` y `config.js` solo tienen los
+nombres de los campos (`wsToken` / `WS_TOKEN`), nunca el valor real. El valor
+real vive en dos archivos gitignoreados, uno por lado (servidor y navegador),
+que cada quien crea en su propia maquina:
+
+| Lado | Archivo real (gitignoreado) | Plantilla versionada |
+|------|------------------------------|------------------------|
+| Servidor (`ws_relay.py`) | `<perfil>/profile.local.json` | `profile.local.json.example` |
+| Navegador (`control_remoto.html`) | `<perfil>/config.local.js` | `config.local.js.example` |
+
+`ws_relay.py` carga `profile.json` y le superpone `profile.local.json` si existe.
+`control_remoto.html` carga `config.js` y luego `config.local.js` (que sobreescribe
+`WS_TOKEN`). Sin estos archivos el relay arranca sin token — valido solo en `127.0.0.1`.
+
+```bash
+cd <perfil>   # ej. SRYiyo
+cp profile.local.json.example profile.local.json
+cp config.local.js.example config.local.js
+python3 -c "import secrets; print(secrets.token_hex(16))"
+# Pega el MISMO valor en "wsToken" (profile.local.json) y WS_TOKEN (config.local.js)
+```
 
 ---
 
@@ -139,6 +177,10 @@ xcopy SRYiyo\ NuevoPerfil\ /E /I
 ```
 
 Solo hay que editar `config.js` — todos los overlays leen los datos desde ahi.
+
+> **Si `SRYiyo/profile.local.json` o `config.local.js` ya existian** (token de otro
+> partido), el `cp -r` los copia tal cual. Regenera el token para el nuevo perfil
+> en vez de reusar el viejo — ver [Token del WebSocket relay](#token-del-websocket-relay-perfiles-con-auth-ej-sryiyo).
 
 ---
 

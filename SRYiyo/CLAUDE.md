@@ -72,7 +72,10 @@ Verás: `✅ Autenticado — control activo`
 Ambos pueden controlar al mismo tiempo. Los comandos de uno se ven en el otro.
 
 ### Token de seguridad
-El token `***REMOVED-TOKEN***` está en `profile.json` y `config.js`. Se envía automáticamente al conectar desde una IP remota. Las conexiones desde `localhost` no necesitan token (son los overlays de OBS).
+El token vive en `profile.local.json` (servidor) y `config.local.js` (cliente) —
+ambos gitignoreados, ver [SSOT — profile.json](#ssot--profilejson) más arriba.
+Se envía automáticamente al conectar desde una IP remota. Las conexiones desde
+`localhost` no necesitan token (son los overlays de OBS).
 
 ### Si Tailscale no está disponible
 Fallback: conectar el celular al **mismo WiFi** que la Mac y usar la IP local:
@@ -127,10 +130,33 @@ Editar solo `profile.json` para cambiar cualquier configuracion del perfil.
   "httpPort":      8890,
   "wsPort":        8891,
   "wsBindAddress": "0.0.0.0",
-  "wsToken":       "***REMOVED-TOKEN***",
   "obsCollection": "SRYiyo - Robles Futbol"
 }
 ```
+
+> **`wsToken` NO va aquí** — este archivo se commitea. Ver sección siguiente.
+
+### Token de WebSocket — dónde va realmente
+
+`profile.json` y `config.js` se commitean al repo, así que el token real **nunca**
+vive en ellos. En su lugar, en cada máquina donde se clone el repo:
+
+```bash
+# 1. Servidor (ws_relay.py lo lee de profile.local.json, gitignoreado)
+cp profile.local.json.example profile.local.json
+# Generar un token nuevo:
+python3 -c "import secrets; print(secrets.token_hex(16))"
+# Pegarlo como valor de "wsToken" en profile.local.json
+
+# 2. Cliente (control_remoto.html carga config.local.js DESPUES de config.js)
+cp config.local.js.example config.local.js
+# Pegar el MISMO token en window.SRYI.WS_TOKEN dentro de config.local.js
+```
+
+`ws_relay.py` carga `profile.json` y superpone `profile.local.json` si existe.
+Si no creas estos archivos, el relay arranca **sin autenticación** (`token=NO`
+en su log de inicio) — válido para pruebas en `127.0.0.1`, pero antes de
+exponer el panel por Tailscale/LAN hay que generar y configurar el token.
 
 ---
 

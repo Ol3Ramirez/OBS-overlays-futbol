@@ -1,6 +1,7 @@
 {
   "_comment": "SSOT del perfil SRYiyo. Edita SOLO este archivo para cambiar equipos, colores o puertos.",
   "_nota_config_js": "config.js es la version browser de este archivo. Si cambias algo aqui, refleja el cambio en config.js.",
+  "_nota_wsToken": "El token real NUNCA va aqui (este archivo se commitea). Va en profile.local.json (gitignoreado) -- ver profile.local.json.example.",
 
   "name":          "SRYiyo",
   "sponsor":       "Robles Futbol",
@@ -18,7 +19,6 @@
   "httpPort": 8890,
   "wsPort":   8891,
   "wsBindAddress": "0.0.0.0",
-  "wsToken":       "***REMOVED-TOKEN***",
 
   "obsCollection": "SRYiyo - Robles Futbol",
   "obsHost":       "localhost",

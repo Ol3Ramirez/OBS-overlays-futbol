@@ -1,0 +1,7 @@
+{
+  "_comment": "Copia este archivo como profile.local.json (gitignoreado) y pon el token real aqui.",
+  "_uso": "ws_relay.py lee profile.json y luego superpone profile.local.json si existe.",
+  "_generar_token": "python3 -c \"import secrets; print(secrets.token_hex(16))\"",
+
+  "wsToken": "REPLACE_ME"
+}

@@ -326,7 +326,7 @@ Después de editar `profile.json`:
 | HTTP | `http://localhost:8890` |
 | WebSocket | `ws://localhost:8891` |
 | WS bind | `0.0.0.0` (acepta conexiones de red — celular en campo) |
-| Token auth | `***REMOVED-TOKEN***` |
+| Token auth | en `profile.local.json` / `config.local.js` (gitignoreados, no en este repo — ver `SRYiyo/CLAUDE.md`) |
 
 Panel: `http://localhost:8890/control_remoto.html`
 

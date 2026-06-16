@@ -16,6 +16,10 @@ __pycache__/
 .env.local
 **/. env
 
+# Tokens de WebSocket relay (por perfil) — nunca en profile.json/config.js
+**/profile.local.json
+**/config.local.js
+
 # MCP local — contiene credenciales, NUNCA subir a git
 .mcp.json
 

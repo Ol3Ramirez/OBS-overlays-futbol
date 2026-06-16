@@ -26,7 +26,10 @@ window.SRYI = {
   // Control remoto desde cancha (Tailscale)
   // null = auto-detectar desde window.location.hostname
   WS_HOST:  null,
-  WS_TOKEN: '***REMOVED-TOKEN***',
+  // El token real NUNCA va aqui (este archivo se commitea).
+  // Va en config.local.js (gitignoreado, control_remoto.html lo carga despues de este archivo).
+  // Ver config.local.js.example.
+  WS_TOKEN: null,
 
   // Plantilla Moto Equipos Rodriguez — agregar desde control remoto
   PLAYERS: [],

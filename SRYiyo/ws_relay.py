@@ -28,16 +28,30 @@ from websockets.asyncio.server import broadcast, serve
 
 
 def _load_profile() -> dict:
-    profile_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "profile.json")
+    """Carga profile.json (SSOT, commiteado) y superpone profile.local.json
+    (gitignoreado) si existe -- ahi vive el wsToken real, nunca en profile.json."""
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    profile_path = os.path.join(base_dir, "profile.json")
     if not os.path.exists(profile_path):
         print(f"[FATAL] profile.json no encontrado en {profile_path}")
         sys.exit(1)
     try:
         with open(profile_path, encoding="utf-8") as f:
-            return json.load(f)
+            profile = json.load(f)
     except json.JSONDecodeError as e:
         print(f"[FATAL] profile.json invalido: {e}")
         sys.exit(1)
+
+    local_path = os.path.join(base_dir, "profile.local.json")
+    if os.path.exists(local_path):
+        try:
+            with open(local_path, encoding="utf-8") as f:
+                profile.update(json.load(f))
+        except json.JSONDecodeError as e:
+            print(f"[FATAL] profile.local.json invalido: {e}")
+            sys.exit(1)
+
+    return profile
 
 
 _profile  = _load_profile()

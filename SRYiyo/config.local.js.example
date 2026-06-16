@@ -1,0 +1,7 @@
+/**
+ * Copia este archivo como config.local.js (gitignoreado) y pon el token real.
+ * control_remoto.html lo carga DESPUES de config.js, asi que sobreescribe WS_TOKEN.
+ * Generar token: python3 -c "import secrets; print(secrets.token_hex(16))"
+ * Debe ser el MISMO valor que wsToken en profile.local.json.
+ */
+window.SRYI.WS_TOKEN = 'REPLACE_ME';

@@ -2,3 +2,5 @@ logs/
 .env
 .env.local
 __pycache__/
+profile.local.json
+config.local.js

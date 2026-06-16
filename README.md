@@ -73,7 +73,7 @@ Celular (cancha) → ws_relay.py → broadcast → todos los overlays actualizan
 - El relay hace **broadcast** a todos — un comando del celular actualiza todos los overlays a la vez
 - `control_remoto.html` no es un Browser Source de OBS — es el panel de operación
 - `ws_relay.py` mantiene conexión persistente con OBS WS (4455) para cambios de escena
-- `profile.json` es la fuente única de verdad — puertos, equipos, colores, token
+- `profile.json` es la fuente única de verdad — puertos, equipos, colores (el token va aparte, en `profile.local.json` gitignoreado)
 
 ---
 
@@ -228,6 +228,10 @@ nano profile.json   # cambiar puertos (usar 8892/8893 para no conflictar)
 - `SRYiyo`: 8890 / 8891
 - `nuevo_torneo`: 8892 / 8893
 
+> Si copias un perfil **con token** (como `SRYiyo`) en vez de `original`, genera
+> un token nuevo para el perfil copiado — no reutilices `profile.local.json`/`config.local.js`
+> del perfil original. Ver checklist de seguridad más abajo.
+
 ---
 
 ## 📱 Control remoto desde celular
@@ -291,11 +295,23 @@ El relay acepta conexiones de cualquier origen en la red. En LAN local es acepta
 El servidor HTTP sirve todos los archivos del directorio del perfil, incluyendo `profile.json`. No lo expongas fuera de tu red local.
 
 **3. Token de autenticación (perfil SRYiyo)**
-El token por defecto en este repo es un **ejemplo**. Genera uno nuevo para producción:
+El token **nunca vive en `profile.json` ni en `config.js`** (ambos se commitean).
+Vive en dos archivos gitignoreados que debes crear en cada máquina donde clones el repo:
+
 ```bash
+cd SRYiyo
+cp profile.local.json.example profile.local.json   # token del lado servidor (ws_relay.py)
+cp config.local.js.example config.local.js         # mismo token del lado navegador (control_remoto.html)
+
+# Generar el token:
 python3 -c "import secrets; print(secrets.token_hex(16))"
+# Pegarlo como "wsToken" en profile.local.json Y como WS_TOKEN en config.local.js (mismo valor)
 ```
-Actualiza `wsToken` en `profile.json` y `config.js`, y **nunca lo commitees a git**.
+
+`ws_relay.py` carga `profile.json` y superpone `profile.local.json` si existe.
+Si no creas estos archivos, el relay arranca sin token (`token=NO` en el log) —
+aceptable solo en `127.0.0.1`. Antes de exponer el panel por Tailscale/LAN, créalos.
+Detalle completo en `SRYiyo/CLAUDE.md` (sección "Token de WebSocket — dónde va realmente").
 
 ### ✅ Lo que ya está protegido
 
@@ -315,11 +331,11 @@ Actualiza `wsToken` en `profile.json` y `config.js`, y **nunca lo commitees a gi
 
 ### Checklist antes de producción
 
-- [ ] Cambiar token en `profile.json` y `config.js` (si usas perfil con token)
+- [ ] Crear `profile.local.json` y `config.local.js` con un token generado (nunca en `profile.json`/`config.js`)
 - [ ] Revisar `wsBindAddress` (`127.0.0.1` para local, `0.0.0.0` solo si necesitas LAN)
 - [ ] Crear `.env` con `OBS_WS_PASSWORD=<tu_password>`
 - [ ] Verificar que los puertos 8888–8891 **no** estén redirigidos en tu router
-- [ ] No commitear `.env` ni tokens al repositorio
+- [ ] No commitear `.env`, `profile.local.json` ni `config.local.js` al repositorio
 
 ### Reportar vulnerabilidades
 

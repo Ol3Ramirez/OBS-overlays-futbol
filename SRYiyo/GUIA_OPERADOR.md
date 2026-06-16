@@ -263,7 +263,7 @@ bash iniciar_stream.sh
 
 **Automatismo de seguridad:**
 - El panel detecta que es remoto (IP != localhost)
-- Envía el token `***REMOVED-TOKEN***` automáticamente
+- Envía el token configurado en `config.local.js` automáticamente (ver `CLAUDE.md` — sección token)
 - Deberías ver: `✅ Autenticado — control activo`
 
 ### Simultáneo
@@ -436,7 +436,7 @@ Mismo flujo que primer tiempo.
 ## Notas finales
 
 ### Seguridad
-- Token `***REMOVED-TOKEN***` solo se envía si conectas desde una IP remota
+- El token (en `config.local.js`, gitignoreado) solo se envía si conectas desde una IP remota
 - Localhost no necesita token (es local)
 - Tailscale es privada y encriptada
 
