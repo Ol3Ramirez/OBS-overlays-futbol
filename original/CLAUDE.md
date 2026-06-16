@@ -122,7 +122,15 @@ Modos: `standalone` = fondo completo con beams+sparkles; `overlay` = fondo trans
 - **Tailscale** must be active on both devices before opening IRL Pro.
 - `mac-ole` (Mac/OBS): `100.112.130.14`
 - `honor-x8a-nick` (Android camera): `100.117.102.37`
-- IRL Pro SRT: `srt://100.112.130.14:5000`, Mode: Caller, H.265, 8000 kbps, latency 2500ms
+- IRL Pro SRT: `srt://100.112.130.14:5000`, Mode: Caller
+
+| Perfil de red | Bitrate | Resolución | Codec | Latency (buffer SRT) | Cuándo usar |
+|---|---|---|---|---|---|
+| Señal buena (WiFi/LTE estable) | 8000 kbps | 1080p30 | H.265 | 2500ms | Conexión estable, baja prioridad de delay |
+| **Telcel lento / señal inestable** | **3000–4000 kbps** | 1080p30 (bajar a 720p30 si sigue cortando) | H.265 | **4000ms** | Mobile data inestable en cancha — bitrate bajo evita drops, latency alto absorbe jitter/paquetes perdidos |
+
+> `latency` en la URL SRT de OBS/FFmpeg está en **microsegundos**, no milisegundos: `2500ms` = `2500000`, `4000ms` = `4000000`.
+> El trade-off del perfil "Telcel lento": ~4s de delay entre cámara y stream a cambio de menos cortes — aceptable para partido amateur.
 
 ## CSS Customization
 

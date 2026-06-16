@@ -115,30 +115,101 @@ git clone https://github.com/Ol3Ramirez/OBS-overlays-futbol
 cd OBS-overlays-futbol
 ```
 
-### Configurar el password de OBS
+### Configurar el password de OBS y el token — paso a paso (modo principiante)
 
-Entra a la carpeta del perfil que vas a usar:
+El sistema usa **dos contraseñas distintas**, ninguna vive en GitHub:
 
+| Contraseña | Para qué sirve | Dónde vive |
+|---|---|---|
+| `OBS_WS_PASSWORD` | Que el relay pueda decirle a OBS "cambia de escena" automáticamente | `SRYiyo/.env` |
+| `wsToken` | Que solo gente autorizada controle el panel desde fuera de tu Mac/PC (celular en la cancha) | `SRYiyo/profile.local.json` + `SRYiyo/config.local.js` |
+
+Ambos archivos están en `.gitignore` — si los borras y vuelves a clonar el repo, no aparecen, **tienes que crearlos tú** siguiendo estos pasos.
+
+#### Paso 1 — Encontrar el password de OBS
+
+1. Abre la **aplicación** OBS Studio (no un navegador).
+2. Menú de arriba: **Herramientas → Ajustes del servidor WebSocket**.
+3. Si "Habilitar autenticación" no está marcado, márcalo y escribe una contraseña — guárdala en un lugar seguro (no la pegues en chats ni redes sociales).
+4. Click en el botón que dice algo como **"Mostrar información de conexión"**. Se abre una ventana parecida a esta:
+
+   ```
+   IP del servidor (mejor propuesta):  192.168.x.x
+   Puerto del servidor:                4455
+   Contraseña del servidor:            ********** ← este es el valor que necesitas
+   [QR de conexión]
+   ```
+
+5. Click en el botón **Copiar** junto a "Contraseña del servidor".
+
+#### Paso 2 — Crear el archivo `.env` (aquí vive el password de OBS)
+
+Abre la Terminal (Mac) o PowerShell (Windows) y entra a la carpeta del perfil:
+
+```bash
+# Mac
+cd ruta/donde/clonaste/OBS-overlays-futbol/SRYiyo
+cp .env.example .env
+nano .env
+```
 ```powershell
-# Windows — perfil SRYiyo
-cd SRYiyo
+# Windows
+cd ruta\donde\clonaste\OBS-overlays-futbol\SRYiyo
 copy .env.example .env
 notepad .env
 ```
 
+Verás esta línea:
+```
+OBS_WS_PASSWORD=REPLACE_ME
+```
+
+Borra `REPLACE_ME` y pega el password que copiaste de OBS (`Cmd+V` en Mac, `Ctrl+V` en Windows). Debe quedar así (con TU password real):
+```
+OBS_WS_PASSWORD=AbCd1234EfGh5678
+```
+
+**Guardar y salir del editor:**
+- **nano (Mac/Linux):** `Ctrl+O` → `Enter` (guarda) → `Ctrl+X` (sale)
+- **Notepad (Windows):** `Ctrl+S` (guarda) → cierra la ventana
+
+#### Paso 3 — Verificar que quedó bien (sin mostrar el password en pantalla)
+
 ```bash
-# Mac — perfil SRYiyo
+# Mac/Linux — solo confirma que la línea existe, sin imprimir el valor real
+grep -q "OBS_WS_PASSWORD=" .env && echo "OK, .env configurado" || echo "FALTA configurar"
+```
+```powershell
+# Windows
+if (Select-String -Path .env -Pattern "OBS_WS_PASSWORD=") { "OK, .env configurado" } else { "FALTA configurar" }
+```
+
+> **Por qué nunca lo mostramos en pantalla:** si pegas el password en un chat, screenshot o lo subes a GitHub por accidente, OBS te obliga a tratarlo como expuesto — cámbialo de inmediato en `Herramientas → Ajustes del servidor WebSocket`.
+
+#### Paso 4 — Token del panel remoto (solo si vas a usar el celular en la cancha)
+
+Sin este paso, el panel funciona perfecto desde la misma Mac/PC donde corre OBS. Solo es necesario si vas a controlar desde el celular vía Tailscale o WiFi (ver [Control remoto desde el campo](#control-remoto-desde-el-campo-celular)).
+
+```bash
 cd SRYiyo
-cp .env.example .env
-nano .env
+cp profile.local.json.example profile.local.json
+cp config.local.js.example config.local.js
+python3 -c "import secrets; print(secrets.token_hex(16))"
 ```
 
-Escribe esto en el archivo `.env`:
-```
-OBS_WS_PASSWORD=tu_password_de_obs
-```
+El último comando imprime una cadena como `a1b2c3d4e5f6...`. Cópiala y pégala en **los dos archivos que acabas de crear**, el mismo valor en ambos:
 
-> El `.env` está en `.gitignore` — nunca se sube a GitHub. Si no lo creas, el script te lo pedirá interactivo la primera vez.
+1. `profile.local.json` → reemplaza `REPLACE_ME` en `"wsToken": "REPLACE_ME"`
+2. `config.local.js` → reemplaza `REPLACE_ME` en `window.SRYI.WS_TOKEN = 'REPLACE_ME';`
+
+> Si los dos valores no coinciden exactamente, el panel mostrará `_authFailed` al conectar desde fuera de localhost.
+
+#### ¿Qué pasa si me salto un paso?
+
+| Paso saltado | Consecuencia | Cómo lo notas |
+|---|---|---|
+| `.env` sin password de OBS | Overlays y marcador funcionan igual; el cambio automático de escena (`setScene`) no llega a OBS | En `logs/ws.log`: `OBS WS desconectado (ConnectionClosedError), reintentando en 5s...` |
+| `profile.local.json` / `config.local.js` sin token | Todo funciona en `localhost`; cualquiera en tu red local podría controlar el panel si lo expones | El panel muestra "remotos necesitan auth" en el log del relay |
 
 ---
 
@@ -533,6 +604,23 @@ python3 --version
    OBS_WS_PASSWORD=nuevo_password
    ```
 3. Vuelve a correr `uv run setup_obs.py`
+
+---
+
+### En `logs/ws.log` aparece "OBS WS desconectado (ConnectionClosedError), reintentando en 5s..."
+
+El relay sí arrancó y los overlays/marcador funcionan, pero **no logra autenticarse con OBS** — por eso el cambio automático de escena (`setScene`) no hace nada.
+
+**Causa casi siempre:** `.env` no existe, está vacío, o tiene el password viejo.
+
+```bash
+# Verificar que .env existe y tiene la línea (sin imprimir el valor)
+grep -q "OBS_WS_PASSWORD=" SRYiyo/.env && echo "OK existe" || echo "FALTA crear .env"
+```
+
+Si falta, sigue [Paso 1 y 2 de la sección Configurar el password de OBS](#instalación--primera-vez) para crearlo con el password real de OBS. Después reinicia: `bash iniciar_stream.sh` (o `.\iniciar_stream.ps1` en Windows).
+
+> Este error **no detiene la transmisión** — el marcador, goles y demás overlays siguen funcionando normal. Solo afecta el botón de cambio de escena del panel.
 
 ---
 
