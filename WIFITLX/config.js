@@ -1,3 +1,15 @@
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
+
+// wifi-tlx-marketing es un repo hermano bajo 20-projects/. Se resuelve relativo a ESTE
+// archivo para funcionar igual en Mac (/Users/…), Windows (A:\OLE\…) o cualquier ruta,
+// sin paths absolutos quemados. Normalizado a '/' para servir tanto en file:/// (setup_obs)
+// como en el sistema de archivos. Override explícito: variable de entorno WIFITLX_MARKETING_DIR.
+const MARKETING_DIR = (
+  process.env.WIFITLX_MARKETING_DIR ||
+  resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'wifi-tlx-marketing')
+).replace(/\\/g, '/');
+
 export const WIFITLX = {
   PHONE:      '951 367 6266',
   SPEED:      '7 Mbps',
@@ -15,8 +27,8 @@ export const WIFITLX = {
   OBS_WS_URL:    'ws://localhost:4455',
   OBS_COLLECTION: 'WIFI TLX Mundial 2026',
 
-  HTML_BASE: 'A:/OLE/Documents/MY CLAUDE CODE/20-projects/wifi-tlx-marketing/html',
-  VIDEOS_OUT: 'A:/OLE/Documents/MY CLAUDE CODE/20-projects/wifi-tlx-marketing/videos',
+  HTML_BASE:  `${MARKETING_DIR}/html`,
+  VIDEOS_OUT: `${MARKETING_DIR}/videos`,
 
   TEMPLATES: [
     { name: 'WIFITLX-05-Mundial-Promo',    file: '05-mundial-promo.html',     durMs: 13000 },

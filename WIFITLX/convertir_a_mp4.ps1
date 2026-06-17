@@ -1,6 +1,10 @@
 # convertir_a_mp4.ps1 — Convierte los MKV grabados por OBS a MP4 con nombres descriptivos
 
-$videosDir = "A:\OLE\Documents\MY CLAUDE CODE\20-projects\wifi-tlx-marketing\videos"
+# wifi-tlx-marketing es un repo hermano bajo 20-projects/. Se resuelve relativo a ESTE script
+# para funcionar en Mac y Windows sin paths absolutos quemados. Override: $env:WIFITLX_MARKETING_DIR
+$marketingDir = if ($env:WIFITLX_MARKETING_DIR) { $env:WIFITLX_MARKETING_DIR } else { Join-Path $PSScriptRoot '..\..\wifi-tlx-marketing' }
+$videosDir = [System.IO.Path]::GetFullPath((Join-Path $marketingDir 'videos'))
+if (-not (Test-Path $videosDir)) { New-Item -ItemType Directory -Path $videosDir -Force | Out-Null }
 
 $templates = @(
     "05-mundial-promo",

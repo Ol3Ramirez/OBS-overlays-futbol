@@ -18,6 +18,7 @@
 import 'dotenv/config';
 import OBSWebSocket from 'obs-websocket-js';
 import { WIFITLX } from './config.js';
+import { mkdirSync } from 'node:fs';
 
 const obs = new OBSWebSocket();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -82,6 +83,8 @@ async function activarColeccion() {
 
 async function configurarSalida() {
   try {
+    // Crea videos/ si no existe (idempotente) — OBS falla si el directorio de salida no está
+    mkdirSync(WIFITLX.VIDEOS_OUT, { recursive: true });
     await obs.call('SetRecordDirectory', {
       recordDirectory: WIFITLX.VIDEOS_OUT,
     });
