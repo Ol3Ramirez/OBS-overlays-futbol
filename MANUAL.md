@@ -166,7 +166,7 @@ OBS_WS_PASSWORD=REPLACE_ME
 
 Borra `REPLACE_ME` y pega el password que copiaste de OBS (`Cmd+V` en Mac, `Ctrl+V` en Windows). Debe quedar así (con TU password real):
 ```
-OBS_WS_PASSWORD=AbCd1234EfGh5678
+OBS_WS_PASSWORD=‹aquí-va-tu-password-real-de-OBS›
 ```
 
 **Guardar y salir del editor:**
