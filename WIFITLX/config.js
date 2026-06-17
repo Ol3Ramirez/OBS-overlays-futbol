@@ -15,8 +15,8 @@ export const WIFITLX = {
   OBS_WS_URL:    'ws://localhost:4455',
   OBS_COLLECTION: 'WIFI TLX Mundial 2026',
 
-  HTML_BASE: 'A:/OLE/Documents/MY CLAUDE CODE/projects/wifi-tlx-content/html',
-  VIDEOS_OUT: 'A:/OLE/Documents/MY CLAUDE CODE/projects/wifi-tlx-content/videos',
+  HTML_BASE: 'A:/OLE/Documents/MY CLAUDE CODE/20-projects/wifi-tlx-marketing/html',
+  VIDEOS_OUT: 'A:/OLE/Documents/MY CLAUDE CODE/20-projects/wifi-tlx-marketing/videos',
 
   TEMPLATES: [
     { name: 'WIFITLX-05-Mundial-Promo',    file: '05-mundial-promo.html',     durMs: 13000 },

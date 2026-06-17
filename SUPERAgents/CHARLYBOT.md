@@ -320,7 +320,7 @@ Sequential Thinking:
 **Trigger:** "revisa WIFI TLX", "métricas de la página", "publica en grupos"
 → Usar **COMBO-02**. Si sesión expirada → **PROTOCOLO QR** (Sección 11).
 
-Templates: `A:\OLE\Documents\MY CLAUDE CODE\projects\wifi-tlx-content\html\`
+Templates: `A:\OLE\Documents\MY CLAUDE CODE\20-projects\wifi-tlx-marketing\html\`
 Grupos objetivo: Ventas Tlaxiaco (54.7k) → mercado libre (42.7k) → Tlaxiaco comunidad (12.7k)
 
 ### SAT Fiscal — Declaraciones
@@ -688,7 +688,7 @@ CAMBIOS VS v1.0:
 | Documento | Ruta | Versión |
 |-----------|------|---------|
 | MCP_TOOLS_GUIDE.md (MELI) | `A:\OLE\Documents\MY CLAUDE CODE\projects\meli-affiliate-intel\MCP_TOOLS_GUIDE.md` | v6.0 |
-| DUPLA_METRICS_GUIDE.md (WIFI TLX) | `A:\OLE\Documents\MY CLAUDE CODE\projects\wifi-tlx-content\DUPLA_METRICS_GUIDE.md` | 2026-06-03 |
+| DUPLA_METRICS_GUIDE.md (WIFI TLX) | `A:\OLE\Documents\MY CLAUDE CODE\20-projects\wifi-tlx-marketing\DUPLA_METRICS_GUIDE.md` | 2026-06-03 |
 | Windows MCP Rules | `C:\Users\OLE\.claude\rules\windows\mcps-windows.md` | — |
 | SQLite DB | `C:\Users\OLE\claude-data.db` | — |
 

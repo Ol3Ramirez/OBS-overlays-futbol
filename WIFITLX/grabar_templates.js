@@ -6,7 +6,7 @@
  *   - Cambia a la colección WIFI TLX y ajusta 1080×1080
  *   - Graba cada template 13 segundos (12s loop + 1s buffer)
  *   - Restaura la colección y resolución originales al terminar
- *   - Guarda MP4 en projects/wifi-tlx-content/videos/
+ *   - Guarda MP4 en 20-projects/wifi-tlx-marketing/videos/
  *
  * Uso:
  *   npm run grabar              ← todos los templates (7)

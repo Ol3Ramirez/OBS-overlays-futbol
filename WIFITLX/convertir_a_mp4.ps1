@@ -1,6 +1,6 @@
 # convertir_a_mp4.ps1 — Convierte los MKV grabados por OBS a MP4 con nombres descriptivos
 
-$videosDir = "A:\OLE\Documents\MY CLAUDE CODE\projects\wifi-tlx-content\videos"
+$videosDir = "A:\OLE\Documents\MY CLAUDE CODE\20-projects\wifi-tlx-marketing\videos"
 
 $templates = @(
     "05-mundial-promo",
