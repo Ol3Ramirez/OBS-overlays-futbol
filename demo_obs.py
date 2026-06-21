@@ -21,6 +21,9 @@ from websockets.asyncio.client import connect
 OBS_URL = "ws://localhost:4455"
 ROOT    = os.path.dirname(os.path.abspath(__file__))
 
+SCENE_ORDER_ORIGINAL = ["Inicio", "Partido", "Evento", "Alineacion", "Medio Tiempo", "Entrevista"]
+SCENE_ORDER_SRYIYO   = ["SRY - Inicio", "SRY - Partido", "SRY - Evento", "SRY - Alineacion", "SRY - Medio Tiempo", "SRY - Entrevista"]
+
 PROFILES = {
     "original": {
         "label":      "original -- Avila Fisioterapia",
@@ -40,9 +43,6 @@ PROFILES = {
 
 AUTO_MODE         = "--auto" in sys.argv
 INTER_SCENE_DELAY = 5   # segundos entre escenas en modo --auto
-
-SCENE_ORDER_ORIGINAL = ["Inicio", "Partido", "Evento", "Alineacion", "Medio Tiempo", "Entrevista"]
-SCENE_ORDER_SRYIYO   = ["SRY - Inicio", "SRY - Partido", "SRY - Evento", "SRY - Alineacion", "SRY - Medio Tiempo", "SRY - Entrevista"]
 
 # ── Auth helpers ──────────────────────────────────────────────────────────────
 def _read_env(path: str) -> str | None:
@@ -112,12 +112,12 @@ async def enter(prompt: str = ""):
         input(f"\n  {msg}\n")
 
 # ── Demos por escena ──────────────────────────────────────────────────────────
-async def demo_inicio(obs, relay):
-    await obs_req(obs, "SetCurrentProgramScene", {"sceneName": "SRY - Inicio"})
+async def demo_inicio(obs, relay, scene_name):
+    await obs_req(obs, "SetCurrentProgramScene", {"sceneName": scene_name})
     await wait(1.5, "intro.html -> pantalla de countdown")
 
-async def demo_partido(obs, relay):
-    await obs_req(obs, "SetCurrentProgramScene", {"sceneName": "SRY - Partido"})
+async def demo_partido(obs, relay, scene_name):
+    await obs_req(obs, "SetCurrentProgramScene", {"sceneName": scene_name})
     await wait(0.8)
     print("       setTeams LOCAL / VISITANTE")
     await cmd(relay, "setTeams", "LOCAL", "VISITANTE")
@@ -135,8 +135,8 @@ async def demo_partido(obs, relay):
     await cmd(relay, "toggleClock")
     await wait(0.8)
 
-async def demo_evento(obs, relay):
-    await obs_req(obs, "SetCurrentProgramScene", {"sceneName": "SRY - Evento"})
+async def demo_evento(obs, relay, scene_name):
+    await obs_req(obs, "SetCurrentProgramScene", {"sceneName": scene_name})
     await wait(0.8)
     print("       goal Ramirez 23' 1-0")
     await cmd(relay, "goal", "Ramirez", "LOCAL", 23, "1-0")
@@ -159,8 +159,8 @@ async def demo_evento(obs, relay):
     await cmd(relay, "clear")
     await wait(0.8)
 
-async def demo_alineacion(obs, relay):
-    await obs_req(obs, "SetCurrentProgramScene", {"sceneName": "SRY - Alineacion"})
+async def demo_alineacion(obs, relay, scene_name):
+    await obs_req(obs, "SetCurrentProgramScene", {"sceneName": scene_name})
     await wait(0.8)
     print("       setTeam 4-3-3 con 11 jugadores")
     await cmd(relay, "setTeam", {
@@ -183,19 +183,29 @@ async def demo_alineacion(obs, relay):
     })
     await wait(4, "formacion 4-3-3 visible en OBS...")
 
-async def demo_medio_tiempo(obs, relay):
-    await obs_req(obs, "SetCurrentProgramScene", {"sceneName": "SRY - Medio Tiempo"})
+async def demo_medio_tiempo(obs, relay, scene_name):
+    await obs_req(obs, "SetCurrentProgramScene", {"sceneName": scene_name})
     await wait(3, "pantalla medio tiempo activa...")
 
-async def demo_entrevista(obs, relay):
-    await obs_req(obs, "SetCurrentProgramScene", {"sceneName": "SRY - Entrevista"})
-    await wait(0.8)
-    print("       modo standalone + badge + speaker")
+async def demo_entrevista(obs, relay, scene_name):
+    await obs_req(obs, "SetCurrentProgramScene", {"sceneName": scene_name})
+    await wait(1.5, "browser source cargando...")
+    print("       limpiando estado previo del relay")
+    await cmd(relay, "clearSpeaker")
+    await cmd(relay, "clearTopic")
+    await wait(0.4)
+    print("       modo standalone -> fondo oscuro")
     await cmd(relay, "setMode", "standalone")
+    await wait(0.6)
+    print("       badge ENTREVISTA EN VIVO")
     await cmd(relay, "showBadge", "ENTREVISTA EN VIVO")
+    await wait(0.8)
+    print("       social CTA")
     await cmd(relay, "setSocial", "Avila Fisioterapia")
+    await wait(0.5)
+    print("       lower-third speaker")
     await cmd(relay, "setSpeaker", "Juan Perez", "Director Tecnico", "left")
-    await wait(4, "lower-third + badge animado...")
+    await wait(4, "lower-third animado (600ms) + visible...")
     print("       setTopic -> ticker scrolling")
     await cmd(relay, "setTopic", "Avila Fisioterapia | Especialistas en recuperacion deportiva")
     await wait(4, "ticker en pantalla...")
@@ -246,7 +256,7 @@ async def run_profile_demo(obs, profile_key: str):
         print(f"  [{scene_name}]")
         fn = DEMOS.get(_demo_key(scene_name))
         if fn:
-            await fn(obs, relay)
+            await fn(obs, relay, scene_name)
         print(f"  OK")
         await enter("[ENTER] siguiente escena ->")
 

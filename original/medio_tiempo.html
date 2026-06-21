@@ -420,8 +420,8 @@ html, body {
   function setTeams(home, away) {
     _home = home || _home;
     _away = away || _away;
-    document.getElementById('score-home').textContent = _home.toUpperCase().substring(0,6);
-    document.getElementById('score-away').textContent = _away.toUpperCase().substring(0,6);
+    document.getElementById('score-home').textContent = _home.toUpperCase();
+    document.getElementById('score-away').textContent = _away.toUpperCase();
   }
 
   function setScore(h, a) {
