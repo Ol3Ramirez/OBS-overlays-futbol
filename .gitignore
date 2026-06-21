@@ -1,6 +1,8 @@
 # Logs y PIDs (todos los perfiles)
 logs/
 **/logs/
+logs-demo/
+**/logs-demo/
 node_modules/
 .DS_Store
 
