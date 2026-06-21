@@ -21,5 +21,8 @@
 
   "obsCollection": "original - Avila Fisioterapia",
   "obsHost":       "localhost",
-  "obsPort":       4455
+  "obsPort":       4455,
+
+  "srtPort":      5000,
+  "srtLatencyMs": 4000
 }

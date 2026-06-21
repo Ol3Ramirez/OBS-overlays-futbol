@@ -59,6 +59,15 @@ SCENES = [
     ("Entrevista",   f"http://localhost:{HTTP}/entrevista.html",     1920, 1080),
 ]
 
+# Escenas que se ven en vivo sobre la camara (Inicio y Medio Tiempo son
+# pantallas graficas sin camara -- ver original/CONFIG_IRL_PRO.md)
+SCENES_WITH_CAMERA = {"Partido", "Evento", "Alineacion", "Entrevista"}
+
+CAMERA_NAME = "Camara SRT"
+SRT_PORT    = _P.get("srtPort", 5000)
+SRT_LATENCY_MS = _P.get("srtLatencyMs", 4000)
+CAMERA_URL  = f"srt://0.0.0.0:{SRT_PORT}?mode=listener&latency={SRT_LATENCY_MS * 1000}"
+
 # ── Password: env var → .env file → getpass interactivo ─────────────────────
 
 def _env_path() -> str:
@@ -230,6 +239,59 @@ async def main() -> None:
         await req("SetCurrentSceneCollection", {"sceneCollectionName": COLLECTION_NAME})
         await asyncio.sleep(0.5)
 
+    # Camara SRT (idempotente): ancla "Camara SRT" detras del overlay en cada
+    # escena que la necesita. No duplica si ya esta anidada en esa escena.
+    async def ensure_camera_in_scene(scene_name: str) -> None:
+        items = await req("GetSceneItemList", {"sceneName": scene_name})
+        if not items["requestStatus"]["result"]:
+            print(f"    Error leyendo items de {scene_name}: {items['requestStatus'].get('comment','')}")
+            return
+        nombres = {it["sourceName"] for it in items["responseData"]["sceneItems"]}
+        if CAMERA_NAME in nombres:
+            print(f"    (camara ya en {scene_name})")
+            return
+
+        inputs = await req("GetInputList")
+        existe_global = any(i["inputName"] == CAMERA_NAME for i in inputs["responseData"]["inputs"])
+
+        if not existe_global:
+            rc = await req("CreateInput", {
+                "sceneName":     scene_name,
+                "inputName":     CAMERA_NAME,
+                "inputKind":     "ffmpeg_source",
+                "inputSettings": {
+                    "is_local_file":       False,
+                    "input":               CAMERA_URL,
+                    "hw_decode":           True,
+                    "reconnect_delay_sec": 2,
+                    "buffering_mb":        2,
+                },
+                "sceneItemEnabled": True,
+            })
+            if not rc["requestStatus"]["result"]:
+                print(f"    Error creando camara: {rc['requestStatus'].get('comment','')}")
+                return
+            print(f"    OK camara creada en {scene_name} -> {CAMERA_URL}")
+        else:
+            rc = await req("CreateSceneItem", {"sceneName": scene_name, "sourceName": CAMERA_NAME})
+            if not rc["requestStatus"]["result"]:
+                print(f"    Error anidando camara en {scene_name}: {rc['requestStatus'].get('comment','')}")
+                return
+            print(f"    OK camara anidada en {scene_name}")
+
+        id_resp = await req("GetSceneItemId", {"sceneName": scene_name, "sourceName": CAMERA_NAME})
+        item_id = id_resp["responseData"]["sceneItemId"]
+        await req("SetSceneItemTransform", {
+            "sceneName":     scene_name,
+            "sceneItemId":   item_id,
+            "sceneItemTransform": {
+                "boundsType":      "OBS_BOUNDS_STRETCH",
+                "boundsWidth":     1920,
+                "boundsHeight":    1080,
+                "boundsAlignment": 0,
+            },
+        })
+
     # Escenas + Browser Sources (idempotente: code 601 = ya existe, continua)
     print()
     for scene_name, url, w, h in SCENES:
@@ -240,6 +302,10 @@ async def main() -> None:
             code = r["requestStatus"].get("code")
             if code != 601:
                 print(f"    aviso CreateScene: code {code}")
+
+        if scene_name in SCENES_WITH_CAMERA:
+            await ensure_camera_in_scene(scene_name)
+            await asyncio.sleep(0.2)
 
         src = f"Browser-{scene_name}"
         r2  = await req("CreateInput", {
