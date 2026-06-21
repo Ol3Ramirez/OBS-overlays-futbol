@@ -6,9 +6,9 @@
   "sponsor":       "Avila Fisioterapia",
   "sponsorSocial": "AvilaFisioterapia",
 
-  "home":       "LOCAL",
-  "away":       "VISITANTE",
-  "matchLabel": "PARTIDO AMISTOSO",
+  "home":       "AUTOTRANSPORTES",
+  "away":       "LA CASCADA",
+  "matchLabel": "PARTIDO",
 
   "homeColor": "#3b82f6",
   "awayColor": "#ef4444",

@@ -3,9 +3,9 @@
  * Un solo lugar para cambiar equipos, colores y puertos.
  */
 window.SRYI = {
-  HOME:        'LOCAL',
-  AWAY:        'VISITANTE',
-  MATCH_LABEL: 'PARTIDO AMISTOSO',
+  HOME:        'AUTOTRANSPORTES',
+  AWAY:        'LA CASCADA',
+  MATCH_LABEL: 'PARTIDO',
   HOME_COLOR:  '#3b82f6',   // azul
   AWAY_COLOR:  '#ef4444',   // rojo
   ACCENT:      '#FFD700',   // gold

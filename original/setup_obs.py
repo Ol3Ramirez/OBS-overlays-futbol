@@ -51,12 +51,12 @@ COLLECTION_NAME = _P.get("obsCollection", "SRYiyo - Robles Futbol")
 PROFILE_NAME    = _P.get("name",          "SRYiyo")
 
 SCENES = [
-    ("SRY - Inicio",       f"http://localhost:{HTTP}/intro.html",         1920, 1080),
-    ("SRY - Partido",      f"http://localhost:{HTTP}/marcador.html",       1920, 1080),
-    ("SRY - Evento",       f"http://localhost:{HTTP}/evento_jugador.html", 1920, 1080),
-    ("SRY - Alineacion",   f"http://localhost:{HTTP}/alineacion.html",     1920, 1080),
-    ("SRY - Medio Tiempo", f"http://localhost:{HTTP}/medio_tiempo.html",   1920, 1080),
-    ("SRY - Entrevista",   f"http://localhost:{HTTP}/entrevista.html",     1920, 1080),
+    ("Inicio",       f"http://localhost:{HTTP}/intro.html",         1920, 1080),
+    ("Partido",      f"http://localhost:{HTTP}/marcador.html",       1920, 1080),
+    ("Evento",       f"http://localhost:{HTTP}/evento_jugador.html", 1920, 1080),
+    ("Alineacion",   f"http://localhost:{HTTP}/alineacion.html",     1920, 1080),
+    ("Medio Tiempo", f"http://localhost:{HTTP}/medio_tiempo.html",   1920, 1080),
+    ("Entrevista",   f"http://localhost:{HTTP}/entrevista.html",     1920, 1080),
 ]
 
 # ── Password: env var → .env file → getpass interactivo ─────────────────────
@@ -241,7 +241,7 @@ async def main() -> None:
             if code != 601:
                 print(f"    aviso CreateScene: code {code}")
 
-        src = f"Browser-{scene_name.replace('SRY - ', '')}"
+        src = f"Browser-{scene_name}"
         r2  = await req("CreateInput", {
             "sceneName":     scene_name,
             "inputName":     src,
@@ -276,9 +276,16 @@ async def main() -> None:
 
         await asyncio.sleep(0.35)
 
+    # Eliminar escena vacía que OBS crea por defecto en colecciones nuevas
+    default_scenes = ["Escena", "Scene"]
+    for ds in default_scenes:
+        rd = await req("RemoveScene", {"sceneName": ds})
+        if rd["requestStatus"]["result"]:
+            print(f"  OK Escena por defecto '{ds}' eliminada")
+
     # Activar escena inicial
     print()
-    r = await req("SetCurrentProgramScene", {"sceneName": "SRY - Inicio"})
+    r = await req("SetCurrentProgramScene", {"sceneName": "Inicio"})
     print("  OK Escena inicial activada" if r["requestStatus"]["result"]
           else f"  Aviso SetCurrentProgramScene: {r['requestStatus']}")
 
