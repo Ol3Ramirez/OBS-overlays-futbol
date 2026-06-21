@@ -18,7 +18,7 @@ mkdir -p "$LOG"
 # Rotar logs si superan 5 MB (evita llenado de disco en streams largos)
 _rotate_log() {
   local f="$1"
-  [ -f "$f" ] || return
+  [ -f "$f" ] || return 0
   local size
   size=$(wc -c < "$f" 2>/dev/null || echo 0)
   if [ "$size" -gt 5242880 ]; then
@@ -82,9 +82,17 @@ echo "Iniciando WS relay en puerto $WS_PORT..."
 uv run "$DIR/ws_relay.py" \
   > "$LOG/ws.log" 2>&1 &
 WS_PID=$!
-sleep 2
 
-if lsof -i :"$WS_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+WS_UP=""
+for _ in 1 2 3 4 5; do
+  sleep 1
+  if lsof -i :"$WS_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+    WS_UP=1
+    break
+  fi
+done
+
+if [ -n "$WS_UP" ]; then
   echo "  OK WS Relay -> ws://localhost:$WS_PORT"
 else
   echo "  [FALLO] No pudo iniciar WS relay"
