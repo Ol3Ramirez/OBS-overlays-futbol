@@ -197,10 +197,14 @@ async def main() -> None:
 
         print(f"[{_ts()}] [+] {addr}  local={local}  clientes={len(server.connections)}")
 
-        # Replay estado actual al cliente recien conectado (idempotente)
+        # Replay estado actual al cliente recien conectado (idempotente).
+        # Stagger entre mensajes: sin esto, todas las transiciones CSS
+        # (lower-third, ticker, cambio de modo) disparan en la misma rafaga
+        # y se ven como un parpadeo en vez de una secuencia.
         for msg in list(_state_store.values()):
             try:
                 await websocket.send(msg)
+                await asyncio.sleep(0.25)
             except Exception:
                 pass
 

@@ -23,7 +23,7 @@ html, body { width:1920px; height:1080px; overflow:hidden; font-family:'Barlow C
   --shadow-red:   0 0 24px rgba(198,40,40,0.35);
 }
 /* Modo overlay (default): fondo transparente */
-body { background: transparent; }
+body { background: transparent; transition: background 600ms ease; }
 body.mode-standalone {
   background: radial-gradient(ellipse at 30% 50%, rgba(198,40,40,0.12) 0%, transparent 60%),
               linear-gradient(160deg, #060b16 0%, #0a0814 50%, #060812 100%);
