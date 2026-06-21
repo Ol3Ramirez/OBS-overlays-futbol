@@ -164,8 +164,10 @@ async def main() -> None:
 
     identified = json.loads(await ws.recv())
     if identified.get("op") != 2:
-        print("  ERROR de autenticacion — verifica el password.")
-        print(f"  OBS -> Herramientas -> WebSocket -> Mostrar info de conexion")
+        print()
+        print("  ERROR: la contrasena de OBS WebSocket NO funciono (puerto 4455).")
+        print(f"  -> OBS: Herramientas -> Servidor WebSocket -> Mostrar info de conexion")
+        print(f"  -> Corrige {_env_path()} (o $env:OBS_WS_PASSWORD) y reintenta.")
         await ws.close()
         sys.exit(1)
 
@@ -194,6 +196,27 @@ async def main() -> None:
         print(f"  ERROR: OBS {obs_ver} no soporta WS v5. Necesitas OBS 28+.")
         await ws.close()
         sys.exit(1)
+    print()
+
+    # Perfil OBS (idempotente: crea si no existe, activa siempre)
+    print(f"  Perfil OBS: '{PROFILE_NAME}'")
+    pl = await req("GetProfileList")
+    existentes = pl["responseData"].get("profiles", [])
+    if PROFILE_NAME not in existentes:
+        await req("CreateProfile", {"profileName": PROFILE_NAME})
+        print("  OK Perfil creado")
+        await asyncio.sleep(1.0)
+    else:
+        print("  (ya existe)")
+    await req("SetCurrentProfile", {"profileName": PROFILE_NAME})
+    r_vid = await req("SetVideoSettings", {
+        "baseWidth": 1920, "baseHeight": 1080,
+        "outputWidth": 1920, "outputHeight": 1080,
+        "fpsNumerator": 30, "fpsDenominator": 1,
+    })
+    if not r_vid["requestStatus"]["result"]:
+        print(f"    Aviso SetVideoSettings: {r_vid['requestStatus'].get('comment', 'error desconocido')}")
+    await asyncio.sleep(0.5)
     print()
 
     # Scene Collection (idempotente: crea si no existe, activa si ya existe)
