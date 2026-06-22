@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
 <script src="config.js"></script>
+<script src="config.local.js" onerror="console.warn('config.local.js no encontrado -- WS_TOKEN sin definir, ver config.local.js.example')"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 
@@ -439,6 +440,76 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
   .min-input { padding: 10px; font-size: 18px; height: 48px; }
   .cp-time { font-size: 64px; }
 }
+
+/* ───────────── FEATURES OPCIONALES (gated por config.js — ver applyFeatureFlags) ───────────── */
+
+/* IDA / marcador global */
+.ida-strip {
+  background: rgba(255,213,0,0.08); border-bottom: 1px solid rgba(255,213,0,0.2);
+  text-align: center; padding: 5px; font-size: 10px; letter-spacing: 1.5px;
+  color: var(--gold); text-transform: uppercase;
+}
+
+/* Info box (penales: turno / marcador) */
+.info-box {
+  background: var(--glass); border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px; text-align: center;
+}
+.info-box-label {
+  font-size: 9px; letter-spacing: 1.5px; color: var(--dim); text-transform: uppercase; margin-bottom: 4px;
+}
+.info-box-value { font-size: 16px; font-weight: 900; color: #fff; }
+
+/* Undo bar + log de eventos */
+.undo-bar {
+  position: fixed; bottom: 36px; left: 0; right: 0; z-index: 150;
+  display: flex; align-items: center; justify-content: flex-end;
+  padding: 4px 14px; pointer-events: none;
+}
+#btn-undo {
+  pointer-events: all; opacity: 0.3; transition: opacity 0.2s;
+  background: rgba(255,59,59,0.12); border: 1px solid rgba(255,59,59,0.3);
+  color: var(--red); padding: 6px 12px; border-radius: 18px;
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  cursor: pointer; font-family: inherit;
+}
+#btn-undo:hover { background: rgba(255,59,59,0.2); }
+
+.log-panel {
+  position: fixed; bottom: 72px; left: 0; right: 0; z-index: 140;
+  background: rgba(8,8,20,0.97); border-top: 1px solid var(--border);
+  padding: 6px 14px; max-height: 200px; overflow-y: auto;
+}
+.log-toggle {
+  position: fixed; bottom: 72px; right: 48px; z-index: 145;
+  background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+  color: var(--dim); padding: 3px 8px; border-radius: 12px;
+  font-size: 10px; cursor: pointer; font-family: inherit; letter-spacing: 1px;
+}
+.log-item {
+  font-size: 10px; color: rgba(255,255,255,0.55); padding: 3px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04); letter-spacing: 0.5px;
+}
+.log-item:last-child { border-bottom: none; }
+
+/* Modal QR (control desde cancha) */
+.qr-modal {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300;
+  align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+}
+.qr-modal.visible { display: flex; }
+.qr-box {
+  background: #0d0d18; border: 1px solid rgba(0,229,255,0.25);
+  border-radius: 12px; padding: 24px; text-align: center; max-width: 280px;
+}
+.qr-img { width: 220px; height: 220px; border-radius: 8px; display: block; margin: 0 auto 12px; }
+.qr-link { font-size: 10px; color: rgba(255,255,255,0.5); word-break: break-all; text-decoration: none; display: block; margin-bottom: 16px; }
+.qr-note { font-size: 10px; color: rgba(255,255,255,0.3); margin-bottom: 14px; }
+.qr-close {
+  background: rgba(0,229,255,0.15); border: 1px solid rgba(0,229,255,0.4);
+  color: #fff; padding: 8px 24px; border-radius: 6px; cursor: pointer;
+  font-family: inherit; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+}
 </style>
 </head>
 <body>
@@ -518,6 +589,10 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
   </div>
 </div>
 
+<div class="ida-strip" id="ida-strip" data-feature="ENABLE_IDA_SCORE" style="display:none">
+  Global (ida+vuelta): <span id="ida-text">0–0</span>
+</div>
+
 <!-- ═══ SETUP SECTION ═══ -->
 <div class="setup-section">
   <div class="setup-toggle" onclick="toggleSetup()">
@@ -535,6 +610,20 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
     <div class="roster-rows" id="roster-rows"></div>
     <button class="btn-add" onclick="addRosterRow()">＋ Agregar Jugador</button>
 
+    <div data-feature="ENABLE_AWAY_ROSTER" style="display:none">
+      <div class="roster-label" style="margin-top:12px">Jugadores del Equipo Visitante</div>
+      <div class="roster-rows" id="away-roster-rows"></div>
+      <button class="btn-add" onclick="addAwayRosterRow()">＋ Agregar Jugador Visitante</button>
+    </div>
+
+    <div data-feature="ENABLE_IDA_SCORE" style="display:none">
+      <div class="roster-label" style="margin-top:12px">Marcador Global (Ida)</div>
+      <div class="team-inputs">
+        <input class="field" type="number" id="in-ida-home" placeholder="Goles Local (ida)" min="0" max="30" value="0">
+        <input class="field" type="number" id="in-ida-away" placeholder="Goles Visitante (ida)" min="0" max="30" value="0">
+      </div>
+    </div>
+
     <button class="btn-save-teams" onclick="saveTeams()">✓ Guardar Equipos y Plantilla</button>
   </div>
 </div>
@@ -545,6 +634,7 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
   <div class="tab" onclick="switchTab('tarjetas')">Tarjetas</div>
   <div class="tab" onclick="switchTab('cambios')">Cambios</div>
   <div class="tab" onclick="switchTab('tiempo')">Tiempo</div>
+  <div class="tab" data-feature="ENABLE_PENALTIES" style="display:none" onclick="switchTab('penales')">Penales</div>
   <div class="tab" onclick="switchTab('lineup')">Alineación</div>
   <div class="tab" onclick="switchTab('escenas')">Escenas</div>
   <div class="tab" onclick="switchTab('entrevista')" style="color:rgba(255,215,0,0.6)">Entrevista</div>
@@ -559,6 +649,10 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
     <button class="sel-clear" aria-label="Quitar selección" onclick="clearSel('goal')">✕</button>
   </div>
 
+  <div data-feature="ENABLE_AWAY_ROSTER" style="display:none">
+    <div class="chips-label">Goleador — Visitante (plantilla)</div>
+    <div class="chips-wrap" id="chips-goal-away"></div>
+  </div>
   <div class="away-label">Goleador — Visitante (escribir nombre)</div>
   <div class="away-row">
     <input class="field" id="in-away-scorer" placeholder="Nombre goleador visitante">
@@ -598,6 +692,10 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
     <button class="sel-clear" aria-label="Quitar selección" onclick="clearSel('card')">✕</button>
   </div>
 
+  <div data-feature="ENABLE_AWAY_ROSTER" style="display:none">
+    <div class="chips-label">Jugador — Visitante (plantilla)</div>
+    <div class="chips-wrap" id="chips-card-away"></div>
+  </div>
   <div class="away-label">Jugador — Visitante (escribir nombre)</div>
   <div class="away-row">
     <input class="field" id="in-away-card" placeholder="Nombre jugador visitante">
@@ -631,6 +729,10 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
     <button class="sel-clear" aria-label="Quitar selección" onclick="clearSel('sub')">✕</button>
   </div>
 
+  <div data-feature="ENABLE_AWAY_ROSTER" style="display:none">
+    <div class="chips-label">Jugador que SALE — Visitante (plantilla)</div>
+    <div class="chips-wrap" id="chips-sub-away"></div>
+  </div>
   <div class="away-label">Jugador que SALE — Visitante</div>
   <div class="away-row" style="margin-bottom:14px">
     <input class="field" id="in-sub-out-away" placeholder="Nombre jugador visitante que sale">
@@ -712,6 +814,36 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
   </div>
 </div>
 
+<!-- ═══ TAB: PENALES ═══ -->
+<div id="pane-penales" class="tab-pane" data-feature="ENABLE_PENALTIES" style="display:none">
+  <div class="sec-label">Tanda de Penales</div>
+  <div class="act-grid g2" style="margin-bottom:10px">
+    <button class="btn" onclick="penaltySetKicks(3)">3 Penales</button>
+    <button class="btn" onclick="penaltySetKicks(5)">5 Penales</button>
+  </div>
+  <div class="act-grid g2" style="margin-bottom:10px">
+    <div class="info-box">
+      <div class="info-box-label">Turno</div>
+      <div class="info-box-value" id="penalty-turn-info">LOCAL #1</div>
+    </div>
+    <div class="info-box">
+      <div class="info-box-label">Marcador</div>
+      <div class="info-box-value" id="penalty-score-display">0–0</div>
+    </div>
+  </div>
+  <div class="act-grid g2">
+    <button class="btn btn-green" onclick="penaltyMark('goal')">
+      <span class="ico" aria-hidden="true"><svg><use href="#i-goal"/></svg></span>Gol
+    </button>
+    <button class="btn btn-red" onclick="penaltyMark('miss')">
+      <span class="ico" aria-hidden="true"><svg><use href="#i-alert"/></svg></span>Fallo
+    </button>
+  </div>
+  <button class="btn btn-danger" style="width:100%;margin-top:8px" onclick="penaltyReset()">
+    <span class="ico" aria-hidden="true"><svg><use href="#i-rotate"/></svg></span>Reset Penales
+  </button>
+</div>
+
 <!-- ═══ TAB: ALINEACIÓN ═══ -->
 <div id="pane-lineup" class="tab-pane">
   <div class="sec-label">Alineación — desde Plantilla</div>
@@ -766,6 +898,14 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
     <button class="btn" onclick="sendMedioTiempo()"><span class="ico" aria-hidden="true"><svg><use href="#i-pencil"/></svg></span>Actualizar Textos</button>
     <button class="btn btn-green" onclick="setBadgeHalftime()"><span class="ico" aria-hidden="true"><svg><use href="#i-monitor"/></svg></span>Badge Medio Tiempo</button>
   </div>
+
+  <div data-feature="ENABLE_QR" style="display:none; margin-top:14px">
+    <hr class="div">
+    <div class="sec-label">Control desde la Cancha</div>
+    <button class="btn" style="width:100%" onclick="mostrarQR()">
+      <span class="ico" aria-hidden="true"><svg><use href="#i-monitor"/></svg></span>Mostrar QR de Acceso
+    </button>
+  </div>
 </div>
 
 <!-- ═══ TAB: ENTREVISTA ═══ -->
@@ -811,22 +951,53 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
   </div>
 </div>
 
+<!-- ═══ UNDO + LOG (ENABLE_UNDO) ═══ -->
+<div class="log-panel" id="log-panel" data-feature="ENABLE_UNDO" style="display:none">
+  <div id="log-list"></div>
+</div>
+<button class="log-toggle" id="log-toggle-btn" onclick="toggleLog()" title="Historial" data-feature="ENABLE_UNDO" style="display:none">📋</button>
+<div class="undo-bar" data-feature="ENABLE_UNDO" style="display:none">
+  <button id="btn-undo" onclick="undoLast()" title="Deshacer">↶ Deshacer</button>
+</div>
+
 <!-- ═══ STATUS BAR ═══ -->
 <div class="status-bar">
   <span class="ws-dot" id="ws-dot"></span>
   <span id="status-text">Conectando...</span>
 </div>
 
+<!-- ═══ QR MODAL (ENABLE_QR) ═══ -->
+<div class="qr-modal" id="qr-modal">
+  <div class="qr-box">
+    <div style="font-size:10px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:12px">Control desde el campo</div>
+    <img class="qr-img" id="qr-img" src="" alt="QR">
+    <a class="qr-link" id="qr-link" href="#" target="_blank"></a>
+    <div class="qr-note">Requiere Tailscale activo en el celular</div>
+    <button class="qr-close" onclick="document.getElementById('qr-modal').classList.remove('visible')">Cerrar</button>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════════════════
 //  MATCH STATE
 // ══════════════════════════════════════════════════
-const match = { home:'LOCAL', away:'VISITANTE', hs:0, as:0 };
+const match = { home:'LOCAL', away:'VISITANTE', hs:0, as:0, idaHome:0, idaAway:0 };
+
+// ══════════════════════════════════════════════════
+//  FEATURE FLAGS  (ver config.js de cada perfil — todo en false por defecto)
+// ══════════════════════════════════════════════════
+function applyFeatureFlags() {
+  const flags = window.SRYI || {};
+  document.querySelectorAll('[data-feature]').forEach(el => {
+    el.style.display = flags[el.dataset.feature] ? '' : 'none';
+  });
+}
 
 // ══════════════════════════════════════════════════
 //  PLAYER ROSTER  (local only — stored in sessionStorage)
 // ══════════════════════════════════════════════════
 let localPlayers = [];  // [{num, name}]
+let awayPlayers = [];   // [{num, name}] — solo se usa con ENABLE_AWAY_ROSTER
 let subTeam = 'local';  // toggle for cambios tab
 
 function loadRoster() {
@@ -838,6 +1009,17 @@ function loadRoster() {
 
 function saveRoster() {
   try { sessionStorage.setItem('localRoster', JSON.stringify(localPlayers)); } catch(_) {}
+}
+
+function loadAwayRoster() {
+  try {
+    const s = sessionStorage.getItem('awayRoster');
+    if (s) awayPlayers = JSON.parse(s);
+  } catch(_) {}
+}
+
+function saveAwayRoster() {
+  try { sessionStorage.setItem('awayRoster', JSON.stringify(awayPlayers)); } catch(_) {}
 }
 
 // ══════════════════════════════════════════════════
@@ -968,15 +1150,27 @@ function wsConnect() {
   if (txt) txt.textContent = 'Conectando...';
   const port  = (window.SRYI && window.SRYI.WS_PORT) || 8889;
   const host  = (window.SRYI && window.SRYI.WS_HOST) || window.location.hostname || 'localhost';
+  const token = (window.SRYI && window.SRYI.WS_TOKEN) || null;
   const wsUrl = `ws://${host}:${port}`;
   ws = new WebSocket(wsUrl);
   ws.onopen = () => {
+    if (token && host !== 'localhost' && host !== '127.0.0.1') {
+      ws.send(JSON.stringify({ auth: token }));
+    }
     log('Conectado al relay');
     dot.className = 'ws-dot ok';
     dot.title = 'Conectado — ' + wsUrl;
     if (txt) txt.textContent = 'Relay conectado';
     document.body.classList.remove('ws-offline');
     _reconnTimer = null;
+  };
+  ws.onmessage = (e) => {
+    try {
+      const d = JSON.parse(e.data);
+      if (d.fn === '_authOK')       { log('✓ Autenticado'); return; }
+      if (d.fn === '_authFailed')   { log('⚠️ Token incorrecto'); return; }
+      if (d.fn === '_authRequired') { log('⚠️ Token requerido'); return; }
+    } catch(_) {}
   };
   ws.onclose = () => {
     dot.className = 'ws-dot connecting';
@@ -1013,6 +1207,7 @@ document.addEventListener('keydown', function(e) {
     case 'h': case 'H': e.preventDefault(); sendGoal('away'); break;
     case 'y': case 'Y': e.preventDefault(); sendCard('yellow'); break;
     case 'r': case 'R': e.preventDefault(); sendCard('red'); break;
+    case 'z': case 'Z': e.preventDefault(); undoLast(); break;
     case ' ':           e.preventDefault(); cp.running ? clockPause() : clockStart(); break;
     case 'Escape':      e.preventDefault(); ['goal','card','sub'].forEach(t => clearSel(t)); break;
   }
@@ -1053,6 +1248,25 @@ function renderRosterRows() {
   if (!localPlayers.length) addRosterRow();
 }
 
+function addAwayRosterRow(num='', name='') {
+  const container = document.getElementById('away-roster-rows');
+  const row = document.createElement('div');
+  row.className = 'roster-row';
+  row.innerHTML = `
+    <input class="rr-num" type="number" placeholder="#" min="1" max="99" value="${num}">
+    <input class="rr-name" type="text" placeholder="Nombre jugador" value="${name}" oninput="this.value=this.value.toUpperCase()">
+    <button class="rr-del" onclick="this.parentElement.remove()">✕</button>`;
+  container.appendChild(row);
+}
+
+function renderAwayRosterRows() {
+  const container = document.getElementById('away-roster-rows');
+  if (!container) return;
+  container.innerHTML = '';
+  awayPlayers.forEach(p => addAwayRosterRow(p.num, p.name));
+  if (!awayPlayers.length) addAwayRosterRow();
+}
+
 function saveTeams() {
   const homeVal = document.getElementById('in-home').value.trim();
   const awayVal = document.getElementById('in-away').value.trim();
@@ -1068,6 +1282,23 @@ function saveTeams() {
     if (name) localPlayers.push({ num, name });
   });
   saveRoster();
+
+  if (window.SRYI && window.SRYI.ENABLE_AWAY_ROSTER) {
+    const awayRows = document.querySelectorAll('#away-roster-rows .roster-row');
+    awayPlayers = [];
+    awayRows.forEach(row => {
+      const num  = parseInt(row.querySelector('.rr-num').value) || 0;
+      const name = row.querySelector('.rr-name').value.trim();
+      if (name) awayPlayers.push({ num, name });
+    });
+    saveAwayRoster();
+  }
+
+  if (window.SRYI && window.SRYI.ENABLE_IDA_SCORE) {
+    match.idaHome = parseInt(document.getElementById('in-ida-home').value) || 0;
+    match.idaAway = parseInt(document.getElementById('in-ida-away').value) || 0;
+    if (match.idaHome > 0 || match.idaAway > 0) send('setGlobalScore', [match.idaHome, match.idaAway]);
+  }
 
   updateHeader();
   rebuildAllChips();
@@ -1090,6 +1321,16 @@ function updateHeader() {
   document.getElementById('hdr-away').textContent = match.away;
   document.getElementById('hdr-hs').textContent   = match.hs;
   document.getElementById('hdr-as').textContent   = match.as;
+
+  if (window.SRYI && window.SRYI.ENABLE_IDA_SCORE) {
+    const strip = document.getElementById('ida-strip');
+    if (match.idaHome > 0 || match.idaAway > 0) {
+      strip.style.display = '';
+      document.getElementById('ida-text').textContent = `${match.idaHome + match.hs}–${match.idaAway + match.as}`;
+    } else {
+      strip.style.display = 'none';
+    }
+  }
 }
 
 // ══════════════════════════════════════════════════
@@ -1123,6 +1364,32 @@ function rebuildAllChips() {
     const b = document.getElementById(`sel-${t}-badge`);
     if (b) b.classList.remove('visible');
   });
+  rebuildAwayChips();
+}
+
+// Chips de la plantilla visitante (ENABLE_AWAY_ROSTER) — al tocar un chip
+// solo llena el input de texto libre correspondiente, sin estado paralelo.
+function buildAwayChips(containerId, fillInputId) {
+  const wrap = document.getElementById(containerId);
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  if (!awayPlayers.length) {
+    wrap.innerHTML = '<span class="chips-empty">Sin jugadores — configura la plantilla visitante arriba</span>';
+    return;
+  }
+  awayPlayers.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'chip';
+    btn.innerHTML = `<span class="chip-num">#${p.num}</span>${p.name}`;
+    btn.onclick = () => { document.getElementById(fillInputId).value = p.name; };
+    wrap.appendChild(btn);
+  });
+}
+
+function rebuildAwayChips() {
+  buildAwayChips('chips-goal-away', 'in-away-scorer');
+  buildAwayChips('chips-card-away', 'in-away-card');
+  buildAwayChips('chips-sub-away',  'in-sub-out-away');
 }
 
 // ══════════════════════════════════════════════════
@@ -1174,7 +1441,9 @@ function sendCard(type) {
   send(type, [player, team, min]);
   clearSel('card');
   document.getElementById('in-away-card').value = '';
-  log(`${type === 'yellow' ? '🟨' : type === 'red' ? '🟥' : '🟦'} Tarjeta — ${player} (${min}')`);
+  const cardEmoji = type === 'yellow' ? '🟨' : type === 'red' ? '🟥' : '🟦';
+  log(`${cardEmoji} Tarjeta — ${player} (${min}')`);
+  pushHistory(`${cardEmoji} Tarjeta — ${player}`, () => send('clear', []));
 }
 
 // ══════════════════════════════════════════════════
@@ -1196,6 +1465,7 @@ function sendSub() {
   document.getElementById('in-sub-out-away').value = '';
   document.getElementById('in-sub-in').value = '';
   log(`🔄 Cambio — ↓${out} ↑${into} (${min}')`);
+  pushHistory(`🔄 Cambio — ↓${out} ↑${into}`, () => send('clear', []));
 }
 
 // ══════════════════════════════════════════════════
@@ -1305,7 +1575,7 @@ function clearLineup() {
 // ══════════════════════════════════════════════════
 //  TABS
 // ══════════════════════════════════════════════════
-const TABS = ['goles','tarjetas','cambios','tiempo','lineup','escenas','entrevista'];
+const TABS = ['goles','tarjetas','cambios','tiempo','penales','lineup','escenas','entrevista'];
 
 function switchTab(name) {
   TABS.forEach(t => {
@@ -1371,10 +1641,130 @@ function clearInterview() {
 }
 
 // ══════════════════════════════════════════════════
+//  UNDO + LOG DE EVENTOS  (ENABLE_UNDO)
+// ══════════════════════════════════════════════════
+const _history = [];
+const _eventLog = [];
+let _logOpen = false;
+
+function pushHistory(label, undoFn) {
+  if (!(window.SRYI && window.SRYI.ENABLE_UNDO)) return;
+  _history.push({ label, undo: undoFn });
+  if (_history.length > 10) _history.shift();
+  updateUndoBtn();
+  _pushLog(label);
+}
+
+function undoLast() {
+  if (!_history.length) return;
+  const entry = _history.pop();
+  entry.undo();
+  log(`↶ ${entry.label}`);
+  updateUndoBtn();
+}
+
+function updateUndoBtn() {
+  const btn = document.getElementById('btn-undo');
+  if (btn) btn.style.opacity = _history.length ? '1' : '0.3';
+}
+
+function _pushLog(text) {
+  const ts = cp.currentMin() + "'";
+  _eventLog.unshift({ text, ts });
+  if (_eventLog.length > 20) _eventLog.pop();
+  _renderLog();
+  try { sessionStorage.setItem('eventLog', JSON.stringify(_eventLog)); } catch(_) {}
+}
+
+function _renderLog() {
+  const list = document.getElementById('log-list');
+  if (!list) return;
+  list.innerHTML = '';
+  const items = _logOpen ? _eventLog.slice(0, 15) : _eventLog.slice(0, 1);
+  items.forEach(e => {
+    const li = document.createElement('div');
+    li.className = 'log-item';
+    li.textContent = `${e.ts} — ${e.text}`;
+    list.appendChild(li);
+  });
+}
+
+function toggleLog() {
+  _logOpen = !_logOpen;
+  _renderLog();
+  const btn = document.getElementById('log-toggle-btn');
+  if (btn) btn.textContent = _logOpen ? '✕' : '📋';
+}
+
+// ══════════════════════════════════════════════════
+//  PENALES  (ENABLE_PENALTIES)
+// ══════════════════════════════════════════════════
+const penaltyState = { kicks: 3, home: [], away: [], turn: 'home', idx: 0 };
+
+function penaltySetKicks(n) {
+  penaltyState.kicks = n;
+  penaltyState.home = []; penaltyState.away = [];
+  penaltyState.turn = 'home'; penaltyState.idx = 0;
+  send('setPenaltyKicks', [n]);
+  updatePenaltyUI();
+  log(`⚡ ${n} penales`);
+}
+
+function penaltyMark(result) {
+  if (penaltyState.idx >= penaltyState.kicks) { log('⚠️ Serie completada'); return; }
+  const team = penaltyState.turn;
+  if (team === 'home') penaltyState.home[penaltyState.idx] = result;
+  else penaltyState.away[penaltyState.idx] = result;
+  send('setPenaltyKick', [team, penaltyState.idx, result]);
+  const emoji = result === 'goal' ? '⚽' : '✕';
+  const teamName = team === 'home' ? match.home : match.away;
+  _pushLog(`${emoji} ${teamName} #${penaltyState.idx + 1} ${result === 'goal' ? 'GOL' : 'FALLO'}`);
+  if (penaltyState.turn === 'home') {
+    penaltyState.turn = 'away';
+  } else {
+    penaltyState.turn = 'home';
+    penaltyState.idx++;
+  }
+  updatePenaltyUI();
+}
+
+function penaltyReset() {
+  penaltyState.home = []; penaltyState.away = [];
+  penaltyState.turn = 'home'; penaltyState.idx = 0;
+  send('resetPenalty', []);
+  updatePenaltyUI();
+  log('🔄 Penales reiniciados');
+}
+
+function updatePenaltyUI() {
+  const homeGoals = penaltyState.home.filter(r => r === 'goal').length;
+  const awayGoals = penaltyState.away.filter(r => r === 'goal').length;
+  document.getElementById('penalty-score-display').textContent = `${homeGoals}–${awayGoals}`;
+  const turn = penaltyState.turn === 'home' ? match.home : match.away;
+  document.getElementById('penalty-turn-info').textContent = `${turn.split(' ')[0]} #${penaltyState.idx + 1}`;
+}
+
+// ══════════════════════════════════════════════════
+//  QR — control desde la cancha  (ENABLE_QR)
+// ══════════════════════════════════════════════════
+function mostrarQR() {
+  const host = window.location.hostname;
+  const port = (window.SRYI && window.SRYI.HTTP_PORT) || 8888;
+  const url  = `http://${host}:${port}/control_remoto.html`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}`;
+  document.getElementById('qr-img').src = qrUrl;
+  document.getElementById('qr-link').textContent = url;
+  document.getElementById('qr-link').href = url;
+  document.getElementById('qr-modal').classList.toggle('visible');
+}
+
+// ══════════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════════
 (function init() {
+  applyFeatureFlags();
   loadRoster();
+  loadAwayRoster();
 
   // Pre-fill team inputs from sessionStorage or config.js
   try {
@@ -1387,15 +1777,32 @@ function clearInterview() {
     }
   } catch(_) {}
 
+  if (!localPlayers.length && window.SRYI && window.SRYI.PLAYERS && window.SRYI.PLAYERS.length) {
+    localPlayers = window.SRYI.PLAYERS.map(p => ({ num: p.num, name: p.name }));
+  }
+
   document.getElementById('in-home').value = match.home;
   document.getElementById('in-away').value = match.away;
   document.getElementById('lu-team').value = match.home;
 
+  if (window.SRYI && window.SRYI.ENABLE_IDA_SCORE) {
+    match.idaHome = window.SRYI.IDA_HOME || 0;
+    match.idaAway = window.SRYI.IDA_AWAY || 0;
+    document.getElementById('in-ida-home').value = match.idaHome;
+    document.getElementById('in-ida-away').value = match.idaAway;
+  }
+
   updateHeader();
   renderRosterRows();
+  renderAwayRosterRows();
   rebuildAllChips();
   renderLineupRows();
   updateAllClocks();
+  updateUndoBtn();
+  try {
+    const lg = sessionStorage.getItem('eventLog');
+    if (lg) { _eventLog.push(...JSON.parse(lg)); _renderLog(); }
+  } catch(_) {}
   wsConnect();
   showQS();
 

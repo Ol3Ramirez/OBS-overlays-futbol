@@ -14,6 +14,14 @@ $DIR  = $PSScriptRoot
 $LOG  = Join-Path $DIR "logs"
 if (-not (Test-Path $LOG)) { New-Item -ItemType Directory -Force $LOG | Out-Null }
 
+# Sincronizar control_remoto.html / ws-client.js desde la plantilla compartida.
+# Editar SOLO shared/control_remoto.html -- esta copia se sobreescribe en cada arranque.
+$SHARED = Join-Path (Split-Path $DIR -Parent) "shared"
+if (Test-Path $SHARED) {
+    Copy-Item (Join-Path $SHARED "control_remoto.html") (Join-Path $DIR "control_remoto.html") -Force
+    Copy-Item (Join-Path $SHARED "ws-client.js") (Join-Path $DIR "ws-client.js") -Force
+}
+
 # Rotar logs si superan 5 MB
 function Rotate-Log { param([string]$f); if ((Test-Path $f) -and (Get-Item $f).Length -gt 5MB) { Rename-Item $f ($f + '.' + (Get-Date -Format 'yyyyMMdd_HHmmss')) -Force } }
 Rotate-Log (Join-Path $LOG "http.log")

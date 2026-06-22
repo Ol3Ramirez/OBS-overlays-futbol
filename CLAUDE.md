@@ -184,6 +184,24 @@ Solo hay que editar `config.js` — todos los overlays leen los datos desde ahi.
 
 ---
 
+## Panel de control compartido (`shared/`)
+
+`control_remoto.html` y `ws-client.js` ya NO se editan dentro de cada perfil.
+Viven una sola vez en `shared/` y cada `iniciar_stream.sh`/`.ps1` copia una version
+fresca a la carpeta del perfil antes de levantar el servidor HTTP — asi un cambio
+en `shared/control_remoto.html` se distribuye a todos los perfiles en el siguiente arranque.
+
+- **Editar SOLO** `shared/control_remoto.html` / `shared/ws-client.js`.
+- Las copias `original/control_remoto.html`, `SRYiyo/control_remoto.html` (y sus
+  `ws-client.js`) son generadas — estan en `.gitignore`, no se commitean.
+- Las diferencias entre perfiles (roster visitante, penales, deshacer+historial,
+  marcador global IDA, QR de acceso desde cancha) son **feature flags en `config.js`**:
+  `ENABLE_AWAY_ROSTER`, `ENABLE_PENALTIES`, `ENABLE_UNDO`, `ENABLE_IDA_SCORE`, `ENABLE_QR`.
+  `original/` las tiene todas en `false` (panel minimo); `SRYiyo/` las tiene en `true`.
+- Un perfil nuevo (`cp -r`) hereda el paso de sync automaticamente — no hay que tocar nada.
+
+---
+
 ## OBS WebSocket MCP (control desde Claude)
 
 Configurado en `~/.claude.json` -> `mcpServers.obs`.

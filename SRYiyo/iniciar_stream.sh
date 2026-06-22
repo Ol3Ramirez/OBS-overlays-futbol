@@ -15,6 +15,14 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG="$DIR/logs"
 mkdir -p "$LOG"
 
+# Sincronizar control_remoto.html / ws-client.js desde la plantilla compartida.
+# Editar SOLO shared/control_remoto.html -- esta copia se sobreescribe en cada arranque.
+SHARED="$(cd "$DIR/.." && pwd)/shared"
+if [ -d "$SHARED" ]; then
+  cp "$SHARED/control_remoto.html" "$DIR/control_remoto.html"
+  cp "$SHARED/ws-client.js" "$DIR/ws-client.js"
+fi
+
 # Rotar logs si superan 5 MB (evita llenado de disco en streams largos)
 _rotate_log() {
   local f="$1"

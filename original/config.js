@@ -16,4 +16,16 @@ window.SRYI = {
   ALTAVOZ_LOGO: './logo_sponsor.jpg',
   SPONSOR:     'Avila Fisioterapia',
   SPONSOR_SOCIAL: 'AvilaFisioterapia',
+
+  // Control remoto compartido (shared/control_remoto.html) — features opcionales,
+  // todas apagadas en este perfil. Ver SRYiyo/config.js para un perfil con todas activas.
+  ENABLE_AWAY_ROSTER: false,
+  ENABLE_PENALTIES:   false,
+  ENABLE_UNDO:        false,
+  ENABLE_IDA_SCORE:   false,
+  ENABLE_QR:          false,
+  IDA_HOME: 0,
+  IDA_AWAY: 0,
+  WS_TOKEN: null,
+  PLAYERS: [],
 };

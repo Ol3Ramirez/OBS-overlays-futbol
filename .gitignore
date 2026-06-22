@@ -25,6 +25,13 @@ __pycache__/
 # MCP local — contiene credenciales, NUNCA subir a git
 .mcp.json
 
+# Control remoto / ws-client compartidos — la fuente de verdad es shared/.
+# Cada iniciar_stream.sh/.ps1 sobreescribe estas copias por perfil al arrancar.
+original/control_remoto.html
+original/ws-client.js
+SRYiyo/control_remoto.html
+SRYiyo/ws-client.js
+
 # Imágenes — excluir logos de sponsors
 *.jpeg
 *.jpg

@@ -33,4 +33,12 @@ window.SRYI = {
 
   // Plantilla Moto Equipos Rodriguez — agregar desde control remoto
   PLAYERS: [],
+
+  // Control remoto compartido (shared/control_remoto.html) — features que
+  // este perfil usa (roster visitante, penales, undo+historial, QR, marcador IDA).
+  ENABLE_AWAY_ROSTER: true,
+  ENABLE_PENALTIES:   true,
+  ENABLE_UNDO:        true,
+  ENABLE_IDA_SCORE:   true,
+  ENABLE_QR:          true,
 };

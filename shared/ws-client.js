@@ -1,5 +1,5 @@
 /**
- * ws-client.js -- SRYiyo WebSocket auto-reconnect
+ * ws-client.js -- WebSocket auto-reconnect compartido por todos los perfiles
  *
  * Principios aplicados:
  *   DRY        — patron unico de reconexion compartido por todos los overlays
@@ -8,6 +8,10 @@
  *
  * Requiere: config.js cargado antes (window.SRYI con WS_PORT)
  * Requiere: el overlay defina window.obsOverlay con sus handlers
+ *
+ * Fuente canonica: shared/ws-client.js — cada perfil recibe una copia fresca
+ * al arrancar iniciar_stream.sh/.ps1. No editar las copias dentro de
+ * original/ o SRYiyo/, se sobreescriben en cada arranque.
  */
 (function () {
   "use strict";
@@ -27,7 +31,7 @@
   }
 
   function connect() {
-    var port = (window.SRYI && window.SRYI.WS_PORT) || 8891;
+    var port = (window.SRYI && window.SRYI.WS_PORT) || 8889;
     var ws;
 
     try {
