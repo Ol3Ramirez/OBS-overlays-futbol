@@ -1,5 +1,11 @@
 # Contexto de sesión — OBS Overlays Fútbol
-Última actualización: 2026-06-07
+Última actualización: 2026-06-25
+
+> **2026-06-25 (rama refactor/ssot-multiplatform-best-practices):** `config.js` ahora se
+> GENERA desde `profile.json` (`shared/gen_config.py`) en cada arranque — `profile.json` es
+> la única fuente de verdad (incluye `features`, `scenePrefix`, `scenes`). Escenas derivadas
+> de `profile.json` (sin hardcodeo). Suite Playwright 15/15. `verificar.sh`/`.ps1` +
+> `MULTISYSTEM.md`. **Diseño TV Azteca ya migrado a `original/marcador.html`** (ver abajo, ✅).
 
 ---
 
@@ -49,9 +55,11 @@
 
 ---
 
-## Tarea pendiente: migrar diseño TV Azteca a original/marcador.html
+## Tarea: migrar diseño TV Azteca a original/marcador.html ✅ HECHO (2026-06-25)
 
-La tarea que quedó pendiente de sesiones anteriores (copiar diseño SRYiyo a original/) **NO se realizó en esta sesión**. El marcador de `original/` sigue con diseño propio.
+`original/marcador.html` ya usa el diseño TV Azteca (barra full-width, Bebas Neue +
+Barlow Condensed) leyendo nombres/colores de `window.SRYI`. Se conservaron IDs y la API
+`obsOverlay` — los 4 tests `marcador.html [original]` pasan. Detalle histórico abajo.
 
 ### Lo que hay que hacer
 1. Copiar estructura HTML/CSS/JS de `SRYiyo/marcador.html` a `original/marcador.html`
