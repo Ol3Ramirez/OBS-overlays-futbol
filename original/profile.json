@@ -1,6 +1,6 @@
 {
-  "_comment": "SSOT del perfil original. Edita SOLO este archivo para cambiar equipos, colores o puertos.",
-  "_nota_config_js": "config.js es la version browser de este archivo. Si cambias algo aqui, refleja el cambio en config.js.",
+  "_comment": "SSOT del perfil original. UNICA fuente de verdad: equipos, colores, puertos, logos, features y escenas. config.js se GENERA desde aqui (shared/gen_config.py).",
+  "_nota_wsToken": "El token real NUNCA va aqui (este archivo se commitea). Va en profile.local.json (gitignoreado).",
 
   "name":          "original",
   "sponsor":       "Avila Fisioterapia",
@@ -14,6 +14,7 @@
   "awayColor": "#ef4444",
   "accent":    "#FFD700",
   "logo":      "./logo_sponsor.jpg",
+  "altavozLogo": "./logo_sponsor.jpg",
 
   "httpPort": 8888,
   "wsPort":   8889,
@@ -24,5 +25,23 @@
   "obsPort":       4455,
 
   "srtPort":      5000,
-  "srtLatencyMs": 4000
+  "srtLatencyMs": 4000,
+
+  "features": {
+    "ENABLE_AWAY_ROSTER": false,
+    "ENABLE_PENALTIES":   false,
+    "ENABLE_UNDO":        false,
+    "ENABLE_IDA_SCORE":   false,
+    "ENABLE_QR":          false
+  },
+
+  "scenePrefix": "",
+  "scenes": {
+    "Inicio":       "intro.html",
+    "Partido":      "marcador.html",
+    "Evento":       "evento_jugador.html",
+    "Alineacion":   "alineacion.html",
+    "Medio Tiempo": "medio_tiempo.html",
+    "Entrevista":   "entrevista.html"
+  }
 }

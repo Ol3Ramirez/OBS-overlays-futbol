@@ -32,6 +32,11 @@ original/ws-client.js
 SRYiyo/control_remoto.html
 SRYiyo/ws-client.js
 
+# config.js — GENERADO desde profile.json por shared/gen_config.py en cada arranque.
+# La fuente de verdad es profile.json. No commitear el generado.
+original/config.js
+SRYiyo/config.js
+
 # Imágenes — excluir logos de sponsors
 *.jpeg
 *.jpg

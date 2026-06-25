@@ -1,11 +1,11 @@
 {
-  "_comment": "SSOT del perfil SRYiyo. Edita SOLO este archivo para cambiar equipos, colores o puertos.",
-  "_nota_config_js": "config.js es la version browser de este archivo. Si cambias algo aqui, refleja el cambio en config.js.",
+  "_comment": "SSOT del perfil SRYiyo. UNICA fuente de verdad: equipos, colores, puertos, logos, features y escenas. config.js se GENERA desde aqui (shared/gen_config.py).",
   "_nota_wsToken": "El token real NUNCA va aqui (este archivo se commitea). Va en profile.local.json (gitignoreado) -- ver profile.local.json.example.",
 
   "name":          "SRYiyo",
-  "sponsor":       "Robles Futbol",
-  "sponsorSocial": "RoblesUtbol",
+  "sponsor":       "Altavoz Studio",
+  "sponsorSocial": "AltavozEstudio",
+  "sport":         "FÚTBOL 5",
 
   "home":       "MOTO EQUIPOS RODRIGUEZ",
   "away":       "HERMANOS OSORIO",
@@ -13,8 +13,13 @@
 
   "homeColor": "#C62828",
   "awayColor": "#FFFFFF",
+  "homeLogo":  "MER",
+  "awayLogo":  "HR",
   "accent":    "#FFD700",
   "logo":      "./logo_robles.jpeg",
+  "altavozLogo": "./logo_altavoz_studio.png",
+  "altavozFb": "https://www.facebook.com/profile.php?id=61575665086642",
+  "hostFb":    "https://www.facebook.com/profile.php?id=61581762022193",
 
   "httpPort": 8890,
   "wsPort":   8891,
@@ -22,5 +27,23 @@
 
   "obsCollection": "SRYiyo - Robles Futbol",
   "obsHost":       "localhost",
-  "obsPort":       4455
+  "obsPort":       4455,
+
+  "features": {
+    "ENABLE_AWAY_ROSTER": true,
+    "ENABLE_PENALTIES":   true,
+    "ENABLE_UNDO":        true,
+    "ENABLE_IDA_SCORE":   true,
+    "ENABLE_QR":          true
+  },
+
+  "scenePrefix": "SRY - ",
+  "scenes": {
+    "Inicio":       "intro.html",
+    "Partido":      "marcador.html",
+    "Evento":       "evento_jugador.html",
+    "Alineacion":   "alineacion.html",
+    "Medio Tiempo": "medio_tiempo.html",
+    "Entrevista":   "entrevista.html"
+  }
 }
