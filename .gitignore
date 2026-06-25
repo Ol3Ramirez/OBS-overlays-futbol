@@ -6,6 +6,11 @@ logs-demo/
 node_modules/
 .DS_Store
 
+# Playwright
+test-results/
+playwright-report/
+.playwright/
+
 # Python
 __pycache__/
 **/__pycache__/
