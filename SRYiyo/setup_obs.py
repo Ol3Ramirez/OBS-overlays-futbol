@@ -50,13 +50,11 @@ HTTP            = _P.get("httpPort",      8890)
 COLLECTION_NAME = _P.get("obsCollection", "SRYiyo - Robles Futbol")
 PROFILE_NAME    = _P.get("name",          "SRYiyo")
 
+# Escenas derivadas de profile.json (SSOT): scenePrefix + nombre -> overlay html.
+SCENE_PREFIX = _P.get("scenePrefix", "")
 SCENES = [
-    ("SRY - Inicio",       f"http://localhost:{HTTP}/intro.html",         1920, 1080),
-    ("SRY - Partido",      f"http://localhost:{HTTP}/marcador.html",       1920, 1080),
-    ("SRY - Evento",       f"http://localhost:{HTTP}/evento_jugador.html", 1920, 1080),
-    ("SRY - Alineacion",   f"http://localhost:{HTTP}/alineacion.html",     1920, 1080),
-    ("SRY - Medio Tiempo", f"http://localhost:{HTTP}/medio_tiempo.html",   1920, 1080),
-    ("SRY - Entrevista",   f"http://localhost:{HTTP}/entrevista.html",     1920, 1080),
+    (f"{SCENE_PREFIX}{name}", f"http://localhost:{HTTP}/{html}", 1920, 1080)
+    for name, html in _P.get("scenes", {}).items()
 ]
 
 # ── Password: env var → .env file → getpass interactivo ─────────────────────

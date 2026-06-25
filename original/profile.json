@@ -43,5 +43,10 @@
     "Alineacion":   "alineacion.html",
     "Medio Tiempo": "medio_tiempo.html",
     "Entrevista":   "entrevista.html"
+  },
+  "sceneAliases": {
+    "Intro":      "Inicio",
+    "Sin Fuente": "Inicio",
+    "Alineación": "Alineacion"
   }
 }

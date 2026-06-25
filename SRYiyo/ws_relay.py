@@ -76,15 +76,22 @@ _auth_ok: set = set()  # websockets autenticados (para control remoto)
 _obs_ws            = None
 _obs_authenticated = False
 
-SCENE_MAP = {
-    "Partido":       "SRY - Partido",
-    "Intro":         "SRY - Inicio",
-    "Medio Tiempo":  "SRY - Medio Tiempo",
-    "Alineación":    "SRY - Alineacion",
-    "Alineacion":    "SRY - Alineacion",
-    "Entrevista":    "SRY - Entrevista",
-    "Sin Fuente":    "SRY - Inicio",
-}
+def _build_scene_map(profile: dict) -> dict:
+    """Mapa nombre-corto -> nombre de escena en OBS, derivado de profile.json.
+
+    Cada escena de `scenes` mapea a `scenePrefix` + su nombre. `sceneAliases`
+    agrega nombres alternativos (ej. "Intro" -> "Inicio") que apuntan a la misma
+    escena prefijada. Asi el SCENE_MAP es SSOT: vive solo en profile.json.
+    """
+    prefix = profile.get("scenePrefix", "")
+    scenes = profile.get("scenes", {})
+    scene_map = {name: f"{prefix}{name}" for name in scenes}
+    for alias, target in profile.get("sceneAliases", {}).items():
+        scene_map[alias] = f"{prefix}{target}"
+    return scene_map
+
+
+SCENE_MAP = _build_scene_map(_profile)
 
 
 def _ts() -> str:

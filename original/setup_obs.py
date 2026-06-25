@@ -50,13 +50,11 @@ HTTP            = _P.get("httpPort",      8890)
 COLLECTION_NAME = _P.get("obsCollection", "SRYiyo - Robles Futbol")
 PROFILE_NAME    = _P.get("name",          "SRYiyo")
 
+# Escenas derivadas de profile.json (SSOT): scenePrefix + nombre -> overlay html.
+SCENE_PREFIX = _P.get("scenePrefix", "")
 SCENES = [
-    ("Inicio",       f"http://localhost:{HTTP}/intro.html",         1920, 1080),
-    ("Partido",      f"http://localhost:{HTTP}/marcador.html",       1920, 1080),
-    ("Evento",       f"http://localhost:{HTTP}/evento_jugador.html", 1920, 1080),
-    ("Alineacion",   f"http://localhost:{HTTP}/alineacion.html",     1920, 1080),
-    ("Medio Tiempo", f"http://localhost:{HTTP}/medio_tiempo.html",   1920, 1080),
-    ("Entrevista",   f"http://localhost:{HTTP}/entrevista.html",     1920, 1080),
+    (f"{SCENE_PREFIX}{name}", f"http://localhost:{HTTP}/{html}", 1920, 1080)
+    for name, html in _P.get("scenes", {}).items()
 ]
 
 # Escenas que se ven en vivo sobre la camara (Inicio y Medio Tiempo son
