@@ -15,11 +15,12 @@ Principios:
 """
 import asyncio
 import json
-import sys
 import os
+import sys
 from collections import OrderedDict
 from datetime import datetime
-from websockets.asyncio.server import broadcast, serve
+
+from websockets.asyncio.server import serve
 
 
 def _load_profile() -> dict:
@@ -53,29 +54,45 @@ def _ts() -> str:
     return datetime.now().strftime("%H:%M:%S")
 
 
-async def _replay_state(websocket) -> None:
-    """Reenvia el estado guardado al cliente recien conectado, escalonado.
-
-    El stagger evita que todas las transiciones CSS disparen en rafaga (parpadeo).
-    Corre en una tarea aparte para NO bloquear el read-loop de la conexion: asi el
-    cliente responde pings (keepalive) a tiempo mientras recibe el replay.
-    """
-    for msg in list(_state_store.values()):
-        try:
-            await websocket.send(msg)
-            await asyncio.sleep(0.25)
-        except Exception:
-            return
-
-
 async def main() -> None:
+    # Cola de salida por conexion + un "writer" dedicado que la drena en orden.
+    # Tanto el replay de estado como el broadcast en vivo SOLO encolan mensajes
+    # aqui (nunca escriben el socket directo) -- el writer los envia siempre en
+    # el orden en que se encolaron (FIFO). Esto evita dos bugs a la vez:
+    #   1. Si el replay (escalonado, con sleeps) escribiera el socket el mismo
+    #      directamente, un comando en vivo recibido a mitad del replay podria
+    #      "adelantarse" y luego ser pisado por un mensaje viejo del replay.
+    #   2. El read-loop de la conexion (que responde los pings/keepalive) nunca
+    #      espera a que un send termine -- jamas se bloquea.
+    _outboxes: dict = {}
+
+    def _broadcast(message: str) -> None:
+        for outbox in list(_outboxes.values()):
+            outbox.put_nowait(message)
+
+    async def _writer(websocket, outbox: asyncio.Queue) -> None:
+        try:
+            while True:
+                await websocket.send(await outbox.get())
+        except Exception:
+            pass  # conexion cerrada -- el finally de relay() limpia
+
+    async def _enqueue_replay(outbox: asyncio.Queue) -> None:
+        """Encola el estado guardado, escalonado (evita parpadeo CSS). Encolar
+        -- no enviar directo -- preserva el orden FIFO frente a comandos en
+        vivo que lleguen mientras el replay todavia se esta armando."""
+        for msg in list(_state_store.values()):
+            await outbox.put(msg)
+            await asyncio.sleep(0.25)
+
     async def relay(websocket) -> None:
         addr = websocket.remote_address
         print(f"[{_ts()}] [+] {addr}  clientes={len(server.connections)}")
 
-        # Replay en segundo plano: el read-loop arranca de inmediato (responde
-        # pings a tiempo) mientras el estado se reenvia escalonado.
-        asyncio.create_task(_replay_state(websocket))
+        outbox: asyncio.Queue = asyncio.Queue()
+        _outboxes[websocket] = outbox
+        writer_task = asyncio.create_task(_writer(websocket, outbox))
+        asyncio.create_task(_enqueue_replay(outbox))
 
         try:
             async for message in websocket:
@@ -94,14 +111,13 @@ async def main() -> None:
                     print(f"[{_ts()}] [!] Error procesando: {e}")
                     continue
 
-                # Fan-out no bloqueante (broadcast de la libreria): escribe a
-                # todos los clientes sin esperar, asi el read-loop nunca se
-                # bloquea y los pings se siguen respondiendo (sin keepalive timeout).
-                broadcast(server.connections, message)
+                _broadcast(message)
 
         except Exception as e:
             print(f"[{_ts()}] [!] {addr} error: {e}")
         finally:
+            writer_task.cancel()
+            _outboxes.pop(websocket, None)
             print(f"[{_ts()}] [-] {addr} desconectado  "
                   f"clientes={max(0, len(server.connections) - 1)}")
 

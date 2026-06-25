@@ -19,12 +19,13 @@ import base64
 import hashlib
 import hmac
 import json
-import sys
 import os
+import sys
 import uuid
 from collections import OrderedDict
 from datetime import datetime
-from websockets.asyncio.server import broadcast, serve
+
+from websockets.asyncio.server import serve
 
 
 def _load_profile() -> dict:
@@ -71,6 +72,7 @@ _NO_STORE = frozenset({
 _state_store: OrderedDict[str, str] = OrderedDict()
 _MAX_STORE  = 100
 _auth_ok: set = set()  # websockets autenticados (para control remoto)
+_outboxes: dict = {}   # websocket -> asyncio.Queue de salida (ver main())
 
 # ── OBS WebSocket para setScene ──
 _obs_ws            = None
@@ -197,20 +199,34 @@ async def _obs_connect_loop() -> None:
             await asyncio.sleep(5)
 
 
-async def _replay_state(websocket) -> None:
-    """Reenvia el estado guardado al cliente recien conectado, escalonado.
+def _broadcast(message: str) -> None:
+    for outbox in list(_outboxes.values()):
+        outbox.put_nowait(message)
+
+
+async def _writer(websocket, outbox: asyncio.Queue) -> None:
+    """Unico lugar que escribe en el socket de esta conexion. Drena la cola en
+    el orden en que se encolo (FIFO) -- replay y mensajes en vivo nunca se
+    desordenan entre si, y el read-loop (pings/keepalive) jamas espera un send.
+    """
+    try:
+        while True:
+            await websocket.send(await outbox.get())
+    except Exception:
+        pass  # conexion cerrada -- el finally de relay() limpia
+
+
+async def _enqueue_replay(outbox: asyncio.Queue) -> None:
+    """Encola el estado guardado al cliente recien conectado, escalonado.
 
     El stagger evita que todas las transiciones CSS (lower-third, ticker, cambio
-    de modo) disparen en la misma rafaga (se veria como parpadeo). Corre en una
-    tarea aparte para NO bloquear el read-loop de la conexion: asi el cliente
-    sigue respondiendo pings (keepalive) mientras recibe el replay.
+    de modo) disparen en la misma rafaga (parpadeo). Encolar -- no enviar
+    directo -- preserva el orden FIFO frente a comandos en vivo que lleguen
+    mientras el replay todavia se esta armando.
     """
     for msg in list(_state_store.values()):
-        try:
-            await websocket.send(msg)
-            await asyncio.sleep(0.25)
-        except Exception:
-            return
+        await outbox.put(msg)
+        await asyncio.sleep(0.25)
 
 
 async def main() -> None:
@@ -220,9 +236,10 @@ async def main() -> None:
 
         print(f"[{_ts()}] [+] {addr}  local={local}  clientes={len(server.connections)}")
 
-        # Replay en segundo plano: el read-loop arranca de inmediato (responde
-        # pings a tiempo) mientras el estado se reenvia escalonado.
-        asyncio.create_task(_replay_state(websocket))
+        outbox: asyncio.Queue = asyncio.Queue()
+        _outboxes[websocket] = outbox
+        writer_task = asyncio.create_task(_writer(websocket, outbox))
+        asyncio.create_task(_enqueue_replay(outbox))
 
         # Conexiones locales (overlays OBS) no necesitan token
         if not _TOKEN or local:
@@ -245,17 +262,17 @@ async def main() -> None:
                     # hmac.compare_digest evita timing attacks en la comparacion del token
                     if hmac.compare_digest(str(data.get("auth", "")), str(_TOKEN or "")):
                         _auth_ok.add(websocket)
-                        await websocket.send(json.dumps({"fn": "_authOK"}))
+                        outbox.put_nowait(json.dumps({"fn": "_authOK"}))
                         print(f"[{_ts()}] [OK] {addr} autenticado")
                     else:
-                        await websocket.send(json.dumps({"fn": "_authFailed"}))
+                        outbox.put_nowait(json.dumps({"fn": "_authFailed"}))
                         print(f"[{_ts()}] [!] {addr} token invalido")
                     continue  # No broadcast del mensaje de auth
 
                 # ── Verificar autorizacion ──
                 if websocket not in _auth_ok:
                     print(f"[{_ts()}] [!] {addr} no autenticado — enviar {{\"auth\":\"token\"}}")
-                    await websocket.send(json.dumps({"fn": "_authRequired"}))
+                    outbox.put_nowait(json.dumps({"fn": "_authRequired"}))
                     continue
 
                 # ── Guardar en state store ──
@@ -275,14 +292,13 @@ async def main() -> None:
                     if args:
                         asyncio.create_task(_obs_set_scene(args[0]))
 
-                # Fan-out no bloqueante (broadcast de la libreria): escribe a
-                # todos los clientes sin esperar, asi el read-loop nunca se
-                # bloquea y los pings se siguen respondiendo (sin keepalive timeout).
-                broadcast(server.connections, message)
+                _broadcast(message)
 
         except Exception as e:
             print(f"[{_ts()}] [!] {addr} error: {e}")
         finally:
+            writer_task.cancel()
+            _outboxes.pop(websocket, None)
             _auth_ok.discard(websocket)
             print(f"[{_ts()}] [-] {addr} desconectado  "
                   f"clientes={max(0, len(server.connections) - 1)}")
