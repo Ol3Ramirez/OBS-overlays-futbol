@@ -50,7 +50,8 @@
     "Evento":       "evento_jugador.html",
     "Alineacion":   "alineacion.html",
     "Medio Tiempo": "medio_tiempo.html",
-    "Entrevista":   "entrevista.html"
+    "Entrevista":   "entrevista.html",
+    "Canvas":       "canvas.html"
   },
   "sceneAliases": {
     "Intro":      "Inicio",
