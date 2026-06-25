@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Marcador Fútbol</title>
+<title>Marcador — OBS Overlay</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@600;700;900&display=swap" rel="stylesheet">
 <script src="config.js"></script>
 <style>
@@ -14,7 +13,8 @@
   body {
     background: transparent;
     font-family: 'Barlow Condensed', sans-serif;
-    width: 1920px; height: 1080px;
+    width: 1920px;
+    height: 1080px;
     overflow: hidden;
   }
 
@@ -25,9 +25,27 @@
   :root {
     --gold:       #FFD700;
     --dark:       #060610;
-    --accent:     #00e5ff;
-    --home-color: #3b82f6;
-    --away-color: #ef4444;
+    --text-main:  #FFFFFF;
+    --text-dim:   rgba(255,255,255,0.4);
+    --home-color: #C62828;
+    --away-color: #FFFFFF;
+  }
+
+  /* === HUD Principal (barra superior) === */
+  .hud {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 76px;
+    display: flex;
+    align-items: stretch;
+    background: rgba(6, 6, 14, 0.97);
+    border-bottom: 1px solid rgba(255,215,0,0.15);
+    box-shadow: 0 4px 30px rgba(0,0,0,0.6);
+    padding-left: 165px;
+    z-index: 1000;
+    animation: slideDown 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   }
 
   @keyframes slideDown {
@@ -35,23 +53,7 @@
     to   { transform: translateY(0); opacity: 1; }
   }
 
-  /* === HUD Principal === */
-  .hud {
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 76px;
-    display: flex;
-    align-items: stretch;
-    background: rgba(6, 6, 14, 0.97);
-    border-bottom: 1px solid rgba(255,215,0,0.15);
-    box-shadow: 0 4px 30px rgba(0,0,0,0.6);
-    padding-left: 210px;  /* zona segura badge "EN VIVO" + controles del player de Facebook Live */
-    padding-right: 210px; /* simetrico con el padding-left para que el marcador quede centrado */
-    z-index: 1000;
-    animation: slideDown 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  }
-
-  /* === Clock Block === */
+  /* === Clock Block (izquierda) === */
   .clock-block {
     display: flex;
     flex-direction: column;
@@ -60,86 +62,159 @@
     min-width: 130px;
     border-right: 2px solid rgba(255,215,0,0.4);
     padding: 0 18px;
+    position: relative;
   }
 
   .clock-live {
-    font-size: 9px; font-weight: 700;
-    color: #ffffff;
-    letter-spacing: 1px; text-transform: uppercase;
-    display: flex; align-items: center; gap: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 4px;
     margin-bottom: 4px;
   }
 
   .live-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%; background: #ff3b3b;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ff3b3b;
+    display: inline-block;
     animation: liveBlink 1s ease-in-out infinite;
   }
 
-  @keyframes liveBlink { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
+  @keyframes liveBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  .clock-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px;
+    font-weight: 400;
+    color: var(--text-main);
+    line-height: 1;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  }
 
   #clock {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 40px; color: #ffffff;
-    line-height: 1; letter-spacing: 1px;
+    font-size: 40px;
   }
 
-  #half {
-    font-size: 9px; font-weight: 700;
-    color: rgba(255,255,255,0.4);
-    letter-spacing: 0.5px; text-transform: uppercase;
+  .clock-half {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
     margin-top: 2px;
   }
 
-  /* === Team Blocks === */
+  #half {
+    font-size: 9px;
+  }
+
+  /* === Team Block (local y visitante) === */
   .team-block {
-    display: flex; align-items: center;
-    flex: 1; padding: 0 16px;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    padding: 0 16px;
     background: rgba(8, 8, 20, 0.95);
     position: relative;
   }
 
   .team-block::after {
     content: '';
-    position: absolute; bottom: 0; left: 0; right: 0;
-    height: 3px; background: var(--home-color);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--home-color);
   }
 
-  .team-block.team-away { flex-direction: row-reverse; }
-  .team-block.team-away::after { background: var(--away-color); }
+  .team-block.away::after {
+    background: var(--away-color);
+  }
 
-  .team-info { display: flex; flex-direction: column; justify-content: center; }
-  .team-block.team-home .team-info { text-align: right; }
-  .team-block.team-away .team-info { text-align: left; }
+  .team-home {
+    border-right: none;
+  }
+
+  .team-away {
+    flex-direction: row-reverse;
+  }
+
+  .team-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .team-home .team-info {
+    text-align: right;
+  }
+
+  .team-away .team-info {
+    text-align: left;
+  }
 
   .team-name {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 28px; color: #ffffff;
-    letter-spacing: 2px; text-transform: uppercase;
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--text-main);
+    letter-spacing: 2px;
+    text-transform: uppercase;
     line-height: 1;
   }
 
+  #home-name {
+    font-size: 28px;
+  }
+
+  #away-name {
+    font-size: 28px;
+  }
+
   .team-sub {
-    font-size: 9px; font-weight: 700;
-    color: rgba(255,255,255,0.4);
-    letter-spacing: 1px; text-transform: uppercase;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
     margin-top: 2px;
   }
 
   .team-logo {
-    width: 42px; height: 42px;
+    width: 42px;
+    height: 42px;
     border-radius: 4px;
     background: rgba(255,255,255,0.08);
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 18px; color: #ffffff;
-    flex-shrink: 0; margin: 0 12px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-main);
+    flex-shrink: 0;
+    margin: 0 12px;
   }
 
-  /* === Score Block === */
+  /* === Score Block (centro) === */
   .score-block {
-    display: flex; align-items: center; justify-content: center;
-    gap: 12px; min-width: 170px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-width: 170px;
     background: var(--dark);
     border-top: 2px solid var(--gold);
     border-bottom: 2px solid var(--gold);
@@ -148,51 +223,87 @@
 
   .score-num {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 68px; color: #ffffff;
-    line-height: 1; min-width: 80px; text-align: center;
+    font-size: 68px;
+    font-weight: 400;
+    color: var(--text-main);
+    line-height: 1;
+    min-width: 80px;
+    text-align: center;
     text-shadow: 0 0 24px rgba(255,213,0,0.5);
-    letter-spacing: -2px; will-change: transform;
+    letter-spacing: -2px;
+    will-change: transform;
   }
 
-  .score-num.scored { animation: scorePop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  #home-score {
+    font-size: 68px;
+  }
+
+  #away-score {
+    font-size: 68px;
+  }
+
+  .score-num.scored {
+    animation: scorePop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
 
   @keyframes scorePop {
     0%   { transform: scale(1); }
-    40%  { transform: scale(1.7); filter: drop-shadow(0 0 20px var(--gold)); }
-    70%  { transform: scale(0.9); }
+    40%  { transform: scale(1.6); filter: drop-shadow(0 0 20px var(--gold)); }
+    70%  { transform: scale(0.95); }
     100% { transform: scale(1); filter: none; }
   }
 
   .score-sep {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 48px; color: rgba(255,255,255,0.3); line-height: 1;
+    font-size: 48px;
+    color: var(--text-dim);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -1px;
   }
 
-  /* === Match Strip === */
+  /* === Match Strip (debajo del HUD) === */
   .match-strip {
-    position: absolute; top: 76px;
-    left: 50%; transform: translateX(-50%);
-    background: var(--gold); color: #000000;
-    padding: 3px 20px; border-radius: 0 0 6px 6px;
-    font-size: 10px; font-weight: 700;
-    letter-spacing: 2.5px; text-transform: uppercase;
-    white-space: nowrap; z-index: 1001;
+    position: absolute;
+    top: 76px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--gold);
+    color: #000000;
+    padding: 3px 20px;
+    border-radius: 0 0 6px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
     animation: slideDown 0.5s 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    z-index: 1001;
   }
 
-  /* === Added Time === */
+  /* === Added Time Badge === */
   .added-time {
-    position: absolute; top: 88px; left: 170px;
-    background: var(--gold); color: #000000;
-    padding: 6px 12px; border-radius: 3px;
+    position: absolute;
+    top: 88px;
+    left: 170px;
+    background: var(--gold);
+    color: #000000;
+    padding: 6px 12px;
+    border-radius: 3px;
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 28px; letter-spacing: 1px;
+    font-size: 28px;
+    font-weight: 400;
+    letter-spacing: 1px;
     display: none;
+    animation: addedIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
 
   .added-time.show {
     display: block;
-    animation: addedIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  #added-time-val {
+    font-size: 28px;
   }
 
   @keyframes addedIn {
@@ -200,30 +311,21 @@
     to   { opacity: 1; transform: translateX(0); }
   }
 
-  /* === Partículas === */
-  .particle {
-    position: fixed; width: 7px; height: 7px;
-    border-radius: 50%; background: var(--gold);
-    pointer-events: none;
-    animation: particleFly var(--dur, 1.2s) ease-out forwards;
-    will-change: transform, opacity; z-index: 9999;
-  }
-  .particle.cyan  { background: var(--accent); }
-  .particle.white { background: #fff; width: 4px; height: 4px; }
-
-  @keyframes particleFly {
-    0%   { transform: translate(0,0) scale(1); opacity: 1; }
-    100% { transform: translate(var(--tx,0px), var(--ty,-80px)) scale(0); opacity: 0; }
-  }
-
-  /* === Banner Gol === */
+  /* === Goal Banner === */
   .goal-banner {
-    position: absolute; top: 50%; left: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%) scale(0);
     background: rgba(6, 6, 14, 0.98);
-    border: 3px solid var(--gold); border-radius: 12px;
-    padding: 40px 80px; text-align: center;
-    display: none; flex-direction: column; align-items: center; gap: 12px;
+    border: 3px solid var(--gold);
+    border-radius: 12px;
+    padding: 40px 80px;
+    text-align: center;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
     filter: drop-shadow(0 12px 48px rgba(255,213,0,0.3));
   }
 
@@ -243,47 +345,78 @@
     to   { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
   }
 
-  .goal-label {
+  .goal-word {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 100px; color: var(--gold);
-    letter-spacing: 4px; text-shadow: 0 0 40px rgba(255,213,0,0.6); line-height: 1;
+    font-size: 100px;
+    font-weight: 400;
+    color: var(--gold);
+    letter-spacing: 4px;
+    text-shadow: 0 0 40px rgba(255,213,0,0.6);
+    line-height: 1;
   }
 
   .goal-scorer {
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 22px; font-weight: 700; color: #ffffff;
-    letter-spacing: 2px; text-transform: uppercase;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: 2px;
+    text-transform: uppercase;
   }
 
-  .goal-minute {
-    font-size: 14px; font-weight: 700;
-    color: rgba(255,255,255,0.4); letter-spacing: 1px;
+  #goal-scorer {
+    font-size: 22px;
   }
 
-  /* === Watermark === */
-  .altavoz-wm {
-    position: absolute; bottom: 28px; right: 40px;
-    background: rgba(0,0,0,0.35); border-radius: 6px;
-    padding: 4px 10px; display: flex; align-items: center; gap: 6px;
+  .goal-min {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-dim);
+    letter-spacing: 1px;
   }
-  .altavoz-wm img { height: 34px; opacity: 0.85; }
+
+  #goal-min {
+    font-size: 14px;
+  }
+
+  /* === Partículas === */
+  .particle {
+    position: fixed;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--gold);
+    pointer-events: none;
+    animation: pFly var(--dur, 1.2s) ease-out forwards;
+    will-change: transform, opacity;
+    z-index: 9999;
+  }
+
+  .particle.red   { background: var(--home-color); }
+  .particle.blue  { background: var(--away-color); }
+  .particle.white { background: #fff; width: 4px; height: 4px; }
+
+  @keyframes pFly {
+    0%   { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx,0px), var(--ty,-80px)) scale(0); opacity: 0; }
+  }
 </style>
 </head>
 <body>
 
 <div class="hud">
   <div class="clock-block">
-    <div class="clock-live" id="clock-live-label">
+    <div class="clock-live">
       <span class="live-dot"></span>EN VIVO
     </div>
-    <div id="clock">00:00</div>
-    <div id="half">1er Tiempo</div>
+    <div class="clock-value" id="clock">00:00</div>
+    <div class="clock-half" id="half">1er Tiempo</div>
   </div>
 
   <div class="team-block team-home">
     <div class="team-info">
       <span class="team-name" id="home-name">LOCAL</span>
-      <span class="team-sub" id="home-sub">LOCAL</span>
+      <span class="team-sub">LOCAL</span>
     </div>
     <div class="team-logo" id="home-logo">L</div>
   </div>
@@ -298,7 +431,7 @@
     <div class="team-logo" id="away-logo">V</div>
     <div class="team-info">
       <span class="team-name" id="away-name">VISITANTE</span>
-      <span class="team-sub" id="away-sub">VISITANTE</span>
+      <span class="team-sub">VISITANTE</span>
     </div>
   </div>
 </div>
@@ -306,17 +439,13 @@
 <div class="match-strip" id="match-label">EN VIVO</div>
 
 <div class="added-time" id="added-time">
-  <div id="added-time-value">+3'</div>
+  <div id="added-time-val">+3'</div>
 </div>
 
 <div class="goal-banner" id="goal-banner">
-  <div class="goal-label">¡GOL!</div>
+  <div class="goal-word">¡GOL!</div>
   <div class="goal-scorer" id="goal-scorer">Jugador</div>
-  <div class="goal-minute" id="goal-minute">• 45'</div>
-</div>
-
-<div class="altavoz-wm">
-  <img src="" alt="Altavoz Studio" />
+  <div class="goal-min" id="goal-min">• 0'</div>
 </div>
 
 <script>
@@ -340,19 +469,6 @@
     _rafId = requestAnimationFrame(_rafTick);
   }
 
-  function teamInitials(n) {
-    const words = n.trim().toUpperCase().split(/\s+/);
-    return words.length >= 2 ? words[0][0] + words[1][0] : n.slice(0, 2).toUpperCase();
-  }
-
-  function updateRunningDot() {
-    const label = document.getElementById('clock-live-label');
-    if (!label) return;
-    label.innerHTML = state.running
-      ? '<span class="live-dot"></span>EN VIVO'
-      : 'EN VIVO';
-  }
-
   function toggleClock() {
     if (state.running) {
       state.running = false;
@@ -362,12 +478,12 @@
       _lastTick = 0;
       if (!_rafId) _rafId = requestAnimationFrame(_rafTick);
     }
-    updateRunningDot();
   }
 
   function nextHalf() {
     state.half = 2;
-    state.minutes = 45; state.seconds = 0;
+    state.minutes = 45;
+    state.seconds = 0;
     document.getElementById('half').textContent = '2do Tiempo';
     document.getElementById('clock').textContent = '45:00';
   }
@@ -383,16 +499,16 @@
     const rect = originEl.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
-    const colors = ['particle', 'particle cyan', 'particle white'];
+    const colors = ['particle', 'particle red', 'particle blue', 'particle white'];
     const frag = document.createDocumentFragment();
     for (let i = 0; i < 28; i++) {
       const p = document.createElement('div');
-      p.className = colors[i % 3];
+      p.className = colors[i % 4];
       const angle = (i / 28) * Math.PI * 2;
       const dist = 80 + Math.random() * 140;
-      const tx = Math.cos(angle) * dist;
-      const ty = Math.sin(angle) * dist - 40;
-      p.style.cssText = `left:${cx}px;top:${cy}px;position:fixed;--tx:${tx}px;--ty:${ty}px;--dur:${(0.8+Math.random()*0.6).toFixed(2)}s;z-index:9999;`;
+      p.style.cssText = `left:${cx}px;top:${cy}px;position:fixed;
+        --tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist-40}px;
+        --dur:${(0.8+Math.random()*0.6).toFixed(2)}s;z-index:9999;`;
       frag.appendChild(p);
     }
     document.body.appendChild(frag);
@@ -402,7 +518,7 @@
   function showGoal(team, scorer) {
     const banner = document.getElementById('goal-banner');
     document.getElementById('goal-scorer').textContent = scorer || team;
-    document.getElementById('goal-minute').textContent = `• ${state.minutes}'`;
+    document.getElementById('goal-min').textContent = `• ${state.minutes}'`;
     banner.classList.remove('show');
     void banner.offsetWidth;
     banner.classList.add('show');
@@ -426,42 +542,43 @@
 
   window.obsOverlay = {
     setTeams: (home, away) => {
-      const h = home.toUpperCase(); const a = away.toUpperCase();
-      document.getElementById('home-name').textContent = h;
-      document.getElementById('away-name').textContent = a;
-      document.getElementById('home-logo').textContent = teamInitials(h);
-      document.getElementById('away-logo').textContent = teamInitials(a);
-      const hs = document.getElementById('home-sub'); if (hs) hs.textContent = h;
-      const as = document.getElementById('away-sub'); if (as) as.textContent = a;
+      document.getElementById('home-name').textContent = home.toUpperCase();
+      document.getElementById('away-name').textContent = away.toUpperCase();
     },
     setScore: (h, a) => {
       document.getElementById('home-score').textContent = h;
       document.getElementById('away-score').textContent = a;
-      state.homeScore = h; state.awayScore = a;
+      state.homeScore = h;
+      state.awayScore = a;
     },
     goalHome, goalAway, toggleClock, nextHalf,
-    startClock: () => { if (!state.running) toggleClock(); },
-    stopClock:  () => { if (state.running)  toggleClock(); },
-    resetClock: () => {
+    startClock:  () => { if (!state.running) toggleClock(); },
+    stopClock:   () => { if (state.running)  toggleClock(); },
+    resetClock:  () => {
       state.running = false;
       if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
-      state.minutes = 0; state.seconds = 0; state.half = 1;
+      state.minutes = 0;
+      state.seconds = 0;
+      state.half = 1;
       document.getElementById('clock').textContent = '00:00';
       document.getElementById('half').textContent = '1er Tiempo';
-      updateRunningDot();
     },
     setMinute: (m) => {
-      state.minutes = m; state.seconds = 0;
-      document.getElementById('clock').textContent = `${String(m).padStart(2,'0')}:00`;
+      state.minutes = m;
+      state.seconds = 0;
+      document.getElementById('clock').textContent =
+        `${String(m).padStart(2,'0')}:00`;
     },
     setTime: (m, s) => {
       s = s || 0;
-      state.minutes = m; state.seconds = s;
-      document.getElementById('clock').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      state.minutes = m;
+      state.seconds = s;
+      document.getElementById('clock').textContent =
+        `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
     },
     addedTime: (n) => {
       const el = document.getElementById('added-time');
-      document.getElementById('added-time-value').textContent = `+${n}'`;
+      document.getElementById('added-time-val').textContent = `+${n}'`;
       el.classList.remove('show');
       void el.offsetWidth;
       el.classList.add('show');
@@ -470,17 +587,15 @@
     }
   };
 
+  // Auto-init con config SRYI
   if (window.SRYI) {
     window.obsOverlay.setTeams(window.SRYI.HOME, window.SRYI.AWAY);
-    const strip = document.getElementById('match-label');
-    if (strip) strip.textContent = window.SRYI.MATCH_LABEL || 'EN VIVO';
+    document.getElementById('match-label').textContent = window.SRYI.MATCH_LABEL || 'EN VIVO';
     if (window.SRYI.HOME_COLOR) document.documentElement.style.setProperty('--home-color', window.SRYI.HOME_COLOR);
     if (window.SRYI.AWAY_COLOR) document.documentElement.style.setProperty('--away-color', window.SRYI.AWAY_COLOR);
     if (window.SRYI.ACCENT)     document.documentElement.style.setProperty('--gold', window.SRYI.ACCENT);
     if (window.SRYI.HOME_LOGO)  document.getElementById('home-logo').textContent = window.SRYI.HOME_LOGO;
     if (window.SRYI.AWAY_LOGO)  document.getElementById('away-logo').textContent = window.SRYI.AWAY_LOGO;
-    const _altavozImg = document.querySelector('.altavoz-wm img');
-    if (_altavozImg) _altavozImg.src = window.SRYI.ALTAVOZ_LOGO || '';
   }
 </script>
 <script src="ws-client.js"></script>
