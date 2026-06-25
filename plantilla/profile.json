@@ -21,8 +21,12 @@
   "wsBindAddress": "0.0.0.0",
 
   "obsCollection": "plantilla - Demo",
+  "obsProfile":    "Futbol-1080p",
   "obsHost":       "localhost",
   "obsPort":       4455,
+
+  "srtPort":      5000,
+  "srtLatencyMs": 4000,
 
   "video": {
     "baseWidth":   1920,
@@ -33,7 +37,7 @@
   },
 
   "output": {
-    "mode":             "Simple",
+    "mode":             "Advanced",
     "streamBitrateKbps": 6000,
     "audioBitrateKbps":  160,
     "recFormat":        "hybrid_mp4",

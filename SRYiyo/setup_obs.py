@@ -53,11 +53,20 @@ PORT            = _P.get("obsPort",       4455)
 HTTP            = _P.get("httpPort",      8890)
 COLLECTION_NAME = _P.get("obsCollection", "SRYiyo - Robles Futbol")
 PROFILE_NAME    = _P.get("name",          "SRYiyo")
+# Perfil de OBS real (puede ser compartido entre varias carpetas, ej. la
+# misma resolucion 1920x1080 -- ver shared/obs_settings.py). Si no se declara
+# explicitamente, cae al nombre del perfil de repo (comportamiento previo).
+OBS_PROFILE     = _P.get("obsProfile",    PROFILE_NAME)
 
 # Escenas derivadas de profile.json (SSOT): scenePrefix + nombre -> overlay html.
+# El tamano de cada Browser Source sigue el canvas del perfil (1080x1920 en
+# tiktok-vertical, no 1920x1080 fijo) -- evita overlays mal proporcionados.
 SCENE_PREFIX = _P.get("scenePrefix", "")
+_VIDEO       = _P.get("video", {})
+_SCENE_W     = _VIDEO.get("outputWidth", 1920)
+_SCENE_H     = _VIDEO.get("outputHeight", 1080)
 SCENES = [
-    (f"{SCENE_PREFIX}{name}", f"http://localhost:{HTTP}/{html}", 1920, 1080)
+    (f"{SCENE_PREFIX}{name}", f"http://localhost:{HTTP}/{html}", _SCENE_W, _SCENE_H)
     for name, html in _P.get("scenes", {}).items()
 ]
 
@@ -200,17 +209,19 @@ async def main() -> None:
         sys.exit(1)
     print()
 
-    # Perfil OBS (idempotente: crea si no existe, activa siempre)
-    print(f"  Perfil OBS: '{PROFILE_NAME}'")
+    # Perfil OBS (idempotente: crea si no existe, activa siempre). Puede ser
+    # compartido entre carpetas (obsProfile en profile.json) -- no siempre es
+    # el mismo nombre que el perfil de repo.
+    print(f"  Perfil OBS: '{OBS_PROFILE}'" + (f"  (compartido, repo={PROFILE_NAME})" if OBS_PROFILE != PROFILE_NAME else ""))
     pl = await req("GetProfileList")
     existentes = pl["responseData"].get("profiles", [])
-    if PROFILE_NAME not in existentes:
-        await req("CreateProfile", {"profileName": PROFILE_NAME})
+    if OBS_PROFILE not in existentes:
+        await req("CreateProfile", {"profileName": OBS_PROFILE})
         print("  OK Perfil creado")
         await asyncio.sleep(1.0)
     else:
         print("  (ya existe)")
-    await req("SetCurrentProfile", {"profileName": PROFILE_NAME})
+    await req("SetCurrentProfile", {"profileName": OBS_PROFILE})
     # Canvas de video + ajustes generales (salida/grabacion/audio) desde profile.json.
     # Logica compartida (shared/obs_settings.py): misma config en todos los perfiles,
     # cross-platform (encoder/ruta por SO) e idempotente.
@@ -277,6 +288,10 @@ async def main() -> None:
 
         await asyncio.sleep(0.35)
 
+    # Camara SRT en las escenas que la necesitan (logica compartida -- ver shared/obs_settings.py)
+    print()
+    await obs_settings.ensure_camera_in_scenes(req, _P, SCENE_PREFIX)
+
     # ── Audio Source: Música de Inicio ──────────────────────────────────────────
     # Se agrega a la escena Partido (invisible 1x1, reroute_audio=True para OBS)
     MUSIC_SCENE = "SRY - Partido"
@@ -317,6 +332,13 @@ async def main() -> None:
     else:
         print(f"    Error {code_a}: {r_audio['requestStatus'].get('comment','')}")
     await asyncio.sleep(0.35)
+
+    # Eliminar escena vacía que OBS crea por defecto en colecciones nuevas
+    default_scenes = ["Escena", "Scene"]
+    for ds in default_scenes:
+        rd = await req("RemoveScene", {"sceneName": ds})
+        if rd["requestStatus"]["result"]:
+            print(f"  OK Escena por defecto '{ds}' eliminada")
 
     # Activar escena inicial
     print()

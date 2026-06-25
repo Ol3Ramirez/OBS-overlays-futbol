@@ -21,8 +21,12 @@
   "wsBindAddress": "0.0.0.0",
 
   "obsCollection": "tiktok-vertical - TikTok",
+  "obsProfile":    "tiktok-vertical",
   "obsHost":       "localhost",
   "obsPort":       4455,
+
+  "srtPort":      5000,
+  "srtLatencyMs": 4000,
 
   "video": {
     "baseWidth":   1080,
@@ -33,7 +37,7 @@
   },
 
   "output": {
-    "mode":             "Simple",
+    "mode":             "Advanced",
     "streamBitrateKbps": 4500,
     "audioBitrateKbps":  160,
     "recFormat":        "hybrid_mp4",
