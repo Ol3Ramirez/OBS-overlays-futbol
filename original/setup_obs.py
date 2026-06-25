@@ -355,7 +355,7 @@ async def main() -> None:
 
     # Activar escena inicial
     print()
-    r = await req("SetCurrentProgramScene", {"sceneName": "Inicio"})
+    r = await req("SetCurrentProgramScene", {"sceneName": f"{SCENE_PREFIX}Inicio"})
     print("  OK Escena inicial activada" if r["requestStatus"]["result"]
           else f"  Aviso SetCurrentProgramScene: {r['requestStatus']}")
 
