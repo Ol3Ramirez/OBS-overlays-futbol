@@ -1,31 +1,28 @@
 {
-  "_comment": "SSOT del perfil original. UNICA fuente de verdad: equipos, colores, puertos, logos, features y escenas. config.js se GENERA desde aqui (shared/gen_config.py).",
-  "_nota_wsToken": "El token real NUNCA va aqui (este archivo se commitea). Va en profile.local.json (gitignoreado).",
+  "_comment": "PLANTILLA — perfil base para clonar. Derivado de original/. Edita SOLO este archivo: config.js se genera desde aqui (shared/gen_config.py).",
+  "_nota_wsToken": "El token real NUNCA va aqui. Va en profile.local.json (gitignoreado) -- ver profile.local.json.example.",
 
-  "name":          "original",
-  "sponsor":       "Avila Fisioterapia",
-  "sponsorSocial": "AvilaFisioterapia",
+  "name":          "plantilla",
+  "sponsor":       "Tu Patrocinador",
+  "sponsorSocial": "TuPatrocinador",
 
-  "home":       "AUTOTRANSPORTES",
-  "away":       "LA CASCADA",
+  "home":       "EQUIPO LOCAL",
+  "away":       "EQUIPO VISITANTE",
   "matchLabel": "PARTIDO",
 
-  "homeColor": "#3b82f6",
-  "awayColor": "#ef4444",
+  "homeColor": "#1d4ed8",
+  "awayColor": "#dc2626",
   "accent":    "#FFD700",
   "logo":      "./logo_sponsor.jpg",
   "altavozLogo": "./logo_sponsor.jpg",
 
-  "httpPort": 8888,
-  "wsPort":   8889,
+  "httpPort": 8892,
+  "wsPort":   8893,
   "wsBindAddress": "0.0.0.0",
 
-  "obsCollection": "original - Avila Fisioterapia",
+  "obsCollection": "plantilla - Demo",
   "obsHost":       "localhost",
   "obsPort":       4455,
-
-  "srtPort":      5000,
-  "srtLatencyMs": 4000,
 
   "video": {
     "baseWidth":   1920,
@@ -43,7 +40,7 @@
     "ENABLE_QR":          false
   },
 
-  "scenePrefix": "",
+  "scenePrefix": "PLT - ",
   "scenes": {
     "Inicio":       "intro.html",
     "Partido":      "marcador.html",

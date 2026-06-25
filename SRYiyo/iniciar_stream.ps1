@@ -45,6 +45,18 @@ $HTTP_PORT   = $profile.httpPort
 $WS_PORT     = $profile.wsPort
 $PROFILE_NAME = $profile.name
 
+# Generar config.js (espejo browser) desde profile.json (SSOT). Se regenera en
+# cada arranque: la fuente de verdad es profile.json, config.js esta gitignoreado.
+$genConfig = Join-Path $SHARED "gen_config.py"
+$genOk = $false
+foreach ($cmd in @("python", "python3")) {
+    try { & $cmd $genConfig $DIR; if ($LASTEXITCODE -eq 0) { $genOk = $true; break } } catch { }
+}
+if (-not $genOk) {
+    Write-Host "[FATAL] No se pudo generar config.js (python no encontrado)" -ForegroundColor Red
+    exit 1
+}
+
 Write-Host ""
 Write-Host "===================================================" -ForegroundColor Cyan
 Write-Host "  $PROFILE_NAME -- Iniciar Stream" -ForegroundColor White

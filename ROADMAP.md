@@ -1,7 +1,26 @@
 # ROADMAP — OBS Overlays Fútbol
 
 > Lee este archivo al inicio de una nueva sesión para retomar sin perder contexto.
-> Actualizado: 2026-06-07
+> Actualizado: 2026-06-25
+
+---
+
+## Sesión 2026-06-25 — Modernización mejores prácticas ✅ (rama refactor/ssot-multiplatform-best-practices)
+
+| Cambio | Estado |
+|--------|--------|
+| **SSOT**: `config.js` se GENERA desde `profile.json` (`shared/gen_config.py`) en cada arranque | ✅ |
+| `profile.json` ampliado: `features`, `scenePrefix`, `scenes`, `sceneAliases` + campos de presentación | ✅ |
+| `SCENE_MAP` (ws_relay) y `SCENES` (setup_obs) derivados de `profile.json` — sin hardcodeo | ✅ |
+| `ecosystem.config.js` lee puertos de `profile.json` | ✅ |
+| Tooling: Biome + ruff + Playwright (`package.json`, `biome.json`, `ruff.toml`) | ✅ |
+| Suite Playwright E2E (marcador/control_remoto/penalty, ambos perfiles) — **15/15 verde** | ✅ |
+| Multiplataforma: `verificar.sh`/`.ps1` + `MULTISYSTEM.md` | ✅ |
+| Migrar diseño TV Azteca a `original/marcador.html` (config-driven) | ✅ |
+
+> Nota SSOT: se reconcilió la divergencia previa donde `SRYiyo/profile.json` decía
+> `sponsor: "Robles Futbol"` pero `config.js` renderizaba `Altavoz Studio`; se conservó el
+> valor en vivo (Altavoz Studio). `config.js` ahora está gitignoreado (es generado).
 
 ---
 

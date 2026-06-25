@@ -4,6 +4,14 @@ const isWin = process.platform === 'win32';
 // __dirname funciona sin importar espacios ni usuario — cross-platform
 const BASE = __dirname;
 
+// Interprete de Python segun plataforma (Windows suele tener solo `python`).
+const PYTHON = isWin ? 'python' : 'python3';
+
+// Puertos leidos desde profile.json (SSOT) — no hardcodear.
+// NOTA: PM2 arranca el http.server directo y NO regenera config.js. Antes de usar
+// `pm2 start`, corre una vez iniciar_stream.sh/.ps1 (o `python gen_config.py <perfil>`).
+const portsOf = (profile) => require(path.join(BASE, profile, 'profile.json'));
+
 const logs = (profile) => ({
   out_file:   path.join(BASE, profile, 'logs', 'http.log'),
   error_file: path.join(BASE, profile, 'logs', 'http.error.log'),
@@ -20,48 +28,31 @@ const wsScript = () =>
     ? { script: 'powershell', args: '-File .\\run_ws.ps1' }
     : { script: 'bash',       args: './run_ws.sh' };
 
-module.exports = {
-  apps: [
-    // ─── original  (Avila Fisioterapia · HTTP 8888 · WS 8889) ────────
-    {
-      name: 'original-http',
-      script: 'python3',
-      args: '-m http.server 8888',
-      cwd: path.join(BASE, 'original'),
-      interpreter: 'none',
-      autorestart: true,
-      watch: false,
-      ...logs('original'),
-    },
-    {
-      name: 'original-ws',
-      cwd: path.join(BASE, 'original'),
-      interpreter: 'none',
-      autorestart: true,
-      watch: false,
-      ...wsScript(),
-      ...wsLogs('original'),
-    },
+// App HTTP de un perfil — sirve los overlays en el puerto de su profile.json.
+const httpApp = (profile) => ({
+  name: `${profile.toLowerCase()}-http`,
+  script: PYTHON,
+  args: `-m http.server ${portsOf(profile).httpPort}`,
+  cwd: path.join(BASE, profile),
+  interpreter: 'none',
+  autorestart: true,
+  watch: false,
+  ...logs(profile),
+});
 
-    // ─── SRYiyo  (Robles Fútbol · HTTP 8890 · WS 8891) ───────────────
-    {
-      name: 'sryiyo-http',
-      script: 'python3',
-      args: '-m http.server 8890',
-      cwd: path.join(BASE, 'SRYiyo'),
-      interpreter: 'none',
-      autorestart: true,
-      watch: false,
-      ...logs('SRYiyo'),
-    },
-    {
-      name: 'sryiyo-ws',
-      cwd: path.join(BASE, 'SRYiyo'),
-      interpreter: 'none',
-      autorestart: true,
-      watch: false,
-      ...wsScript(),
-      ...wsLogs('SRYiyo'),
-    },
-  ],
+// App WS relay de un perfil — el puerto lo lee ws_relay.py de profile.json.
+const wsApp = (profile) => ({
+  name: `${profile.toLowerCase()}-ws`,
+  cwd: path.join(BASE, profile),
+  interpreter: 'none',
+  autorestart: true,
+  watch: false,
+  ...wsScript(),
+  ...wsLogs(profile),
+});
+
+const PROFILES = ['original', 'SRYiyo', 'plantilla'];
+
+module.exports = {
+  apps: PROFILES.flatMap((profile) => [httpApp(profile), wsApp(profile)]),
 };

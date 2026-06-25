@@ -1,0 +1,14 @@
+# Configuracion de ruff (linter + formatter) para los scripts Python del repo.
+# Uso: uvx ruff check .   |   uvx ruff format .
+target-version = "py311"
+line-length = 100
+
+# Los scripts usan PEP 723 (uv) y se ejecutan sueltos; no son un paquete.
+extend-exclude = ["logs", "logs-demo", "__pycache__", "node_modules"]
+
+[lint]
+# Conjunto pragmatico: errores reales, bugs, imports, comprehensions, upgrades.
+select = ["E", "F", "W", "I", "B", "C4", "UP", "SIM"]
+ignore = [
+  "E501",  # largo de linea lo maneja el formatter
+]

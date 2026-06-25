@@ -76,15 +76,22 @@ _auth_ok: set = set()  # websockets autenticados (para control remoto)
 _obs_ws            = None
 _obs_authenticated = False
 
-SCENE_MAP = {
-    "Partido":       "SRY - Partido",
-    "Intro":         "SRY - Inicio",
-    "Medio Tiempo":  "SRY - Medio Tiempo",
-    "Alineación":    "SRY - Alineacion",
-    "Alineacion":    "SRY - Alineacion",
-    "Entrevista":    "SRY - Entrevista",
-    "Sin Fuente":    "SRY - Inicio",
-}
+def _build_scene_map(profile: dict) -> dict:
+    """Mapa nombre-corto -> nombre de escena en OBS, derivado de profile.json.
+
+    Cada escena de `scenes` mapea a `scenePrefix` + su nombre. `sceneAliases`
+    agrega nombres alternativos (ej. "Intro" -> "Inicio") que apuntan a la misma
+    escena prefijada. Asi el SCENE_MAP es SSOT: vive solo en profile.json.
+    """
+    prefix = profile.get("scenePrefix", "")
+    scenes = profile.get("scenes", {})
+    scene_map = {name: f"{prefix}{name}" for name in scenes}
+    for alias, target in profile.get("sceneAliases", {}).items():
+        scene_map[alias] = f"{prefix}{target}"
+    return scene_map
+
+
+SCENE_MAP = _build_scene_map(_profile)
 
 
 def _ts() -> str:
@@ -190,6 +197,22 @@ async def _obs_connect_loop() -> None:
             await asyncio.sleep(5)
 
 
+async def _replay_state(websocket) -> None:
+    """Reenvia el estado guardado al cliente recien conectado, escalonado.
+
+    El stagger evita que todas las transiciones CSS (lower-third, ticker, cambio
+    de modo) disparen en la misma rafaga (se veria como parpadeo). Corre en una
+    tarea aparte para NO bloquear el read-loop de la conexion: asi el cliente
+    sigue respondiendo pings (keepalive) mientras recibe el replay.
+    """
+    for msg in list(_state_store.values()):
+        try:
+            await websocket.send(msg)
+            await asyncio.sleep(0.25)
+        except Exception:
+            return
+
+
 async def main() -> None:
     async def relay(websocket) -> None:
         addr  = websocket.remote_address
@@ -197,16 +220,9 @@ async def main() -> None:
 
         print(f"[{_ts()}] [+] {addr}  local={local}  clientes={len(server.connections)}")
 
-        # Replay estado actual al cliente recien conectado (idempotente).
-        # Stagger entre mensajes: sin esto, todas las transiciones CSS
-        # (lower-third, ticker, cambio de modo) disparan en la misma rafaga
-        # y se ven como un parpadeo en vez de una secuencia.
-        for msg in list(_state_store.values()):
-            try:
-                await websocket.send(msg)
-                await asyncio.sleep(0.25)
-            except Exception:
-                pass
+        # Replay en segundo plano: el read-loop arranca de inmediato (responde
+        # pings a tiempo) mientras el estado se reenvia escalonado.
+        asyncio.create_task(_replay_state(websocket))
 
         # Conexiones locales (overlays OBS) no necesitan token
         if not _TOKEN or local:
@@ -259,15 +275,10 @@ async def main() -> None:
                     if args:
                         asyncio.create_task(_obs_set_scene(args[0]))
 
-                targets = list(server.connections)
-                if targets:
-                    try:
-                        await asyncio.wait_for(
-                            asyncio.gather(*[ws.send(message) for ws in targets], return_exceptions=True),
-                            timeout=2.0
-                        )
-                    except asyncio.TimeoutError:
-                        print(f"[{_ts()}] [!] broadcast timeout — cliente lento detectado")
+                # Fan-out no bloqueante (broadcast de la libreria): escribe a
+                # todos los clientes sin esperar, asi el read-loop nunca se
+                # bloquea y los pings se siguen respondiendo (sin keepalive timeout).
+                broadcast(server.connections, message)
 
         except Exception as e:
             print(f"[{_ts()}] [!] {addr} error: {e}")

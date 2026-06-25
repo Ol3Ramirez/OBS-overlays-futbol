@@ -42,6 +42,10 @@ if ! command -v python3 &>/dev/null; then
   exit 1
 fi
 
+# Generar config.js (espejo browser) desde profile.json (SSOT). Se regenera en
+# cada arranque: la fuente de verdad es profile.json, config.js esta gitignoreado.
+python3 "$SHARED/gen_config.py" "$DIR"
+
 HTTP_PORT=$(python3 -c "import json; d=json.load(open('$DIR/profile.json')); print(d['httpPort'])" 2>/dev/null || echo "8890")
 WS_PORT=$(python3   -c "import json; d=json.load(open('$DIR/profile.json')); print(d['wsPort'])"   2>/dev/null || echo "8891")
 PROFILE_NAME=$(python3 -c "import json; d=json.load(open('$DIR/profile.json')); print(d.get('name','SRYiyo'))" 2>/dev/null || echo "SRYiyo")

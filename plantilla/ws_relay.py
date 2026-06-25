@@ -53,29 +53,21 @@ def _ts() -> str:
     return datetime.now().strftime("%H:%M:%S")
 
 
-async def _replay_state(websocket) -> None:
-    """Reenvia el estado guardado al cliente recien conectado, escalonado.
-
-    El stagger evita que todas las transiciones CSS disparen en rafaga (parpadeo).
-    Corre en una tarea aparte para NO bloquear el read-loop de la conexion: asi el
-    cliente responde pings (keepalive) a tiempo mientras recibe el replay.
-    """
-    for msg in list(_state_store.values()):
-        try:
-            await websocket.send(msg)
-            await asyncio.sleep(0.25)
-        except Exception:
-            return
-
-
 async def main() -> None:
     async def relay(websocket) -> None:
         addr = websocket.remote_address
         print(f"[{_ts()}] [+] {addr}  clientes={len(server.connections)}")
 
-        # Replay en segundo plano: el read-loop arranca de inmediato (responde
-        # pings a tiempo) mientras el estado se reenvia escalonado.
-        asyncio.create_task(_replay_state(websocket))
+        # Replay estado actual al cliente recien conectado (idempotente).
+        # Stagger entre mensajes: sin esto, todas las transiciones CSS
+        # (lower-third, ticker, cambio de modo) disparan en la misma rafaga
+        # y se ven como un parpadeo en vez de una secuencia.
+        for msg in list(_state_store.values()):
+            try:
+                await websocket.send(msg)
+                await asyncio.sleep(0.25)
+            except Exception:
+                pass
 
         try:
             async for message in websocket:
@@ -94,10 +86,15 @@ async def main() -> None:
                     print(f"[{_ts()}] [!] Error procesando: {e}")
                     continue
 
-                # Fan-out no bloqueante (broadcast de la libreria): escribe a
-                # todos los clientes sin esperar, asi el read-loop nunca se
-                # bloquea y los pings se siguen respondiendo (sin keepalive timeout).
-                broadcast(server.connections, message)
+                targets = list(server.connections)
+                if targets:
+                    try:
+                        await asyncio.wait_for(
+                            asyncio.gather(*[ws.send(message) for ws in targets], return_exceptions=True),
+                            timeout=2.0
+                        )
+                    except asyncio.TimeoutError:
+                        print(f"[{_ts()}] [!] broadcast timeout — cliente lento detectado")
 
         except Exception as e:
             print(f"[{_ts()}] [!] {addr} error: {e}")

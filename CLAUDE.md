@@ -9,8 +9,36 @@ Cada subcarpeta es un **perfil/coleccion independiente** con sus propios equipos
 OBS-overlays-futbol/
   original/     <- Perfil original (Avila Fisioterapia, puertos 8888/8889)
   SRYiyo/       <- Robles Futbol, Semifinal de Ida (puertos 8890/8891)
+  shared/       <- Fuente unica: control_remoto.html, ws-client.js, gen_config.py
+  tests/        <- Suite Playwright E2E (marcador, control_remoto, penalty)
   CLAUDE.md     <- Este archivo
 ```
+
+## SSOT — profile.json es la unica fuente de verdad
+
+Cada perfil se edita SOLO en su `profile.json` (equipos, colores, puertos, logos,
+`features`, `scenePrefix`, `scenes`). Lo demas se deriva:
+
+```
+profile.json ──(shared/gen_config.py, corre en iniciar_stream)──> config.js   [GENERADO, gitignoreado]
+profile.json ──(ws_relay.py)──> SCENE_MAP        profile.json ──(setup_obs.py)──> escenas OBS
+profile.json ──(ecosystem.config.js)──> puertos PM2
+```
+
+- **NO edites `config.js`**: es generado en cada arranque (igual que `control_remoto.html`).
+  El token real sigue en `config.local.js` (gitignoreado), cargado despues de `config.js`.
+- Cambiar equipos/colores/escenas = un solo archivo (`profile.json`) por perfil.
+
+## Calidad y tests
+
+```bash
+npm install && npx playwright install chromium   # una vez
+npm test            # 15 tests E2E headless (no requiere OBS)
+npm run lint        # Biome (JS/JSON)        uvx ruff check .   # Python
+bash verificar.sh <perfil>    #  /  .\verificar.ps1 <perfil>   (chequeo de salud)
+```
+
+Reproducibilidad Mac/Windows: ver `MULTISYSTEM.md`.
 
 ## Primer uso en una maquina nueva
 

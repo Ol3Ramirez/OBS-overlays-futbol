@@ -50,13 +50,11 @@ HTTP            = _P.get("httpPort",      8890)
 COLLECTION_NAME = _P.get("obsCollection", "SRYiyo - Robles Futbol")
 PROFILE_NAME    = _P.get("name",          "SRYiyo")
 
+# Escenas derivadas de profile.json (SSOT): scenePrefix + nombre -> overlay html.
+SCENE_PREFIX = _P.get("scenePrefix", "")
 SCENES = [
-    ("SRY - Inicio",       f"http://localhost:{HTTP}/intro.html",         1920, 1080),
-    ("SRY - Partido",      f"http://localhost:{HTTP}/marcador.html",       1920, 1080),
-    ("SRY - Evento",       f"http://localhost:{HTTP}/evento_jugador.html", 1920, 1080),
-    ("SRY - Alineacion",   f"http://localhost:{HTTP}/alineacion.html",     1920, 1080),
-    ("SRY - Medio Tiempo", f"http://localhost:{HTTP}/medio_tiempo.html",   1920, 1080),
-    ("SRY - Entrevista",   f"http://localhost:{HTTP}/entrevista.html",     1920, 1080),
+    (f"{SCENE_PREFIX}{name}", f"http://localhost:{HTTP}/{html}", 1920, 1080)
+    for name, html in _P.get("scenes", {}).items()
 ]
 
 # ── Password: env var → .env file → getpass interactivo ─────────────────────
@@ -209,10 +207,16 @@ async def main() -> None:
     else:
         print("  (ya existe)")
     await req("SetCurrentProfile", {"profileName": PROFILE_NAME})
+    # Canvas de video desde profile.json (SSOT): base/output/fps. Buenas practicas:
+    # base = output (sin reescalado) a 1920x1080, 30 fps por defecto.
+    _v = _P.get("video", {})
     r_vid = await req("SetVideoSettings", {
-        "baseWidth": 1920, "baseHeight": 1080,
-        "outputWidth": 1920, "outputHeight": 1080,
-        "fpsNumerator": 30, "fpsDenominator": 1,
+        "baseWidth":     _v.get("baseWidth",   1920),
+        "baseHeight":    _v.get("baseHeight",  1080),
+        "outputWidth":   _v.get("outputWidth", 1920),
+        "outputHeight":  _v.get("outputHeight",1080),
+        "fpsNumerator":  _v.get("fps",         30),
+        "fpsDenominator": 1,
     })
     if not r_vid["requestStatus"]["result"]:
         print(f"    Aviso SetVideoSettings: {r_vid['requestStatus'].get('comment', 'error desconocido')}")
