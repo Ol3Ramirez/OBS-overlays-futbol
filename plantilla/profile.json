@@ -32,6 +32,17 @@
     "fps":         30
   },
 
+  "output": {
+    "mode":             "Simple",
+    "streamBitrateKbps": 6000,
+    "audioBitrateKbps":  160,
+    "recFormat":        "hybrid_mp4",
+    "recQuality":       "Stream",
+    "audioSampleRate":   48000,
+    "audioChannels":    "Stereo",
+    "encoder": { "darwin": "apple_h264", "win32": "x264", "default": "x264" }
+  },
+
   "features": {
     "ENABLE_AWAY_ROSTER": false,
     "ENABLE_PENALTIES":   false,

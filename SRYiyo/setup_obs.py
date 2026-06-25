@@ -25,6 +25,10 @@ import base64
 import getpass
 import tempfile
 
+# Logica de ajustes OBS compartida entre perfiles (video canvas + salida/grabacion/audio).
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "shared"))
+import obs_settings  # noqa: E402  (import tras ajustar sys.path)
+
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 from websockets.asyncio.client import connect
 
@@ -207,19 +211,10 @@ async def main() -> None:
     else:
         print("  (ya existe)")
     await req("SetCurrentProfile", {"profileName": PROFILE_NAME})
-    # Canvas de video desde profile.json (SSOT): base/output/fps. Buenas practicas:
-    # base = output (sin reescalado) a 1920x1080, 30 fps por defecto.
-    _v = _P.get("video", {})
-    r_vid = await req("SetVideoSettings", {
-        "baseWidth":     _v.get("baseWidth",   1920),
-        "baseHeight":    _v.get("baseHeight",  1080),
-        "outputWidth":   _v.get("outputWidth", 1920),
-        "outputHeight":  _v.get("outputHeight",1080),
-        "fpsNumerator":  _v.get("fps",         30),
-        "fpsDenominator": 1,
-    })
-    if not r_vid["requestStatus"]["result"]:
-        print(f"    Aviso SetVideoSettings: {r_vid['requestStatus'].get('comment', 'error desconocido')}")
+    # Canvas de video + ajustes generales (salida/grabacion/audio) desde profile.json.
+    # Logica compartida (shared/obs_settings.py): misma config en todos los perfiles,
+    # cross-platform (encoder/ruta por SO) e idempotente.
+    await obs_settings.apply_video_and_output(req, _P)
     await asyncio.sleep(0.5)
     print()
 
