@@ -12,6 +12,7 @@ const PROFILES = {
   original: { dir: 'original', httpPort: 8888, wsPort: 8889 },
   SRYiyo: { dir: 'SRYiyo', httpPort: 8890, wsPort: 8891 },
   plantilla: { dir: 'plantilla', httpPort: 8892, wsPort: 8893 },
+  'tiktok-vertical': { dir: 'tiktok-vertical', httpPort: 8894, wsPort: 8895 },
 };
 
 const PYTHON = process.platform === 'win32' ? 'python' : 'python3';

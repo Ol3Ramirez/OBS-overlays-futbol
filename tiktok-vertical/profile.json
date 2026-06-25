@@ -1,0 +1,69 @@
+{
+  "_comment": "tiktok-vertical — perfil OBS-nativo vertical (9:16). Derivado de plantilla/. Canvas Main a 1080x1920 para TikTok/Reels/Shorts, 100% automatizable por obs-websocket (sin depender de StreamElements). Ver TIKTOK.md.",
+  "_nota_wsToken": "El token real NUNCA va aqui. Va en profile.local.json (gitignoreado) -- ver profile.local.json.example.",
+
+  "name":          "tiktok-vertical",
+  "sponsor":       "Tu Patrocinador",
+  "sponsorSocial": "TuPatrocinador",
+
+  "home":       "EQUIPO LOCAL",
+  "away":       "EQUIPO VISITANTE",
+  "matchLabel": "PARTIDO",
+
+  "homeColor": "#1d4ed8",
+  "awayColor": "#dc2626",
+  "accent":    "#FFD700",
+  "logo":      "./logo_sponsor.jpg",
+  "altavozLogo": "./logo_sponsor.jpg",
+
+  "httpPort": 8894,
+  "wsPort":   8895,
+  "wsBindAddress": "0.0.0.0",
+
+  "obsCollection": "tiktok-vertical - TikTok",
+  "obsHost":       "localhost",
+  "obsPort":       4455,
+
+  "video": {
+    "baseWidth":   1080,
+    "baseHeight":  1920,
+    "outputWidth": 1080,
+    "outputHeight":1920,
+    "fps":         30
+  },
+
+  "output": {
+    "mode":             "Simple",
+    "streamBitrateKbps": 4500,
+    "audioBitrateKbps":  160,
+    "recFormat":        "hybrid_mp4",
+    "recQuality":       "Stream",
+    "audioSampleRate":   48000,
+    "audioChannels":    "Stereo",
+    "encoder": { "darwin": "apple_h264", "win32": "x264", "default": "x264" }
+  },
+
+  "features": {
+    "ENABLE_AWAY_ROSTER": false,
+    "ENABLE_PENALTIES":   false,
+    "ENABLE_UNDO":        false,
+    "ENABLE_IDA_SCORE":   false,
+    "ENABLE_QR":          false
+  },
+
+  "scenePrefix": "TT - ",
+  "scenes": {
+    "Inicio":       "intro.html",
+    "Partido":      "marcador.html",
+    "Evento":       "evento_jugador.html",
+    "Alineacion":   "alineacion.html",
+    "Medio Tiempo": "medio_tiempo.html",
+    "Entrevista":   "entrevista.html",
+    "Canvas":       "canvas.html"
+  },
+  "sceneAliases": {
+    "Intro":      "Inicio",
+    "Sin Fuente": "Inicio",
+    "Alineación": "Alineacion"
+  }
+}

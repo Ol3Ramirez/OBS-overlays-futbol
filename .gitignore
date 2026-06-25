@@ -38,12 +38,15 @@ SRYiyo/control_remoto.html
 SRYiyo/ws-client.js
 plantilla/control_remoto.html
 plantilla/ws-client.js
+tiktok-vertical/control_remoto.html
+tiktok-vertical/ws-client.js
 
 # config.js — GENERADO desde profile.json por shared/gen_config.py en cada arranque.
 # La fuente de verdad es profile.json. No commitear el generado.
 original/config.js
 SRYiyo/config.js
 plantilla/config.js
+tiktok-vertical/config.js
 
 # Imágenes — excluir logos de sponsors
 *.jpeg
