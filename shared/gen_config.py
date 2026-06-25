@@ -52,6 +52,8 @@ SCALAR_MAP = (
     ("httpPort", "HTTP_PORT"),
     ("logo", "LOGO"),
     ("altavozLogo", "ALTAVOZ_LOGO"),
+    ("altavozName", "ALTAVOZ_NAME"),
+    ("altavozSocial", "ALTAVOZ_SOCIAL"),
     ("sport", "SPORT"),
     ("sponsor", "SPONSOR"),
     ("sponsorSocial", "SPONSOR_SOCIAL"),

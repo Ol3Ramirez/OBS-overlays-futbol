@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Publicidad — Altavoz Studio</title>
+<script src="config.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body {
+  width: 1920px; height: 1080px;
+  overflow: hidden;
+  background: #060d16;
+  font-family: 'Arial Black', sans-serif;
+  position: relative;
+}
+
+:root {
+  --gold: #FFD700;
+  --accent: #00e5ff;
+}
+
+/* ── Stage: fondo desenfocado + video contenido (sin recorte) ── */
+.video-stage {
+  position: absolute; inset: 0;
+  overflow: hidden;
+  background: #060d16;
+}
+#ad-bg {
+  position: absolute;
+  inset: -6%;
+  width: 112%; height: 112%;
+  object-fit: cover;
+  filter: blur(32px) brightness(0.22) saturate(0.7);
+  pointer-events: none;
+}
+#ad-video {
+  position: absolute;
+  visibility: hidden;
+}
+
+/* ── Placeholder ── */
+.video-placeholder {
+  position: absolute; inset: 0;
+  display: none;
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 22px;
+  background: linear-gradient(160deg, #070b18 0%, #0a1020 50%, #060d16 100%);
+  text-align: center;
+}
+.video-placeholder.visible { display: flex; }
+.ph-icon  { font-size: 80px; opacity: 0.6; }
+.ph-title { font-size: 34px; font-weight: 900; color: var(--gold); letter-spacing: 3px; text-transform: uppercase; }
+.ph-hint  { font-size: 16px; color: rgba(255,255,255,0.55); letter-spacing: 0.5px; max-width: 760px; line-height: 1.6; }
+.ph-hint code {
+  color: var(--accent); background: rgba(0,229,255,0.08);
+  padding: 2px 8px; border-radius: 4px; font-family: 'Courier New', monospace;
+}
+
+/* ── Marca esquina top-right ── */
+.corner-brand {
+  position: absolute;
+  top: 28px; right: 28px;
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(6,6,20,0.82);
+  border: 1px solid rgba(0,229,255,0.20);
+  border-radius: 12px;
+  padding: 12px 18px 12px 12px;
+  box-shadow: 0 4px 28px rgba(0,0,0,0.55), 0 0 1px rgba(0,229,255,0.12) inset;
+  z-index: 10;
+}
+.cb-logo {
+  width: 52px; height: 52px;
+  object-fit: contain; border-radius: 8px;
+}
+.cb-logo.hidden { display: none; }
+.cb-info { display: flex; flex-direction: column; gap: 4px; }
+.cb-name {
+  font-size: 12px; font-weight: 900;
+  color: #fff; letter-spacing: 2.5px; text-transform: uppercase;
+}
+.cb-social { font-size: 11px; color: var(--accent); letter-spacing: 1px; }
+
+/* ── Bottom bar con logo ── */
+.bottom-bar {
+  position: absolute; bottom: 32px; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: center;
+  gap: 16px;
+  background: linear-gradient(90deg,
+    rgba(6,6,18,0.99) 0%,
+    rgba(0,48,68,0.92) 20%,
+    rgba(0,58,80,0.90) 50%,
+    rgba(0,48,68,0.92) 80%,
+    rgba(6,6,18,0.99) 100%
+  );
+  border-top: 1px solid rgba(0,229,255,0.35);
+  border-bottom: 1px solid rgba(0,229,255,0.35);
+  box-shadow: 0 0 24px rgba(0,229,255,0.07) inset, 0 -4px 20px rgba(0,0,0,0.4);
+  padding: 10px 40px;
+  white-space: nowrap;
+  z-index: 10;
+}
+.bb-logo { height: 30px; width: auto; object-fit: contain; border-radius: 4px; }
+.bb-logo.hidden { display: none; }
+.bb-ball  { font-size: 20px; }
+.bb-text  { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.55); letter-spacing: 3px; text-transform: uppercase; }
+.bb-sep   { width: 1px; height: 18px; background: rgba(255,255,255,0.15); }
+.bb-brand { font-size: 13px; font-weight: 900; color: var(--gold); letter-spacing: 3px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<div class="video-stage">
+  <video id="ad-bg" autoplay loop playsinline muted aria-hidden="true">
+    <source src="./publicidad_altavoz.mp4" type="video/mp4">
+  </video>
+  <video id="ad-video" autoplay loop playsinline>
+    <source src="./publicidad_altavoz.mp4" type="video/mp4">
+  </video>
+</div>
+
+<div class="video-placeholder" id="ad-placeholder">
+  <div class="ph-icon">🎬</div>
+  <div class="ph-title">Video Próximamente</div>
+  <div class="ph-hint">
+    Coloca el archivo <code>publicidad_altavoz.mp4</code> en esta carpeta
+    (<code>original/</code>) y refresca esta Browser Source en OBS.
+  </div>
+</div>
+
+<div class="corner-brand">
+  <img class="cb-logo" id="cb-logo" src="" alt="" onerror="this.classList.add('hidden')">
+  <div class="cb-info">
+    <div class="cb-name" id="cb-name">Altavoz Studio</div>
+    <div class="cb-social" id="cb-social">@AltavozEstudio</div>
+  </div>
+</div>
+
+<div class="bottom-bar">
+  <img class="bb-logo" id="bb-logo" src="" alt="" onerror="this.classList.add('hidden')">
+  <div class="bb-ball">🎥</div>
+  <div class="bb-text">¿Cubrimos tu evento?</div>
+  <div class="bb-sep"></div>
+  <div class="bb-brand" id="bb-brand">Altavoz Studio</div>
+  <div class="bb-sep"></div>
+  <div class="bb-text">Escríbenos por Facebook</div>
+</div>
+
+<script>
+  const SRYI = window.SRYI || {};
+  if (SRYI.ALTAVOZ_LOGO) {
+    document.getElementById('cb-logo').src = SRYI.ALTAVOZ_LOGO;
+    document.getElementById('bb-logo').src = SRYI.ALTAVOZ_LOGO;
+  }
+  if (SRYI.ALTAVOZ_NAME) {
+    document.getElementById('cb-name').textContent  = SRYI.ALTAVOZ_NAME;
+    document.getElementById('bb-brand').textContent = SRYI.ALTAVOZ_NAME;
+  }
+  if (SRYI.ALTAVOZ_SOCIAL) {
+    document.getElementById('cb-social').textContent = '@' + SRYI.ALTAVOZ_SOCIAL;
+  }
+
+  const video  = document.getElementById('ad-video');
+  const bgVid  = document.getElementById('ad-bg');
+  const placeholder = document.getElementById('ad-placeholder');
+
+  function showPlaceholder() {
+    video.style.display = 'none';
+    bgVid.style.display = 'none';
+    placeholder.classList.add('visible');
+  }
+
+  fetch('./publicidad_altavoz.mp4', { method: 'HEAD' })
+    .then(res => { if (!res.ok) showPlaceholder(); })
+    .catch(showPlaceholder);
+
+  video.addEventListener('error', showPlaceholder);
+
+  video.play().catch(() => { video.muted = true; video.play(); });
+  bgVid.play().catch(() => {});
+
+  function applyContain() {
+    const vW = video.videoWidth;
+    const vH = video.videoHeight;
+    if (!vW || !vH) return;
+    const SW = 1920, SH = 1080;
+    const va = vW / vH, sa = SW / SH;
+    let w, h;
+    if (va >= sa) { w = SW; h = Math.round(SW / va); }
+    else          { h = SH; w = Math.round(SH * va); }
+    Object.assign(video.style, {
+      width:      w + 'px',
+      height:     h + 'px',
+      left:       Math.round((SW - w) / 2) + 'px',
+      top:        Math.round((SH - h) / 2) + 'px',
+      right:      'auto',
+      bottom:     'auto',
+      visibility: 'visible'
+    });
+  }
+
+  video.addEventListener('loadedmetadata', applyContain);
+  if (video.readyState >= 1) applyContain();
+</script>
+<script src="ws-client.js"></script>
+</body>
+</html>

@@ -14,7 +14,10 @@
   "awayColor": "#ef4444",
   "accent":    "#FFD700",
   "logo":      "./logo_sponsor.jpg",
-  "altavozLogo": "./logo_sponsor.jpg",
+  "altavozLogo": "./logo_altavoz_studio.png",
+  "altavozName":   "Altavoz Studio",
+  "altavozSocial": "AltavozEstudio",
+  "altavozFb":     "https://www.facebook.com/profile.php?id=61575665086642",
 
   "httpPort": 8888,
   "wsPort":   8889,
@@ -63,7 +66,9 @@
     "Alineacion":   "alineacion.html",
     "Medio Tiempo": "medio_tiempo.html",
     "Entrevista":   "entrevista.html",
-    "Canvas":       "canvas.html"
+    "Canvas":       "canvas.html",
+    "Publicidad":        "publicidad_altavoz.html",
+    "Publicidad Sponsor": "publicidad_sponsor.html"
   },
   "sceneAliases": {
     "Intro":      "Inicio",

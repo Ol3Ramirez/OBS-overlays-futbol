@@ -17,8 +17,10 @@
   "awayLogo":  "HR",
   "accent":    "#FFD700",
   "logo":      "./logo_robles.jpeg",
-  "altavozLogo": "./logo_altavoz_studio.png",
-  "altavozFb": "https://www.facebook.com/profile.php?id=61575665086642",
+  "altavozLogo":   "./logo_altavoz_studio.png",
+  "altavozName":   "Altavoz Studio",
+  "altavozSocial": "AltavozEstudio",
+  "altavozFb":     "https://www.facebook.com/profile.php?id=61575665086642",
   "hostFb":    "https://www.facebook.com/profile.php?id=61581762022193",
 
   "httpPort": 8890,
@@ -68,7 +70,9 @@
     "Alineacion":   "alineacion.html",
     "Medio Tiempo": "medio_tiempo.html",
     "Entrevista":   "entrevista.html",
-    "Canvas":       "canvas.html"
+    "Canvas":       "canvas.html",
+    "Publicidad":        "publicidad_altavoz.html",
+    "Publicidad Sponsor": "publicidad_sponsor.html"
   },
   "sceneAliases": {
     "Intro":      "Inicio",

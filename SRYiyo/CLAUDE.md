@@ -202,6 +202,20 @@ setFormation('2-2')
 | Entrevista | `http://localhost:8890/entrevista.html` |
 | Intro / Countdown | `http://localhost:8890/intro.html` |
 | Medio Tiempo | `http://localhost:8890/medio_tiempo.html` |
+| Publicidad | `http://localhost:8890/publicidad_altavoz.html` |
+
+### medio_tiempo.html — bottom bar rotativo
+El bottom bar alterna cada 7s: slide 1 "Producido por | Altavoz Studio" y
+slide 2 "¿Cubrimos tu evento? | Altavoz Studio | Escríbenos por Facebook".
+Para cambiar de productora, edita `altavozName`/`altavozSocial` en `profile.json`.
+
+### publicidad_altavoz.html — escena de video (nueva)
+Browser Source para un video publicitario real. Mientras no exista el archivo:
+```
+1. Copia tu video a:  SRYiyo/publicidad_altavoz.mp4
+2. En OBS: clic derecho en la fuente "SRY - Browser-Publicidad" -> Refresh
+3. Para audio OBS: doble clic en la fuente -> marca "Controlar audio vía OBS"
+```
 
 ---
 

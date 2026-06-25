@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Medio Tiempo</title>
+<script src="config.js"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 html, body {
@@ -302,7 +303,9 @@ html, body {
   border-bottom: 1px solid rgba(255,213,0,0.2);
   padding: 10px 40px;
   white-space: nowrap;
+  transition: opacity 0.4s ease;
 }
+.bottom-bar.bb-fade-out { opacity: 0; }
 .bb-ball { font-size: 20px; }
 .bb-text { font-size:13px; font-weight:700; color:rgba(255,255,255,0.55); letter-spacing:3px; text-transform:uppercase; }
 .bb-sep  { width:1px; height:18px; background:rgba(255,255,255,0.15); }
@@ -395,14 +398,14 @@ html, body {
   </div>
 </div>
 
-<!-- Bottom bar -->
-<div class="bottom-bar">
-  <div class="bb-ball">⚽</div>
-  <div class="bb-text">Patrocinado por</div>
+<!-- Bottom bar (rota entre sponsor del partido y contacto de la productora) -->
+<div class="bottom-bar" id="bottom-bar">
+  <div class="bb-ball" id="bb-icon">⚽</div>
+  <div class="bb-text" id="bb-text-1">Patrocinado por</div>
   <div class="bb-sep"></div>
-  <div class="bb-brand">Avila Fisioterapia</div>
+  <div class="bb-brand" id="bb-brand">Avila Fisioterapia</div>
   <div class="bb-sep"></div>
-  <div class="bb-text">y Rehabilitación</div>
+  <div class="bb-text" id="bb-text-2">y Rehabilitación</div>
 </div>
 
 <script>
@@ -436,7 +439,37 @@ html, body {
 
   window.obsOverlay = { setText, setBadge, setTeams, setScore, clearScore };
 
+  // ── Bottom bar rotativo: sponsor del partido <-> contacto de la productora.
+  // Los datos de "Altavoz Studio" vienen de profile.json (ALTAVOZ_*) — si otro
+  // perfil cambia de productora, solo se edita profile.json, no este archivo.
+  const SRYI = window.SRYI || {};
+  const BB_SLIDES = [
+    { icon: '⚽', text1: 'Patrocinado por',     brand: 'Avila Fisioterapia',        text2: 'y Rehabilitación' },
+    { icon: '🎥', text1: '¿Cubrimos tu evento?', brand: SRYI.ALTAVOZ_NAME || 'Altavoz Studio', text2: 'Escríbenos por Facebook' },
+  ];
+  const BB_INTERVAL_MS = 7000;
+  const BB_FADE_MS = 400;
+  let bbIndex = 0;
 
+  function renderBottomBar(slide) {
+    document.getElementById('bb-icon').textContent = slide.icon;
+    document.getElementById('bb-text-1').textContent = slide.text1;
+    document.getElementById('bb-brand').textContent = slide.brand;
+    document.getElementById('bb-text-2').textContent = slide.text2;
+  }
+
+  function rotateBottomBar() {
+    const bar = document.getElementById('bottom-bar');
+    bar.classList.add('bb-fade-out');
+    setTimeout(() => {
+      bbIndex = (bbIndex + 1) % BB_SLIDES.length;
+      renderBottomBar(BB_SLIDES[bbIndex]);
+      bar.classList.remove('bb-fade-out');
+    }, BB_FADE_MS);
+  }
+
+  renderBottomBar(BB_SLIDES[0]);
+  setInterval(rotateBottomBar, BB_INTERVAL_MS);
 </script>
 <script src="ws-client.js"></script>
 </body>

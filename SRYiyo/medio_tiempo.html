@@ -102,7 +102,8 @@ html, body {
 
 @keyframes fadeDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
 
-.bottom-bar { position:absolute; bottom:32px; left:0; right:0; display:flex; align-items:center; justify-content:center; gap:20px; background:rgba(6,6,18,0.9); border-top:1px solid rgba(198,40,40,0.2); border-bottom:1px solid rgba(198,40,40,0.2); padding:10px 40px; white-space:nowrap; }
+.bottom-bar { position:absolute; bottom:32px; left:0; right:0; display:flex; align-items:center; justify-content:center; gap:20px; background:rgba(6,6,18,0.9); border-top:1px solid rgba(198,40,40,0.2); border-bottom:1px solid rgba(198,40,40,0.2); padding:10px 40px; white-space:nowrap; transition:opacity 0.4s ease; }
+.bottom-bar.bb-fade-out { opacity: 0; }
 .bb-ball { font-size:20px; }
 .bb-text  { font-size:13px; font-weight:700; color:rgba(255,255,255,0.55); letter-spacing:3px; text-transform:uppercase; }
 .bb-sep   { width:1px; height:18px; background:rgba(255,255,255,0.15); }
@@ -169,11 +170,13 @@ html, body {
   </div>
 </div>
 
-<div class="bottom-bar">
-  <div class="bb-ball">⚽</div>
-  <div class="bb-text">Producido por</div>
+<div class="bottom-bar" id="bottom-bar">
+  <div class="bb-ball" id="bb-icon">⚽</div>
+  <div class="bb-text" id="bb-text-1">Producido por</div>
   <div class="bb-sep"></div>
-  <div class="bb-brand" id="sponsor-name">Robles Fútbol</div>
+  <div class="bb-brand" id="sponsor-name">Altavoz Studio</div>
+  <div class="bb-sep" id="bb-sep-2" style="display:none"></div>
+  <div class="bb-text" id="bb-text-2" style="display:none"></div>
 </div>
 
 <script>
@@ -199,16 +202,55 @@ html, body {
   window.obsOverlay = { setText, setBadge, setTeams, setScore, clearScore };
 
   // Auto-init con config SRYI
-  if (window.SRYI) {
-    setTeams(window.SRYI.HOME, window.SRYI.AWAY);
-    document.getElementById('live-text').textContent = window.SRYI.SPONSOR + ' en vivo';
-    document.getElementById('sponsor-name').textContent = window.SRYI.SPONSOR;
-    document.getElementById('side-label-l').textContent = window.SRYI.SPONSOR;
-    if (window.SRYI.LOGO) {
-      document.getElementById('team-logo-wrap').innerHTML =
-        `<div class="robles-secondary"><img src="${window.SRYI.LOGO}" alt="Logo equipo" class="robles-secondary-img" /><span class="robles-secondary-label">Equipo local</span></div>`;
+  const SRYI = window.SRYI || {};
+  if (SRYI.HOME || SRYI.AWAY) setTeams(SRYI.HOME, SRYI.AWAY);
+  if (SRYI.SPONSOR) {
+    document.getElementById('live-text').textContent = SRYI.SPONSOR + ' en vivo';
+    document.getElementById('side-label-l').textContent = SRYI.SPONSOR;
+  }
+  if (SRYI.LOGO) {
+    document.getElementById('team-logo-wrap').innerHTML =
+      `<div class="robles-secondary"><img src="${SRYI.LOGO}" alt="Logo equipo" class="robles-secondary-img" /><span class="robles-secondary-label">Equipo local</span></div>`;
+  }
+
+  // Bottom bar rotativo — alterna cada 7s entre crédito de producción y CTA de contacto.
+  // Slide 1 usa SRYI.SPONSOR (productora), slide 2 usa SRYI.ALTAVOZ_NAME (marca de contacto).
+  const BB_SLIDES = [
+    { icon: '⚽', text1: 'Producido por', brand: SRYI.SPONSOR || 'Altavoz Studio', text2: '' },
+    { icon: '🎥', text1: '¿Cubrimos tu evento?', brand: SRYI.ALTAVOZ_NAME || 'Altavoz Studio', text2: 'Escríbenos por Facebook' },
+  ];
+  const BB_INTERVAL_MS = 7000;
+  const BB_FADE_MS = 400;
+  let bbIndex = 0;
+
+  function renderBottomBar(slide) {
+    document.getElementById('bb-icon').textContent = slide.icon;
+    document.getElementById('bb-text-1').textContent = slide.text1;
+    document.getElementById('sponsor-name').textContent = slide.brand;
+    const sep2 = document.getElementById('bb-sep-2');
+    const text2 = document.getElementById('bb-text-2');
+    if (slide.text2) {
+      text2.textContent = slide.text2;
+      sep2.style.display = '';
+      text2.style.display = '';
+    } else {
+      sep2.style.display = 'none';
+      text2.style.display = 'none';
     }
   }
+
+  function rotateBottomBar() {
+    const bar = document.getElementById('bottom-bar');
+    bar.classList.add('bb-fade-out');
+    setTimeout(() => {
+      bbIndex = (bbIndex + 1) % BB_SLIDES.length;
+      renderBottomBar(BB_SLIDES[bbIndex]);
+      bar.classList.remove('bb-fade-out');
+    }, BB_FADE_MS);
+  }
+
+  renderBottomBar(BB_SLIDES[0]);
+  setInterval(rotateBottomBar, BB_INTERVAL_MS);
 </script>
 <script src="ws-client.js"></script>
 </body>

@@ -53,3 +53,9 @@ tiktok-vertical/config.js
 *.jpg
 !SRYiyo/logo_robles.jpeg
 !original/logo_sponsor.jpg
+
+# Videos de publicidad — archivos grandes, no van al repo
+*.mp4
+*.mov
+*.avi
+*.mkv

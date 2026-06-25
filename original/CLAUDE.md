@@ -95,6 +95,29 @@ setTeam({ name, formation, coach, players: [{num, name, pos, x, y}] })
 // x, y = position percentage on the pitch field
 ```
 
+### medio_tiempo.html — bottom bar rotativo
+El bottom bar alterna cada 7s entre "Patrocinado por Avila Fisioterapia" y
+"¿Cubrimos tu evento? Altavoz Studio — Escríbenos por Facebook". El segundo
+mensaje lee el nombre de marca desde `profile.json` (`altavozName` →
+`window.SRYI.ALTAVOZ_NAME`, con fallback a "Altavoz Studio" si falta) — para
+cambiar de productora en otro perfil, edita `altavozName`/`altavozSocial`/
+`altavozFb` en `profile.json`, no el HTML.
+
+### publicidad_altavoz.html — escena de video (nueva)
+Browser Source dedicada para un video de publicidad real (no genera el video,
+solo lo reproduce). Reusa el bottom bar de contacto de `medio_tiempo.html`.
+
+```
+1. Copia tu archivo de video a:  original/publicidad_altavoz.mp4
+2. En OBS: clic derecho en la fuente "Browser-Publicidad" -> Refresh
+3. Si quieres el audio del video mezclado por OBS (no solo el de salida del
+   sistema): doble clic en la fuente -> marca "Controlar audio vía OBS"
+```
+
+Mientras `publicidad_altavoz.mp4` no exista, la escena muestra un placeholder
+("Video Próximamente") en vez de pantalla rota — seguro para dejarla en
+`profile.json -> scenes` desde ya.
+
 ### entrevista.html
 ```javascript
 setSpeaker('Nombre', 'Rol / Cargo', 'left'|'right')  // slide-in lower third
@@ -176,6 +199,7 @@ Hooks: auto-format HTML/CSS/JS (prettier), desktop notifications, change tracker
 | Medio Tiempo | browser | `http://localhost:8888/medio_tiempo.html` |
 | Entrevista | Overlay Entrevista (browser) | `http://localhost:8888/entrevista.html` |
 | Promo Sponsor | browser | `http://localhost:8888/promo_avila.html` |
+| Publicidad | browser | `http://localhost:8888/publicidad_altavoz.html` |
 
 ## Known Bugs Fixed
 
