@@ -51,7 +51,7 @@ const wsApp = (profile) => ({
   ...wsLogs(profile),
 });
 
-const PROFILES = ['original', 'SRYiyo'];
+const PROFILES = ['original', 'SRYiyo', 'plantilla'];
 
 module.exports = {
   apps: PROFILES.flatMap((profile) => [httpApp(profile), wsApp(profile)]),

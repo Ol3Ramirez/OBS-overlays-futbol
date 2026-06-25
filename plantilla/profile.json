@@ -1,0 +1,58 @@
+{
+  "_comment": "PLANTILLA — perfil base para clonar. Derivado de original/. Edita SOLO este archivo: config.js se genera desde aqui (shared/gen_config.py).",
+  "_nota_wsToken": "El token real NUNCA va aqui. Va en profile.local.json (gitignoreado) -- ver profile.local.json.example.",
+
+  "name":          "plantilla",
+  "sponsor":       "Tu Patrocinador",
+  "sponsorSocial": "TuPatrocinador",
+
+  "home":       "EQUIPO LOCAL",
+  "away":       "EQUIPO VISITANTE",
+  "matchLabel": "PARTIDO",
+
+  "homeColor": "#1d4ed8",
+  "awayColor": "#dc2626",
+  "accent":    "#FFD700",
+  "logo":      "./logo_sponsor.jpg",
+  "altavozLogo": "./logo_sponsor.jpg",
+
+  "httpPort": 8892,
+  "wsPort":   8893,
+  "wsBindAddress": "0.0.0.0",
+
+  "obsCollection": "plantilla - Demo",
+  "obsHost":       "localhost",
+  "obsPort":       4455,
+
+  "video": {
+    "baseWidth":   1920,
+    "baseHeight":  1080,
+    "outputWidth": 1920,
+    "outputHeight":1080,
+    "fps":         30
+  },
+
+  "features": {
+    "ENABLE_AWAY_ROSTER": false,
+    "ENABLE_PENALTIES":   false,
+    "ENABLE_UNDO":        false,
+    "ENABLE_IDA_SCORE":   false,
+    "ENABLE_QR":          false
+  },
+
+  "scenePrefix": "PLT - ",
+  "scenes": {
+    "Inicio":       "intro.html",
+    "Partido":      "marcador.html",
+    "Evento":       "evento_jugador.html",
+    "Alineacion":   "alineacion.html",
+    "Medio Tiempo": "medio_tiempo.html",
+    "Entrevista":   "entrevista.html",
+    "Canvas":       "canvas.html"
+  },
+  "sceneAliases": {
+    "Intro":      "Inicio",
+    "Sin Fuente": "Inicio",
+    "Alineación": "Alineacion"
+  }
+}

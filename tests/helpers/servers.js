@@ -4,12 +4,14 @@
 const { spawn } = require('node:child_process');
 const path = require('node:path');
 const net = require('node:net');
+const fs = require('node:fs');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 
 const PROFILES = {
   original: { dir: 'original', httpPort: 8888, wsPort: 8889 },
   SRYiyo: { dir: 'SRYiyo', httpPort: 8890, wsPort: 8891 },
+  plantilla: { dir: 'plantilla', httpPort: 8892, wsPort: 8893 },
 };
 
 const PYTHON = process.platform === 'win32' ? 'python' : 'python3';
@@ -53,7 +55,11 @@ async function startProfileServers(profileName) {
   if (!cfg) throw new Error(`Perfil desconocido: ${profileName}`);
   const profileDir = path.join(ROOT, cfg.dir);
 
-  // Siempre regenerar config.js desde profile.json (esta gitignoreado).
+  // Replicar el prep de iniciar_stream: copiar shared/ + regenerar config.js,
+  // para que cualquier perfil (incluso uno recien clonado) funcione en los tests.
+  for (const f of ['control_remoto.html', 'ws-client.js']) {
+    fs.copyFileSync(path.join(ROOT, 'shared', f), path.join(profileDir, f));
+  }
   await runGenConfig(profileDir);
 
   const children = [];

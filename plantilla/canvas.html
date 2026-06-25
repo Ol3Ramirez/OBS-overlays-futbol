@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Canvas — fondo animado</title>
+<!-- config.js (generado desde profile.json) ANTES del inline: define window.SRYI. -->
+<script src="config.js"></script>
+<style>
+  /* Fondo transparente: pensado para ir como Browser Source DETRAS de otros overlays. */
+  html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+  #fx { display: block; width: 100vw; height: 100vh; }
+</style>
+</head>
+<body>
+  <canvas id="fx"></canvas>
+
+  <script>
+  // ── Canvas de partículas (buenas prácticas) ──────────────────────────────
+  //  - Escala por devicePixelRatio: nítido en cualquier resolución.
+  //  - Un solo loop rAF con guard + cancelAnimationFrame (sin loops duplicados).
+  //  - Respeta prefers-reduced-motion: pinta un frame estático, sin animar.
+  //  - Pausa cuando la pestaña/fuente se oculta (visibilitychange) -> ahorra CPU.
+  //  - Colores leídos de window.SRYI (config.js generado). API en window.obsOverlay.
+  (function () {
+    'use strict';
+
+    const canvas = document.getElementById('fx');
+    const ctx = canvas.getContext('2d');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const cfg = window.SRYI || {};
+    const state = {
+      colors: [cfg.HOME_COLOR || '#3b82f6', cfg.AWAY_COLOR || '#ef4444', cfg.ACCENT || '#FFD700'],
+      count: 28,        // densidad base de partículas
+      running: false,
+      rafId: null,
+      cssW: 0,
+      cssH: 0,
+      particles: [],
+    };
+
+    // Ajusta el backing store al tamaño CSS * devicePixelRatio (nitidez real).
+    function resize() {
+      const dpr = window.devicePixelRatio || 1;
+      state.cssW = canvas.clientWidth;
+      state.cssH = canvas.clientHeight;
+      canvas.width = Math.round(state.cssW * dpr);
+      canvas.height = Math.round(state.cssH * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // dibujamos en coordenadas CSS
+    }
+
+    function rand(min, max) { return min + Math.random() * (max - min); }
+
+    function makeParticle() {
+      return {
+        x: rand(0, state.cssW),
+        y: rand(0, state.cssH),
+        r: rand(2, 6),
+        vx: rand(-0.25, 0.25),
+        vy: rand(-0.45, -0.12),       // suben lentamente
+        alpha: rand(0.15, 0.5),
+        color: state.colors[Math.floor(rand(0, state.colors.length))],
+      };
+    }
+
+    function seed() {
+      state.particles = Array.from({ length: state.count }, makeParticle);
+    }
+
+    function drawParticle(p) {
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function step() {
+      ctx.clearRect(0, 0, state.cssW, state.cssH);
+      for (const p of state.particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        // Reaparecer por abajo cuando sale por arriba o por los lados.
+        if (p.y + p.r < 0 || p.x < -10 || p.x > state.cssW + 10) {
+          Object.assign(p, makeParticle(), { y: state.cssH + p.r });
+        }
+        drawParticle(p);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function loop() {
+      step();
+      state.rafId = requestAnimationFrame(loop);
+    }
+
+    function start() {
+      if (state.running) return;          // guard: nunca dos loops a la vez
+      state.running = true;
+      if (reduceMotion) { step(); return; } // un frame estático y listo
+      state.rafId = requestAnimationFrame(loop);
+    }
+
+    function stop() {
+      state.running = false;
+      if (state.rafId !== null) { cancelAnimationFrame(state.rafId); state.rafId = null; }
+    }
+
+    // Pausa/reanuda con la visibilidad de la fuente (OBS oculta la Browser Source).
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stop();
+      else start();
+    });
+
+    let _resizeRaf = null;
+    window.addEventListener('resize', () => {
+      if (_resizeRaf) cancelAnimationFrame(_resizeRaf);
+      _resizeRaf = requestAnimationFrame(() => { resize(); seed(); });
+    });
+
+    // ── API publica (comandos via ws-client.js: { fn, args }) ──
+    window.obsOverlay = {
+      start,
+      stop,
+      // setColors('#home','#away','#accent') — recolorea las partículas en vivo.
+      setColors: (home, away, accent) => {
+        state.colors = [home, away, accent].filter(Boolean);
+        for (const p of state.particles) {
+          p.color = state.colors[Math.floor(rand(0, state.colors.length))];
+        }
+      },
+      // setIntensity(n) — ajusta la densidad (n partículas) y re-siembra.
+      setIntensity: (n) => {
+        state.count = Math.max(0, Math.min(120, Number(n) || 0));
+        seed();
+      },
+    };
+
+    // Init
+    resize();
+    seed();
+    start();
+  })();
+  </script>
+  <script src="ws-client.js"></script>
+</body>
+</html>
