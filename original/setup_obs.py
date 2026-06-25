@@ -216,10 +216,16 @@ async def main() -> None:
     else:
         print("  (ya existe)")
     await req("SetCurrentProfile", {"profileName": PROFILE_NAME})
+    # Canvas de video desde profile.json (SSOT): base/output/fps. Buenas practicas:
+    # base = output (sin reescalado) a 1920x1080, 30 fps por defecto.
+    _v = _P.get("video", {})
     r_vid = await req("SetVideoSettings", {
-        "baseWidth": 1920, "baseHeight": 1080,
-        "outputWidth": 1920, "outputHeight": 1080,
-        "fpsNumerator": 30, "fpsDenominator": 1,
+        "baseWidth":     _v.get("baseWidth",   1920),
+        "baseHeight":    _v.get("baseHeight",  1080),
+        "outputWidth":   _v.get("outputWidth", 1920),
+        "outputHeight":  _v.get("outputHeight",1080),
+        "fpsNumerator":  _v.get("fps",         30),
+        "fpsDenominator": 1,
     })
     if not r_vid["requestStatus"]["result"]:
         print(f"    Aviso SetVideoSettings: {r_vid['requestStatus'].get('comment', 'error desconocido')}")

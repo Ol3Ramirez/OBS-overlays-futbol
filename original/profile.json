@@ -27,6 +27,14 @@
   "srtPort":      5000,
   "srtLatencyMs": 4000,
 
+  "video": {
+    "baseWidth":   1920,
+    "baseHeight":  1080,
+    "outputWidth": 1920,
+    "outputHeight":1080,
+    "fps":         30
+  },
+
   "features": {
     "ENABLE_AWAY_ROSTER": false,
     "ENABLE_PENALTIES":   false,
