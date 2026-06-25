@@ -94,3 +94,31 @@ async def apply_video_and_output(req, profile: dict) -> None:
         print(f"    Aviso SetRecordDirectory: {r_rec['requestStatus'].get('comment', '')}")
 
     print(f"  OK Ajustes generales aplicados (encoder={encoder}, rec={rec_dir})")
+
+    await report_canvases(req)
+
+
+async def report_canvases(req) -> None:
+    """Lista los canvases de OBS y guia sobre el vertical de TikTok.
+
+    obs-websocket (5.7+) puede LISTAR canvases pero NO crearlos/configurarlos: el
+    canvas vertical para TikTok lo gestiona el plugin de StreamElements por su API
+    propia (CEF), no por obs-websocket. Aqui solo detectamos y avisamos. Resiliente:
+    si la version de obs-websocket no soporta GetCanvasList, se omite en silencio.
+    """
+    try:
+        r = await req("GetCanvasList")
+    except Exception:
+        return
+    if not r.get("requestStatus", {}).get("result"):
+        return
+    for c in r["responseData"].get("canvases", []):
+        vs = c.get("canvasVideoSettings") or {}
+        dims = f"{vs.get('baseWidth')}x{vs.get('baseHeight')}" if vs.get("baseWidth") else "sin asignar"
+        name = c.get("canvasName", "?")
+        print(f"  Canvas: {name} ({dims})")
+        low = name.lower()
+        if ("se.live" in low or "managed" in low) and not vs.get("baseWidth"):
+            print("    -> Canvas vertical de StreamElements detectado SIN asignar.")
+            print("       Asignalo/configuralo en el panel SE.Live (Vertical / TikTok).")
+            print("       No es automatizable por obs-websocket; ver TIKTOK.md.")
