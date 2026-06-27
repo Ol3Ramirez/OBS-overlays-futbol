@@ -1547,12 +1547,22 @@ function renderLineupRows() {
   });
 }
 
+function flushLuRows() {
+  document.querySelectorAll('#lu-rows .lu-row[data-extra]').forEach((row, i) => {
+    if (!luRows[i]) return;
+    luRows[i].num  = row.querySelector('input[type="number"]')?.value || '';
+    luRows[i].name = row.querySelectorAll('input[type="text"]')[0]?.value.trim() || '';
+  });
+}
+
 function addLineupRow() {
+  flushLuRows();
   luRows.push({ num:'', name:'' });
   renderLineupRows();
 }
 
 function removeExtraLuRow(i) {
+  flushLuRows();
   luRows.splice(i, 1);
   renderLineupRows();
 }
@@ -1578,6 +1588,10 @@ function sendLineup() {
 
   if (!players.length) { log('⚠️ Agrega al menos un jugador'); return; }
   send('setTeam', [{ name, formation, coach, players }]);
+  // Sincronizar plantilla local para que los chips de Goles/Tarjetas/Cambios reflejen la alineación
+  localPlayers = players.map(p => ({ num: p.num, name: p.name }));
+  saveRoster();
+  rebuildAllChips();
   log(`📋 Alineación enviada — ${name} ${formation} (${players.length} jugadores)`);
 }
 
