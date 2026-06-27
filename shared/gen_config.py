@@ -76,6 +76,7 @@ FEATURE_FLAGS = (
     "ENABLE_UNDO",
     "ENABLE_IDA_SCORE",
     "ENABLE_QR",
+    "ENABLE_REPLAY",
 )
 
 

@@ -200,12 +200,17 @@ async def _obs_ffmpeg_slowmo(src_path: str) -> "str | None":
     src = pathlib.Path(src_path)
     out = src.parent / f"replay_slowmo{src.suffix}"
     pts_factor = round(1.0 / _REPLAY_SLOWMO, 4)
+    fps_out    = _profile.get("video", {}).get("fps", 30)
     try:
         proc = await asyncio.create_subprocess_exec(
             ffmpeg, "-y", "-i", str(src),
-            "-vf", f"setpts={pts_factor}*PTS",
+            # fps después de setpts duplica frames para mantener 30fps a cámara lenta
+            # sin fps= el video quedaría a 15fps efectivos con slowmo=0.5 → entrecortado
+            "-vf", f"setpts={pts_factor}*PTS,fps={fps_out}",
             "-an",
-            "-c:v", "libx264", "-preset", "ultrafast", "-crf", "18",
+            "-c:v", "libx264", "-preset", "fast", "-crf", "18",
+            "-pix_fmt", "yuv420p",
+            "-movflags", "+faststart",
             "-t", str(_REPLAY_DURATION),
             str(out),
             stdout=asyncio.subprocess.DEVNULL,
@@ -298,7 +303,9 @@ async def _obs_connect_loop() -> None:
 
                 rpc_version = hello["d"]["rpcVersion"]
                 auth_data   = hello["d"].get("authentication")
-                identify_d  = {"rpcVersion": rpc_version, "eventSubscriptions": 1024}
+                # 0x7FFFFFFF = todos los eventos (General|Config|Scenes|Inputs|Outputs|etc.)
+                # 1024 (solo Ui) era incorrecto — ReplayBufferSaved es evento Outputs (64)
+                identify_d  = {"rpcVersion": rpc_version, "eventSubscriptions": 0x7FFFFFFF}
 
                 if auth_data and password:
                     identify_d["authentication"] = _make_obs_auth(
@@ -324,10 +331,15 @@ async def _obs_connect_loop() -> None:
                         continue
                     op = msg.get("op")
                     if op == 7:
-                        # Respuesta a request (GetCurrentProgramScene, etc.)
-                        rid = msg["d"].get("requestId", "")
+                        # Respuesta a request (GetCurrentProgramScene, StartReplayBuffer, etc.)
+                        d = msg.get("d", {})
+                        rid = d.get("requestId", "")
+                        status = d.get("requestStatus", {})
+                        if not status.get("result", True):
+                            print(f"[{_ts()}] OBS op:7 error — {d.get('requestType')} "
+                                  f"code={status.get('code')} {status.get('comment','')}")
                         if rid and rid == _scene_future_rid and _scene_future and not _scene_future.done():
-                            _scene_future.set_result(msg["d"].get("responseData", {}))
+                            _scene_future.set_result(d.get("responseData", {}))
                     elif op == 5:
                         event_type = msg["d"].get("eventType", "")
                         event_data = msg["d"].get("eventData", {})
@@ -340,7 +352,10 @@ async def _obs_connect_loop() -> None:
         except Exception as e:
             _obs_ws            = None
             _obs_authenticated = False
-            print(f"[{_ts()}] OBS WS desconectado ({e.__class__.__name__}), reintentando en 5s...")
+            detail = ""
+            if hasattr(e, "code") and hasattr(e, "reason"):
+                detail = f" code={e.code} reason={e.reason!r}"
+            print(f"[{_ts()}] OBS WS desconectado ({e.__class__.__name__}{detail}), reintentando en 5s...")
             await asyncio.sleep(5)
 
 
