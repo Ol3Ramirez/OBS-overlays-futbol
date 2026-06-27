@@ -229,6 +229,52 @@ bash NuevoPerfil/iniciar_stream.sh
 
 ---
 
+## Replay de Jugadas
+
+### Activar (una sola vez por máquina)
+
+**1. Instalar ffmpeg**
+```bash
+# Mac
+brew install ffmpeg
+
+# Windows (PowerShell — requiere winget)
+winget install -e --id Gyan.FFmpeg
+```
+
+**2. Configurar Replay Buffer en OBS**
+```
+OBS → Herramientas → Ajustes → Salida → pestaña "Repetición"
+  ✅ Activar repetición
+  Duración máxima: 30 segundos
+  Guardar en: (carpeta de tu elección)
+```
+
+**3. Correr setup_obs.py** — crea la escena "SRY - Replay" y la fuente "Replay-Video":
+```bash
+uv run setup_obs.py
+```
+
+**4. Configurar la escena Replay en OBS**
+- En la escena `SRY - Replay`, el Browser Source `Browser-Replay` muestra el overlay `replay.html`
+- La fuente `Replay-Video` (Media Source) ocupa toda la pantalla detrás del overlay
+
+### Uso en partido
+| Acción | Resultado |
+|--------|-----------|
+| Botón **REPETICIÓN** (tab Replay) | Guarda los últimos 30s → crea slow-mo → muestra replay → restaura escena |
+| Teclado `P` | Mismo efecto (atajo rápido en vivo) |
+
+### Parámetros en profile.json
+```json
+"replayBufferSeconds": 30,   // buffer de OBS (configurar igual en OBS Settings)
+"replaySlowmoFactor":  0.5,  // 0.5 = mitad de velocidad (setpts=2.0*PTS)
+"replayDuration":      12,   // segundos de replay visible
+"replayInputName":     "Replay-Video"
+```
+
+---
+
 ## OBS WebSocket
 - Puerto: `4455`
 - Password: en `SRYiyo/.env` como `OBS_WS_PASSWORD=...` (gitignoreado)

@@ -55,8 +55,14 @@
     "ENABLE_PENALTIES":   false,
     "ENABLE_UNDO":        false,
     "ENABLE_IDA_SCORE":   false,
-    "ENABLE_QR":          false
+    "ENABLE_QR":          false,
+    "ENABLE_REPLAY":      true
   },
+
+  "replayBufferSeconds": 30,
+  "replaySlowmoFactor":  0.5,
+  "replayDuration":      12,
+  "replayInputName":     "Replay-Video",
 
   "scenePrefix": "",
   "scenes": {
@@ -68,7 +74,8 @@
     "Entrevista":   "entrevista.html",
     "Canvas":       "canvas.html",
     "Publicidad":        "publicidad_altavoz.html",
-    "Publicidad Sponsor": "publicidad_sponsor.html"
+    "Publicidad Sponsor": "publicidad_sponsor.html",
+    "Replay":            "replay.html"
   },
   "sceneAliases": {
     "Intro":      "Inicio",

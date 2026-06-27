@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Replay</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: transparent;
+  overflow: hidden;
+  font-family: 'Barlow Condensed', 'Arial Black', sans-serif;
+  width: 1920px; height: 1080px;
+}
+.replay-badge {
+  position: absolute;
+  top: 48px;
+  left: 50%;
+  transform: translateX(-50%) scaleX(0.3);
+  opacity: 0;
+  background: linear-gradient(135deg, rgba(0,0,0,0.88) 0%, rgba(15,15,30,0.92) 100%);
+  border: 2px solid #FFD700;
+  border-radius: 6px;
+  padding: 14px 48px 14px 40px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  animation: badgeIn 0.55s cubic-bezier(0.34,1.56,0.64,1) 0.1s forwards;
+}
+@keyframes badgeIn {
+  to { opacity: 1; transform: translateX(-50%) scaleX(1); }
+}
+.replay-icon {
+  width: 36px; height: 36px; flex-shrink: 0;
+  border: 3px solid #FFD700;
+  border-radius: 50%;
+  position: relative;
+  animation: spinOnce 0.6s ease-out 0.55s;
+}
+@keyframes spinOnce {
+  from { transform: rotate(-270deg); }
+  to   { transform: rotate(0deg); }
+}
+.replay-icon::after {
+  content: '';
+  position: absolute;
+  top: 6px; left: 50%;
+  transform: translateX(-1px);
+  border-left: 12px solid #FFD700;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+}
+.replay-text-wrap { display: flex; flex-direction: column; line-height: 1; }
+.replay-label {
+  font-size: 11px; letter-spacing: 4px; color: rgba(255,213,0,0.7);
+  text-transform: uppercase; margin-bottom: 4px;
+}
+.replay-title {
+  font-size: 36px; font-weight: 900; letter-spacing: 3px;
+  color: #fff; text-transform: uppercase;
+  text-shadow: 0 0 20px rgba(255,213,0,0.4);
+}
+.slowmo-bar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 56px;
+  background: linear-gradient(90deg,
+    rgba(0,0,0,0) 0%,
+    rgba(0,0,0,0.75) 15%,
+    rgba(0,0,0,0.85) 50%,
+    rgba(0,0,0,0.75) 85%,
+    rgba(0,0,0,0) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  opacity: 0;
+  animation: fadeInBar 0.4s ease 0.7s forwards;
+}
+@keyframes fadeInBar { to { opacity: 1; } }
+.slowmo-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #FFD700;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.slowmo-dot:nth-child(2) { animation-delay: 0.2s; }
+.slowmo-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes pulse {
+  0%,100% { opacity: 0.3; transform: scale(0.7); }
+  50%      { opacity: 1;   transform: scale(1); }
+}
+.slowmo-text {
+  font-size: 14px; letter-spacing: 4px; color: rgba(255,255,255,0.65);
+  text-transform: uppercase; font-weight: 700;
+}
+.speed-lines {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  opacity: 0;
+  animation: speedFlash 0.35s ease-out 0.05s forwards;
+}
+@keyframes speedFlash {
+  0%   { opacity: 0.6; }
+  100% { opacity: 0; }
+}
+.speed-line {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg,
+    transparent 0%, rgba(255,213,0,0.6) 50%, transparent 100%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .replay-badge { animation: none; opacity:1; transform: translateX(-50%) scaleX(1); }
+  .replay-icon  { animation: none; }
+  .slowmo-bar   { animation: none; opacity:1; }
+  .speed-lines  { display: none; }
+}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="speed-lines" aria-hidden="true">
+  <div class="speed-line" style="left:12%"></div>
+  <div class="speed-line" style="left:24%"></div>
+  <div class="speed-line" style="left:38%"></div>
+  <div class="speed-line" style="left:52%"></div>
+  <div class="speed-line" style="left:66%"></div>
+  <div class="speed-line" style="left:80%"></div>
+  <div class="speed-line" style="left:91%"></div>
+</div>
+<div class="replay-badge" role="status" aria-label="Repetición instantánea">
+  <div class="replay-icon" aria-hidden="true"></div>
+  <div class="replay-text-wrap">
+    <span class="replay-label">Cámara Lenta</span>
+    <span class="replay-title">Repetición</span>
+  </div>
+</div>
+<div class="slowmo-bar" aria-hidden="true">
+  <div class="slowmo-dot"></div>
+  <div class="slowmo-dot"></div>
+  <div class="slowmo-dot"></div>
+  <span class="slowmo-text">0.5× Velocidad</span>
+  <div class="slowmo-dot"></div>
+  <div class="slowmo-dot"></div>
+  <div class="slowmo-dot"></div>
+</div>
+</body>
+</html>

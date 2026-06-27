@@ -20,7 +20,10 @@ import hashlib
 import hmac
 import json
 import os
+import pathlib
+import shutil
 import sys
+import tempfile
 import uuid
 from collections import OrderedDict
 from datetime import datetime
@@ -67,6 +70,7 @@ _NO_STORE = frozenset({
     "clear", "clearSpeaker", "clearTopic", "hideBadge",
     "stopCountdown", "hide", "resetClock",
     "setScene", "playKickoffMusic", "stopKickoffMusic",
+    "triggerReplay",
 })
 
 _state_store: OrderedDict[str, str] = OrderedDict()
@@ -74,9 +78,19 @@ _MAX_STORE  = 100
 _auth_ok: set = set()  # websockets autenticados (para control remoto)
 _outboxes: dict = {}   # websocket -> asyncio.Queue de salida (ver main())
 
-# ── OBS WebSocket para setScene ──
+# ── OBS WebSocket para setScene + replay ──
 _obs_ws            = None
 _obs_authenticated = False
+
+_replay_lock:         asyncio.Lock           = asyncio.Lock()
+_replay_saved_future: "asyncio.Future | None" = None
+_previous_scene:      "str | None"            = None
+
+_FEATURES        = _profile.get("features", {})
+_ENABLE_REPLAY   = _FEATURES.get("ENABLE_REPLAY", False)
+_REPLAY_SLOWMO   = _profile.get("replaySlowmoFactor",  0.5)
+_REPLAY_DURATION = int(_profile.get("replayDuration",  12))
+_REPLAY_INPUT    = _profile.get("replayInputName",     "Replay-Video")
 
 def _build_scene_map(profile: dict) -> dict:
     """Mapa nombre-corto -> nombre de escena en OBS, derivado de profile.json.
@@ -148,6 +162,105 @@ async def _obs_set_scene(scene_short: str) -> None:
         print(f"[{_ts()}] [!] setScene error: {e}")
 
 
+async def _obs_send(request_type: str, request_data: dict = {}) -> None:
+    """Envía un request a OBS WS (fire-and-forget, no espera respuesta)."""
+    if not _obs_ws or not _obs_authenticated:
+        return
+    rid = str(uuid.uuid4())
+    try:
+        await _obs_ws.send(json.dumps({
+            "op": 6,
+            "d": {"requestType": request_type, "requestId": rid, "requestData": request_data},
+        }))
+    except Exception as e:
+        print(f"[{_ts()}] [!] _obs_send {request_type}: {e}")
+
+
+async def _obs_ffmpeg_slowmo(src_path: str) -> "str | None":
+    """Crea versión a cámara lenta del clip guardado por OBS. Cross-platform."""
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        print(f"[{_ts()}] [!] ffmpeg no encontrado — sin cámara lenta (instala ffmpeg)")
+        return None
+    src = pathlib.Path(src_path)
+    out = src.parent / f"replay_slowmo{src.suffix}"
+    pts_factor = round(1.0 / _REPLAY_SLOWMO, 4)  # 0.5 → 2.0
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            ffmpeg, "-y", "-i", str(src),
+            "-vf", f"setpts={pts_factor}*PTS",
+            "-an",
+            "-c:v", "libx264", "-preset", "ultrafast", "-crf", "18",
+            "-t", str(_REPLAY_DURATION),
+            str(out),
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL,
+        )
+        await proc.wait()
+        if proc.returncode == 0 and out.exists():
+            print(f"[{_ts()}] ffmpeg OK: {out}")
+            return str(out)
+        print(f"[{_ts()}] [!] ffmpeg retornó {proc.returncode}")
+        return None
+    except Exception as e:
+        print(f"[{_ts()}] [!] ffmpeg error: {e}")
+        return None
+
+
+async def _obs_replay() -> None:
+    """Flujo completo: guardar buffer → slow-mo → escena Replay → restaurar escena."""
+    global _replay_saved_future, _previous_scene
+    if not _ENABLE_REPLAY:
+        return
+    if not _obs_ws or not _obs_authenticated:
+        print(f"[{_ts()}] [!] triggerReplay: OBS no conectado")
+        return
+
+    async with _replay_lock:
+        loop = asyncio.get_event_loop()
+        _replay_saved_future = loop.create_future()
+
+        await _obs_send("StartReplayBuffer")   # idempotente si ya corre
+        await asyncio.sleep(0.1)
+        await _obs_send("SaveReplayBuffer")
+
+        try:
+            saved_path = await asyncio.wait_for(
+                asyncio.shield(_replay_saved_future), timeout=10.0
+            )
+        except asyncio.TimeoutError:
+            print(f"[{_ts()}] [!] Timeout esperando ReplayBufferSaved (¿replay buffer activo en OBS?)")
+            _replay_saved_future = None
+            return
+        finally:
+            _replay_saved_future = None
+
+        if not saved_path:
+            print(f"[{_ts()}] [!] OBS no devolvió path del replay")
+            return
+
+        print(f"[{_ts()}] Replay guardado: {saved_path}")
+        slowmo = await _obs_ffmpeg_slowmo(saved_path)
+        video  = slowmo if slowmo else saved_path
+
+        await _obs_send("SetInputSettings", {
+            "inputName":     _REPLAY_INPUT,
+            "inputSettings": {"local_file": video},
+            "overlay":       True,
+        })
+        await asyncio.sleep(0.15)
+        await _obs_send("TriggerMediaInputAction", {
+            "inputName":   _REPLAY_INPUT,
+            "mediaAction": "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART",
+        })
+
+        prev = _previous_scene
+        await _obs_set_scene("Replay")
+        await asyncio.sleep(_REPLAY_DURATION + 1.5)
+        if prev:
+            await _obs_set_scene(prev)
+
+
 async def _obs_connect_loop() -> None:
     """Mantiene conexion persistente con OBS WS para setScene."""
     global _obs_ws, _obs_authenticated
@@ -169,7 +282,7 @@ async def _obs_connect_loop() -> None:
 
                 rpc_version = hello["d"]["rpcVersion"]
                 auth_data   = hello["d"].get("authentication")
-                identify_d  = {"rpcVersion": rpc_version, "eventSubscriptions": 0}
+                identify_d  = {"rpcVersion": rpc_version, "eventSubscriptions": 1024}
 
                 if auth_data and password:
                     identify_d["authentication"] = _make_obs_auth(
@@ -188,9 +301,21 @@ async def _obs_connect_loop() -> None:
                     await asyncio.sleep(5)
                     continue
 
-                # Drena mensajes entrantes (eventos OBS que no necesitamos)
-                async for _ in ws:
-                    pass
+                # Parsea eventos OBS (suscripción 1024 = Outputs)
+                async for raw in ws:
+                    try:
+                        msg = json.loads(raw)
+                    except Exception:
+                        continue
+                    if msg.get("op") != 5:
+                        continue
+                    event_type = msg["d"].get("eventType", "")
+                    event_data = msg["d"].get("eventData", {})
+                    if event_type == "ReplayBufferSaved":
+                        path = event_data.get("savedReplayPath", "")
+                        print(f"[{_ts()}] ReplayBufferSaved: {path}")
+                        if _replay_saved_future and not _replay_saved_future.done():
+                            _replay_saved_future.set_result(path)
 
         except Exception as e:
             _obs_ws            = None
@@ -286,11 +411,17 @@ async def main() -> None:
 
                 print(f"[{_ts()}]    -> {data}")
 
-                # ── setScene -> OBS WS directamente ──
+                # ── setScene → OBS WS directamente ──
                 if fn == "setScene":
                     args = data.get("args", [])
                     if args:
+                        global _previous_scene
+                        _previous_scene = args[0]
                         asyncio.create_task(_obs_set_scene(args[0]))
+
+                # ── triggerReplay → flujo completo de replay ──
+                if fn == "triggerReplay":
+                    asyncio.create_task(_obs_replay())
 
                 _broadcast(message)
 

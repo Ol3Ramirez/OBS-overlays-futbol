@@ -59,8 +59,14 @@
     "ENABLE_PENALTIES":   true,
     "ENABLE_UNDO":        true,
     "ENABLE_IDA_SCORE":   true,
-    "ENABLE_QR":          true
+    "ENABLE_QR":          true,
+    "ENABLE_REPLAY":      true
   },
+
+  "replayBufferSeconds": 30,
+  "replaySlowmoFactor":  0.5,
+  "replayDuration":      12,
+  "replayInputName":     "Replay-Video",
 
   "scenePrefix": "SRY - ",
   "scenes": {
@@ -72,7 +78,8 @@
     "Entrevista":   "entrevista.html",
     "Canvas":       "canvas.html",
     "Publicidad":        "publicidad_altavoz.html",
-    "Publicidad Sponsor": "publicidad_sponsor.html"
+    "Publicidad Sponsor": "publicidad_sponsor.html",
+    "Replay":            "replay.html"
   },
   "sceneAliases": {
     "Intro":      "Inicio",

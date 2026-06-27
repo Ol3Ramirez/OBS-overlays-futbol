@@ -638,6 +638,7 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
   <div class="tab" onclick="switchTab('lineup')">Alineación</div>
   <div class="tab" onclick="switchTab('escenas')">Escenas</div>
   <div class="tab" onclick="switchTab('entrevista')" style="color:rgba(255,215,0,0.6)">Entrevista</div>
+  <div class="tab" data-feature="ENABLE_REPLAY" style="display:none;color:rgba(255,215,0,0.6)" onclick="switchTab('replay')">Replay</div>
 </div>
 
 <!-- ═══ TAB: GOLES ═══ -->
@@ -951,6 +952,20 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
   </div>
 </div>
 
+<!-- ═══ TAB: REPLAY ═══ -->
+<div id="pane-replay" class="tab-pane">
+  <div class="sec-label">Repetición Instantánea</div>
+  <div class="act-grid g1" style="margin-bottom:18px">
+    <button class="btn btn-gold" style="font-size:16px;padding:18px" onclick="send('triggerReplay',[])">
+      <span class="ico" aria-hidden="true">⏮</span>REPETICIÓN
+    </button>
+  </div>
+  <div style="font-size:11px;color:var(--dim);letter-spacing:1.5px;text-align:center;line-height:1.8">
+    Atajo teclado: <strong style="color:var(--gold)">P</strong><br>
+    Guarda buffer → cámara lenta → overlay → restaura escena
+  </div>
+</div>
+
 <!-- ═══ UNDO + LOG (ENABLE_UNDO) ═══ -->
 <div class="log-panel" id="log-panel" data-feature="ENABLE_UNDO" style="display:none">
   <div id="log-list"></div>
@@ -1208,6 +1223,7 @@ document.addEventListener('keydown', function(e) {
     case 'y': case 'Y': e.preventDefault(); sendCard('yellow'); break;
     case 'r': case 'R': e.preventDefault(); sendCard('red'); break;
     case 'z': case 'Z': e.preventDefault(); undoLast(); break;
+    case 'p': case 'P': e.preventDefault(); send('triggerReplay',[]); break;
     case ' ':           e.preventDefault(); cp.running ? clockPause() : clockStart(); break;
     case 'Escape':      e.preventDefault(); ['goal','card','sub'].forEach(t => clearSel(t)); break;
   }
@@ -1575,7 +1591,7 @@ function clearLineup() {
 // ══════════════════════════════════════════════════
 //  TABS
 // ══════════════════════════════════════════════════
-const TABS = ['goles','tarjetas','cambios','tiempo','penales','lineup','escenas','entrevista'];
+const TABS = ['goles','tarjetas','cambios','tiempo','penales','lineup','escenas','entrevista','replay'];
 
 function switchTab(name) {
   TABS.forEach(t => {

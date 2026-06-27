@@ -290,6 +290,33 @@ async def main() -> None:
     print()
     await obs_settings.ensure_camera_in_scenes(req, _P, SCENE_PREFIX)
 
+    # ── Fuente de video Replay (ffmpeg_source, idempotente) ────────────────────
+    REPLAY_SCENE = f"{SCENE_PREFIX}Replay"
+    REPLAY_INPUT = _P.get("replayInputName", "Replay-Video")
+    if _P.get("features", {}).get("ENABLE_REPLAY"):
+        print(f"\n  [Replay-Video] -> {REPLAY_SCENE}")
+        r_rp = await req("CreateInput", {
+            "sceneName":     REPLAY_SCENE,
+            "inputName":     REPLAY_INPUT,
+            "inputKind":     "ffmpeg_source",
+            "inputSettings": {
+                "local_file":          "",
+                "is_local_file":       True,
+                "looping":             False,
+                "restart_on_activate": False,
+            },
+            "sceneItemEnabled": True,
+        })
+        ok_rp   = r_rp["requestStatus"]["result"]
+        code_rp = r_rp["requestStatus"].get("code")
+        if ok_rp:
+            print(f"    OK creado (esperando primera jugada)")
+        elif code_rp == 601:
+            print(f"    OK (ya existe)")
+        else:
+            print(f"    Error {code_rp}: {r_rp['requestStatus'].get('comment','')}")
+        await asyncio.sleep(0.35)
+
     # Eliminar escena vacía que OBS crea por defecto en colecciones nuevas
     default_scenes = ["Escena", "Scene"]
     for ds in default_scenes:
