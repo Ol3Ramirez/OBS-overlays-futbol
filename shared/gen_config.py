@@ -59,6 +59,8 @@ SCALAR_MAP = (
     ("sponsorSocial", "SPONSOR_SOCIAL"),
     ("altavozFb", "ALTAVOZ_FB"),
     ("hostFb", "HOST_FB"),
+    ("replaySlowmoFactor", "REPLAY_SLOWMO_FACTOR"),
+    ("replayDuration", "REPLAY_DURATION"),
 )
 
 # Campos que siempre se emiten con un valor por defecto si faltan en profile.json.
