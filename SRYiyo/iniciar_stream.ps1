@@ -146,7 +146,7 @@ $wsLog    = Join-Path $LOG "ws.log"
 $wsErr    = Join-Path $LOG "ws.err"
 
 $wsJob = Start-Process -FilePath "uv" `
-    -ArgumentList @("run", "`"$wsScript`"") `
+    -ArgumentList @("run", $wsScript) `
     -RedirectStandardOutput $wsLog `
     -RedirectStandardError  $wsErr `
     -PassThru -WindowStyle Hidden
