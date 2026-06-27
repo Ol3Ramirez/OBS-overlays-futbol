@@ -160,6 +160,29 @@ async def _obs_send(request_type: str, request_data: dict = {}) -> None:
         print(f"[{_ts()}] [!] _obs_send {request_type}: {e}")
 
 
+async def _obs_get_current_scene() -> "str | None":
+    """Consulta la escena activa en OBS y devuelve su nombre corto (sin prefijo)."""
+    if not _obs_ws or not _obs_authenticated:
+        return None
+    rid = str(uuid.uuid4())
+    prefix = _profile.get("scenePrefix", "")
+    try:
+        await _obs_ws.send(json.dumps({
+            "op": 6,
+            "d": {"requestType": "GetCurrentProgramScene", "requestId": rid, "requestData": {}},
+        }))
+        async with asyncio.timeout(3.0):
+            async for raw in _obs_ws:
+                msg = json.loads(raw)
+                if msg.get("op") == 7 and msg["d"].get("requestId") == rid:
+                    full = msg["d"].get("responseData", {}).get("currentProgramSceneName", "")
+                    short = full[len(prefix):] if prefix and full.startswith(prefix) else full
+                    return short or None
+    except Exception as e:
+        print(f"[{_ts()}] [!] _obs_get_current_scene: {e}")
+    return None
+
+
 async def _obs_ffmpeg_slowmo(src_path: str) -> "str | None":
     """Crea versión a cámara lenta del clip guardado por OBS. Cross-platform."""
     ffmpeg = shutil.which("ffmpeg")
@@ -238,10 +261,11 @@ async def _obs_replay() -> None:
             "mediaAction": "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART",
         })
 
-        prev = _previous_scene
+        # Usar escena actual de OBS como fallback si el panel no la actualizó
+        prev = _previous_scene or await _obs_get_current_scene()
         await _obs_set_scene("Replay")
         await asyncio.sleep(_REPLAY_DURATION + 1.5)
-        if prev:
+        if prev and prev != "Replay":
             await _obs_set_scene(prev)
 
 
