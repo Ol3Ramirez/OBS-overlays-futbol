@@ -85,6 +85,8 @@ _obs_authenticated = False
 _replay_lock:         asyncio.Lock           = asyncio.Lock()
 _replay_saved_future: "asyncio.Future | None" = None
 _previous_scene:      "str | None"            = None
+_scene_future:        "asyncio.Future | None" = None
+_scene_future_rid:    "str | None"            = None
 
 _FEATURES        = _profile.get("features", {})
 _ENABLE_REPLAY   = _FEATURES.get("ENABLE_REPLAY", False)
@@ -177,26 +179,32 @@ async def _obs_send(request_type: str, request_data: dict = {}) -> None:
 
 
 async def _obs_get_current_scene() -> "str | None":
-    """Consulta la escena activa en OBS y devuelve su nombre corto (sin prefijo)."""
+    """Consulta la escena activa. Usa _scene_future resuelto por _obs_connect_loop."""
+    global _scene_future, _scene_future_rid
     if not _obs_ws or not _obs_authenticated:
         return None
     rid = str(uuid.uuid4())
     prefix = _profile.get("scenePrefix", "")
+    _scene_future     = asyncio.get_event_loop().create_future()
+    _scene_future_rid = rid
     try:
         await _obs_ws.send(json.dumps({
             "op": 6,
             "d": {"requestType": "GetCurrentProgramScene", "requestId": rid, "requestData": {}},
         }))
-        async with asyncio.timeout(3.0):
-            async for raw in _obs_ws:
-                msg = json.loads(raw)
-                if msg.get("op") == 7 and msg["d"].get("requestId") == rid:
-                    full = msg["d"].get("responseData", {}).get("currentProgramSceneName", "")
-                    short = full[len(prefix):] if prefix and full.startswith(prefix) else full
-                    return short or None
+        resp_data = await asyncio.wait_for(_scene_future, timeout=3.0)
+        full = resp_data.get("currentProgramSceneName", "")
+        short = full[len(prefix):] if prefix and full.startswith(prefix) else full
+        return short or None
+    except asyncio.TimeoutError:
+        print(f"[{_ts()}] [!] _obs_get_current_scene: timeout")
+        return None
     except Exception as e:
         print(f"[{_ts()}] [!] _obs_get_current_scene: {e}")
-    return None
+        return None
+    finally:
+        _scene_future     = None
+        _scene_future_rid = None
 
 
 async def _obs_ffmpeg_slowmo(src_path: str) -> "str | None":
@@ -325,21 +333,25 @@ async def _obs_connect_loop() -> None:
                     await asyncio.sleep(5)
                     continue
 
-                # Parsea eventos OBS (suscripción 1024 = Outputs)
+                # Parsea mensajes OBS: op7 (respuestas) y op5 (eventos)
                 async for raw in ws:
                     try:
                         msg = json.loads(raw)
                     except Exception:
                         continue
-                    if msg.get("op") != 5:
-                        continue
-                    event_type = msg["d"].get("eventType", "")
-                    event_data = msg["d"].get("eventData", {})
-                    if event_type == "ReplayBufferSaved":
-                        path = event_data.get("savedReplayPath", "")
-                        print(f"[{_ts()}] ReplayBufferSaved: {path}")
-                        if _replay_saved_future and not _replay_saved_future.done():
-                            _replay_saved_future.set_result(path)
+                    op = msg.get("op")
+                    if op == 7:
+                        rid = msg["d"].get("requestId", "")
+                        if rid and rid == _scene_future_rid and _scene_future and not _scene_future.done():
+                            _scene_future.set_result(msg["d"].get("responseData", {}))
+                    elif op == 5:
+                        event_type = msg["d"].get("eventType", "")
+                        event_data = msg["d"].get("eventData", {})
+                        if event_type == "ReplayBufferSaved":
+                            path = event_data.get("savedReplayPath", "")
+                            print(f"[{_ts()}] ReplayBufferSaved: {path}")
+                            if _replay_saved_future and not _replay_saved_future.done():
+                                _replay_saved_future.set_result(path)
 
         except Exception as e:
             _obs_ws            = None
