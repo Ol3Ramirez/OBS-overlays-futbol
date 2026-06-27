@@ -512,7 +512,7 @@
       if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
     } else {
       state.running = true;
-      _lastTick = 0;
+      _lastTick = performance.now();
       if (!_rafId) _rafId = requestAnimationFrame(_rafTick);
     }
   }
