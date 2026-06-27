@@ -315,6 +315,31 @@ async def main() -> None:
             print(f"    OK (ya existe)")
         else:
             print(f"    Error {code_rp}: {r_rp['requestStatus'].get('comment','')}")
+
+        # Fijar el scene item al tamaño del canvas completo.
+        # Al crearse con local_file="" OBS no conoce las dimensiones del video
+        # y puede dejar el item en 0×0 — el transform lo corrige en ambos casos.
+        r_id = await req("GetSceneItemId", {
+            "sceneName":  REPLAY_SCENE,
+            "sourceName": REPLAY_INPUT,
+        })
+        if r_id["requestStatus"]["result"]:
+            item_id = r_id["responseData"]["sceneItemId"]
+            await req("SetSceneItemTransform", {
+                "sceneName":   REPLAY_SCENE,
+                "sceneItemId": item_id,
+                "sceneItemTransform": {
+                    "positionX":   0.0,
+                    "positionY":   0.0,
+                    "boundsType":  "OBS_BOUNDS_SCALE_INNER",
+                    "boundsWidth":  float(_SCENE_W),
+                    "boundsHeight": float(_SCENE_H),
+                },
+            })
+            print(f"    OK transform: {_SCENE_W}x{_SCENE_H} (canvas completo)")
+        else:
+            print(f"    Aviso: no se pudo obtener sceneItemId para fijar transform")
+
         await asyncio.sleep(0.35)
 
     # Eliminar escena vacía que OBS crea por defecto en colecciones nuevas

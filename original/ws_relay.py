@@ -60,11 +60,12 @@ _outboxes: dict = {}
 _obs_ws            = None
 _obs_authenticated = False
 
-_replay_lock:         asyncio.Lock           = asyncio.Lock()
-_replay_saved_future: "asyncio.Future | None" = None
-_previous_scene:      "str | None"            = None
-_scene_future:        "asyncio.Future | None" = None
-_scene_future_rid:    "str | None"            = None
+_replay_lock:          asyncio.Lock           = asyncio.Lock()
+_replay_saved_future:  "asyncio.Future | None" = None
+_replay_playing_future: "asyncio.Future | None" = None
+_previous_scene:       "str | None"            = None
+_scene_future:         "asyncio.Future | None" = None
+_scene_future_rid:     "str | None"            = None
 
 _FEATURES        = _profile.get("features", {})
 _ENABLE_REPLAY   = _FEATURES.get("ENABLE_REPLAY", False)
@@ -169,7 +170,7 @@ async def _obs_get_current_scene() -> "str | None":
         return None
     rid = str(uuid.uuid4())
     prefix = _profile.get("scenePrefix", "")
-    _scene_future     = asyncio.get_event_loop().create_future()
+    _scene_future     = asyncio.get_running_loop().create_future()
     _scene_future_rid = rid
     try:
         await _obs_ws.send(json.dumps({
@@ -192,21 +193,31 @@ async def _obs_get_current_scene() -> "str | None":
 
 
 async def _obs_ffmpeg_slowmo(src_path: str) -> "str | None":
-    """Crea versión a cámara lenta del clip guardado por OBS. Cross-platform."""
+    """Crea versión a cámara lenta del clip guardado por OBS. Cross-platform.
+
+    Toma los últimos `in_duration` segundos del buffer (no los primeros) usando
+    -sseof, para que el replay muestre la jugada más reciente.
+    """
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
         print(f"[{_ts()}] [!] ffmpeg no encontrado — sin cámara lenta (instala ffmpeg)")
         return None
     src = pathlib.Path(src_path)
-    out = src.parent / f"replay_slowmo{src.suffix}"
-    pts_factor = round(1.0 / _REPLAY_SLOWMO, 4)
-    fps_out    = _profile.get("video", {}).get("fps", 30)
+    # timestamp único por replay: OBS ve un path distinto y abre el archivo de cero
+    # (si el path es el mismo, OBS puede reutilizar el handle del replay anterior)
+    ts  = int(datetime.now().timestamp())
+    out = src.parent / f"replay_slowmo_{ts}.mp4"
+    pts_factor  = round(1.0 / _REPLAY_SLOWMO, 4)          # 0.5 → 2.0
+    in_duration = round(_REPLAY_DURATION * _REPLAY_SLOWMO, 2)  # segundos de input necesarios (ej. 6)
+    fps_out     = _profile.get("video", {}).get("fps", 30)
     try:
         proc = await asyncio.create_subprocess_exec(
-            ffmpeg, "-y", "-i", str(src),
-            # fps después de setpts duplica frames para mantener 30fps a cámara lenta
-            # sin fps= el video quedaría a 15fps efectivos con slowmo=0.5 → entrecortado
-            "-vf", f"setpts={pts_factor}*PTS,fps={fps_out}",
+            ffmpeg, "-y",
+            "-sseof", f"-{in_duration}",   # buscar desde el FINAL del archivo (jugada más reciente)
+            "-i", str(src),
+            # PTS-STARTPTS resetea timestamps al punto de inicio del seek;
+            # luego pts_factor*PTS aplica el slowmo; fps duplica frames para mantener 30fps suave
+            "-vf", f"setpts=PTS-STARTPTS,setpts={pts_factor}*PTS,fps={fps_out}",
             "-an",
             "-c:v", "libx264", "-preset", "fast", "-crf", "18",
             "-pix_fmt", "yuv420p",
@@ -214,22 +225,39 @@ async def _obs_ffmpeg_slowmo(src_path: str) -> "str | None":
             "-t", str(_REPLAY_DURATION),
             str(out),
             stdout=asyncio.subprocess.DEVNULL,
-            stderr=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.PIPE,
         )
-        await proc.wait()
+        _, stderr = await proc.communicate()
         if proc.returncode == 0 and out.exists():
-            print(f"[{_ts()}] ffmpeg OK: {out}")
+            size_kb = out.stat().st_size // 1024
+            print(f"[{_ts()}] ffmpeg OK: {out} ({size_kb} KB | últimos {in_duration}s → {_REPLAY_DURATION}s slowmo)")
             return str(out)
-        print(f"[{_ts()}] [!] ffmpeg retornó {proc.returncode}")
+        lines = stderr.decode(errors="replace").strip().splitlines()
+        tail  = " | ".join(lines[-3:]) if lines else "(sin stderr)"
+        print(f"[{_ts()}] [!] ffmpeg retornó {proc.returncode}: {tail}")
         return None
     except Exception as e:
         print(f"[{_ts()}] [!] ffmpeg error: {e}")
         return None
 
 
+def _cleanup_slowmo_files(directory: pathlib.Path) -> None:
+    """Elimina archivos replay_slowmo_*.mp4 excepto los 2 más recientes."""
+    files = sorted(directory.glob("replay_slowmo_*.mp4"), key=lambda f: f.stat().st_mtime)
+    for old in files[:-2]:
+        try:
+            old.unlink()
+        except Exception:
+            pass
+
+
 async def _obs_replay() -> None:
-    """Flujo completo: guardar buffer → slow-mo → escena Replay → restaurar escena."""
-    global _replay_saved_future, _previous_scene
+    """Flujo completo: guardar buffer → slow-mo → escena Replay → restaurar escena.
+
+    Usa MediaInputPlaybackStarted para saber exactamente cuándo OBS terminó de
+    cargar el archivo, eliminando la race condition de SetInputSettings asíncrono.
+    """
+    global _replay_saved_future, _replay_playing_future, _previous_scene
     if not _ENABLE_REPLAY:
         return
     if not _obs_ws or not _obs_authenticated:
@@ -237,13 +265,11 @@ async def _obs_replay() -> None:
         return
 
     async with _replay_lock:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
+
+        # ── 1. Guardar buffer ──────────────────────────────────────────────────
         _replay_saved_future = loop.create_future()
-
-        await _obs_send("StartReplayBuffer")
-        await asyncio.sleep(0.1)
         await _obs_send("SaveReplayBuffer")
-
         try:
             saved_path = await asyncio.wait_for(
                 asyncio.shield(_replay_saved_future), timeout=10.0
@@ -259,27 +285,72 @@ async def _obs_replay() -> None:
             print(f"[{_ts()}] [!] OBS no devolvió path del replay")
             return
 
+        # ── 2. Generar slow-mo ────────────────────────────────────────────────
         print(f"[{_ts()}] Replay guardado: {saved_path}")
         slowmo = await _obs_ffmpeg_slowmo(saved_path)
         video  = slowmo if slowmo else saved_path
+        print(f"[{_ts()}] Cargando en {_REPLAY_INPUT}: {video}")
+
+        prev = _previous_scene or await _obs_get_current_scene()
+
+        # ── 3. Detener reproducción anterior y cargar nuevo archivo ───────────
+        await _obs_send("TriggerMediaInputAction", {
+            "inputName":   _REPLAY_INPUT,
+            "mediaAction": "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP",
+        })
+        await asyncio.sleep(0.2)
 
         await _obs_send("SetInputSettings", {
             "inputName":     _REPLAY_INPUT,
-            "inputSettings": {"local_file": video},
-            "overlay":       True,
+            "inputSettings": {
+                "local_file":          video,
+                "is_local_file":       True,
+                "looping":             False,
+                "restart_on_activate": False,
+            },
+            "overlay": True,  # merge: solo cambia los campos enviados, no resetea el resto
         })
-        await asyncio.sleep(0.15)
+
+        # ── 4. Esperar a que OBS confirme que el video está reproduciéndose ───
+        # MediaInputPlaybackStarted = OBS abrió el archivo y el decoder está activo.
+        # Resuelto por _obs_connect_loop cuando llega el evento de OBS.
+        _replay_playing_future = loop.create_future()
+        await asyncio.sleep(0.3)  # margen mínimo para que SetInputSettings sea procesado
+
         await _obs_send("TriggerMediaInputAction", {
             "inputName":   _REPLAY_INPUT,
             "mediaAction": "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART",
         })
 
-        # Usar escena actual de OBS como fallback si el panel no la actualizó
-        prev = _previous_scene or await _obs_get_current_scene()
+        confirmed = False
+        try:
+            await asyncio.wait_for(asyncio.shield(_replay_playing_future), timeout=5.0)
+            confirmed = True
+            print(f"[{_ts()}] MediaInputPlaybackStarted confirmado — video listo")
+        except asyncio.TimeoutError:
+            print(f"[{_ts()}] [!] Timeout MediaInputPlaybackStarted — delay de seguridad 1s")
+            await asyncio.sleep(1.0)
+        finally:
+            _replay_playing_future = None
+
+        # ── 5. Reiniciar desde frame 0 y mostrar escena ───────────────────────
+        # Un segundo RESTART asegura que el usuario vea desde el principio,
+        # no desde los ~200ms que el video lleva reproduciéndose en background.
+        await _obs_send("TriggerMediaInputAction", {
+            "inputName":   _REPLAY_INPUT,
+            "mediaAction": "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART",
+        })
         await _obs_set_scene("Replay")
-        await asyncio.sleep(_REPLAY_DURATION + 1.5)
+        print(f"[{_ts()}] Reproduciendo {_REPLAY_DURATION}s — anterior: {prev}")
+
+        await asyncio.sleep(_REPLAY_DURATION + 0.5)
         if prev and prev != "Replay":
             await _obs_set_scene(prev)
+
+        # Limpiar archivos de replay antiguos: mantener solo los 2 más recientes
+        # (el actual sigue siendo el más nuevo; el anterior como respaldo)
+        if slowmo:
+            _cleanup_slowmo_files(pathlib.Path(slowmo).parent)
 
 
 async def _obs_connect_loop() -> None:
@@ -348,6 +419,13 @@ async def _obs_connect_loop() -> None:
                             print(f"[{_ts()}] ReplayBufferSaved: {path}")
                             if _replay_saved_future and not _replay_saved_future.done():
                                 _replay_saved_future.set_result(path)
+                        elif event_type == "MediaInputPlaybackStarted":
+                            inp = event_data.get("inputName", "")
+                            print(f"[{_ts()}] MediaInputPlaybackStarted: {inp}")
+                            if (inp == _REPLAY_INPUT
+                                    and _replay_playing_future
+                                    and not _replay_playing_future.done()):
+                                _replay_playing_future.set_result(True)
 
         except Exception as e:
             _obs_ws            = None
